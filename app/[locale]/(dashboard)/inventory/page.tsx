@@ -2,22 +2,22 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ClipboardList } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getIngredients, getStockMovements } from '@/lib/data/queries'
+import {
+  getIngredients,
+  getStockMovements,
+  getActiveBatches,
+} from '@/lib/data/queries'
 import {
   deriveAllStockLevels,
   lastCountDate,
 } from '@/lib/calculations/stock-level'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
-import { TableCell, TableRow } from '@/components/ui/table'
+import { EmptyState, type StockStatus } from '@/components/ui/stokly-theme'
 import {
-  DataTable,
-  MonoValue,
-  StockBadge,
-  EmptyState,
-  type StockStatus,
-} from '@/components/ui/stokly-theme'
-import { formatQuantity, formatDate } from '@/lib/utils'
+  InventoryTable,
+  type InventoryRow,
+} from '@/components/inventory/inventory-table'
 
 export default async function InventoryPage({
   params: { locale },
@@ -28,14 +28,23 @@ export default async function InventoryPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, movements] = await Promise.all([
+  const [ingredients, movements, batches] = await Promise.all([
     getIngredients(ctx.tenantId),
     getStockMovements(ctx.tenantId),
+    getActiveBatches(ctx.tenantId),
   ])
 
   const levels = deriveAllStockLevels(movements)
 
-  const rows = ingredients.map((i) => {
+  // Group active batches by ingredient (already FIFO-ordered by query).
+  const batchesByIngredient = new Map<string, typeof batches>()
+  for (const b of batches) {
+    const arr = batchesByIngredient.get(b.ingredient_id) ?? []
+    arr.push(b)
+    batchesByIngredient.set(b.ingredient_id, arr)
+  }
+
+  const rows: InventoryRow[] = ingredients.map((i) => {
     const stock = levels.get(i.id) ?? 0
     const threshold = i.low_stock_threshold
     let status: StockStatus = 'ok'
@@ -48,14 +57,15 @@ export default async function InventoryPage({
       stock,
       status,
       lastCount: lastCountDate(movements, i.id),
+      batches: (batchesByIngredient.get(i.id) ?? []).map((b) => ({
+        id: b.id,
+        received_date: b.received_date,
+        quantity_remaining: b.quantity_remaining,
+        expiry_date: b.expiry_date,
+        unit_cost: b.unit_cost,
+      })),
     }
   })
-
-  const statusLabel: Record<StockStatus, string> = {
-    ok: t('inventory.status_ok'),
-    low: t('inventory.status_low'),
-    out: t('inventory.status_zero'),
-  }
 
   return (
     <div>
@@ -76,32 +86,7 @@ export default async function InventoryPage({
           <EmptyState message={t('ingredients.empty')} />
         </div>
       ) : (
-        <DataTable
-          columns={[
-            { label: t('ingredients.name') },
-            { label: t('inventory.current_stock'), align: 'right' },
-            { label: t('common.actions') },
-            { label: t('inventory.last_count') },
-          ]}
-        >
-          {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className="font-medium">{row.name}</TableCell>
-              <TableCell className="text-right">
-                <MonoValue value={formatQuantity(row.stock)} unit={row.unit} />
-              </TableCell>
-              <TableCell>
-                <StockBadge
-                  status={row.status}
-                  label={statusLabel[row.status]}
-                />
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDate(row.lastCount)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </DataTable>
+        <InventoryTable rows={rows} />
       )}
     </div>
   )

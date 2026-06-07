@@ -11,7 +11,8 @@ export const stockCountSchema = z.object({
   lines: z.array(stockCountLineSchema).min(1, 'min_one_line'),
 })
 
-// Delivery: per-line ingredient + received quantity + unit cost paid.
+// Delivery: per-line ingredient + received quantity + unit cost paid +
+// optional expiry date (creates one ingredient_batches row per line).
 export const deliveryLineSchema = z.object({
   ingredient_id: z.string().uuid('required'),
   quantity: z.coerce
@@ -20,6 +21,8 @@ export const deliveryLineSchema = z.object({
   unit_cost: z.coerce
     .number({ invalid_type_error: 'number' })
     .nonnegative('positive'),
+  // yyyy-mm-dd or empty. Optional in Phase 1, required in Phase 2.
+  expiry_date: z.string().optional().or(z.literal('')),
 })
 
 export const deliverySchema = z.object({

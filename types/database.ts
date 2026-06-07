@@ -20,6 +20,11 @@ export type MovementType =
   | 'waste'
   | 'adjustment'
   | 'sale'
+  | 'production_input'
+  | 'production_output'
+  | 'expiry_writeoff'
+
+export type BatchStatus = 'active' | 'depleted' | 'expired' | 'written_off'
 
 export interface Database {
   public: {
@@ -96,6 +101,9 @@ export interface Database {
           yield_percent: number
           supplier_id: string | null
           low_stock_threshold: number | null
+          is_produced: boolean
+          default_shelf_life_days: number | null
+          storage_location: string | null
           created_at: string
           updated_at: string
         }
@@ -110,6 +118,9 @@ export interface Database {
           yield_percent?: number
           supplier_id?: string | null
           low_stock_threshold?: number | null
+          is_produced?: boolean
+          default_shelf_life_days?: number | null
+          storage_location?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -187,6 +198,8 @@ export interface Database {
           reason: string | null
           notes: string | null
           recorded_by: string | null
+          batch_id: string | null
+          expiry_date: string | null
           created_at: string
         }
         Insert: {
@@ -201,6 +214,8 @@ export interface Database {
           reason?: string | null
           notes?: string | null
           recorded_by?: string | null
+          batch_id?: string | null
+          expiry_date?: string | null
           created_at?: string
         }
         // Append-only by domain rule (enforced via RLS — no update policy).
@@ -228,6 +243,106 @@ export interface Database {
         }
         Update: Partial<
           Database['public']['Tables']['waste_categories']['Insert']
+        >
+        Relationships: []
+      }
+      ingredient_batches: {
+        Row: {
+          id: string
+          tenant_id: string
+          ingredient_id: string
+          supplier_id: string | null
+          quantity_received: number
+          quantity_remaining: number
+          unit: string
+          unit_cost: number
+          received_date: string
+          expiry_date: string | null
+          status: BatchStatus
+          created_from_movement_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          ingredient_id: string
+          supplier_id?: string | null
+          quantity_received: number
+          quantity_remaining: number
+          unit: string
+          unit_cost: number
+          received_date?: string
+          expiry_date?: string | null
+          status?: BatchStatus
+          created_from_movement_id?: string | null
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['ingredient_batches']['Insert']
+        >
+        Relationships: []
+      }
+      production_runs: {
+        Row: {
+          id: string
+          tenant_id: string
+          output_ingredient_id: string
+          output_quantity: number
+          output_unit: string
+          output_batch_expiry: string | null
+          output_unit_cost: number | null
+          theoretical_yield_percent: number | null
+          actual_yield_percent: number | null
+          recipe_id: string | null
+          produced_by: string | null
+          storage_location: string | null
+          notes: string | null
+          produced_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          output_ingredient_id: string
+          output_quantity: number
+          output_unit: string
+          output_batch_expiry?: string | null
+          output_unit_cost?: number | null
+          theoretical_yield_percent?: number | null
+          actual_yield_percent?: number | null
+          recipe_id?: string | null
+          produced_by?: string | null
+          storage_location?: string | null
+          notes?: string | null
+          produced_at?: string
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['production_runs']['Insert']
+        >
+        Relationships: []
+      }
+      production_run_inputs: {
+        Row: {
+          id: string
+          production_run_id: string
+          ingredient_id: string
+          quantity_used: number
+          unit: string
+          source_batch_id: string | null
+          unit_cost_at_time: number
+        }
+        Insert: {
+          id?: string
+          production_run_id: string
+          ingredient_id: string
+          quantity_used: number
+          unit: string
+          source_batch_id?: string | null
+          unit_cost_at_time: number
+        }
+        Update: Partial<
+          Database['public']['Tables']['production_run_inputs']['Insert']
         >
         Relationships: []
       }
@@ -261,3 +376,9 @@ export type StockMovement =
   Database['public']['Tables']['stock_movements']['Row']
 export type WasteCategory =
   Database['public']['Tables']['waste_categories']['Row']
+export type IngredientBatchRow =
+  Database['public']['Tables']['ingredient_batches']['Row']
+export type ProductionRunRow =
+  Database['public']['Tables']['production_runs']['Row']
+export type ProductionRunInputRow =
+  Database['public']['Tables']['production_run_inputs']['Row']

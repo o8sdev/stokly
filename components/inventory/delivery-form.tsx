@@ -20,6 +20,7 @@ interface Line {
   ingredient_id: string
   quantity: string
   unit_cost: string
+  expiry_date: string
 }
 
 let counter = 0
@@ -38,7 +39,7 @@ export function DeliveryForm({
   const [supplierId, setSupplierId] = useState('')
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<Line[]>([
-    { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '' },
+    { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '' },
   ])
 
   const action = submitDelivery.bind(null, locale)
@@ -54,7 +55,7 @@ export function DeliveryForm({
   function addLine() {
     setLines((prev) => [
       ...prev,
-      { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '' },
+      { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '' },
     ])
   }
 
@@ -92,6 +93,7 @@ export function DeliveryForm({
             ingredient_id: l.ingredient_id,
             quantity: Number(l.quantity),
             unit_cost: l.unit_cost === '' ? 0 : Number(l.unit_cost),
+            expiry_date: l.expiry_date,
           })),
       }),
     [supplierId, notes, lines]
@@ -124,7 +126,7 @@ export function DeliveryForm({
           return (
             <div
               key={line.key}
-              className="grid grid-cols-2 items-end gap-2 rounded-lg border p-3 md:grid-cols-[1fr_120px_120px_40px]"
+              className="grid grid-cols-2 items-end gap-2 rounded-lg border border-border p-3 md:grid-cols-[1fr_104px_104px_150px_40px]"
             >
               <div className="col-span-2 space-y-1 md:col-span-1">
                 <Label className="text-xs">
@@ -173,6 +175,19 @@ export function DeliveryForm({
                   className="text-right font-mono tabular-nums"
                 />
                 {opt && <span className="sr-only">{opt.unit}</span>}
+              </div>
+              <div className="col-span-2 space-y-1 md:col-span-1">
+                <Label className="text-xs">
+                  {t('inventory.expiry_date')}
+                </Label>
+                <Input
+                  type="date"
+                  value={line.expiry_date}
+                  onChange={(e) =>
+                    patch(line.key, { expiry_date: e.target.value })
+                  }
+                  className="font-mono"
+                />
               </div>
               <Button
                 type="button"

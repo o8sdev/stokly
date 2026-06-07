@@ -19,6 +19,15 @@ export const ingredientSchema = z.object({
     .nonnegative('positive')
     .nullable()
     .optional(),
+  // Produced-good fields (migration 003).
+  is_produced: z.boolean().default(false),
+  default_shelf_life_days: z.coerce
+    .number({ invalid_type_error: 'number' })
+    .int()
+    .positive('positive')
+    .nullable()
+    .optional(),
+  storage_location: z.string().max(100).nullable().optional(),
 })
 
 export type IngredientInput = z.infer<typeof ingredientSchema>

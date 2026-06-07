@@ -76,3 +76,8 @@ create policy "tenant_insert" on stock_movements
 -- WASTE_CATEGORIES
 create policy "tenant_all" on waste_categories
   for all using (tenant_id = current_tenant_id());
+
+-- NOTE: RLS for the batch + production tables (ingredient_batches,
+-- production_runs, production_run_inputs) lives at the end of migration 003,
+-- since those tables are created there. Keeping it there lets migrations apply
+-- strictly in order (001 → 002 → 003).

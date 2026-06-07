@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/lib/i18n/navigation'
@@ -12,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
 
 export function IngredientForm({
@@ -35,6 +37,11 @@ export function IngredientForm({
   const yieldDisplay = ingredient
     ? Math.round(ingredient.yield_percent * 1000) / 10
     : 100
+
+  // Produced-good toggle controls visibility of shelf-life + storage fields.
+  const [isProduced, setIsProduced] = useState(
+    ingredient?.is_produced ?? false
+  )
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5 stokly-card p-6">
@@ -142,6 +149,54 @@ export function IngredientForm({
             className="text-right font-mono tabular-nums"
           />
         </div>
+      </div>
+
+      {/* Produced-good fields */}
+      <div className="space-y-4 rounded-lg border border-border bg-secondary/40 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <Label htmlFor="is_produced">{t('ingredients.is_produced')}</Label>
+            <p className="text-xs text-muted-foreground">
+              {t('ingredients.is_produced_help')}
+            </p>
+          </div>
+          <Switch
+            id="is_produced"
+            name="is_produced"
+            checked={isProduced}
+            onCheckedChange={setIsProduced}
+          />
+        </div>
+
+        {isProduced && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="default_shelf_life_days">
+                {t('ingredients.shelf_life')}
+              </Label>
+              <Input
+                id="default_shelf_life_days"
+                name="default_shelf_life_days"
+                type="number"
+                min="1"
+                step="1"
+                defaultValue={ingredient?.default_shelf_life_days ?? ''}
+                className="text-right font-mono tabular-nums"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="storage_location">
+                {t('ingredients.storage_location')}
+              </Label>
+              <Input
+                id="storage_location"
+                name="storage_location"
+                placeholder={t('ingredients.storage_placeholder')}
+                defaultValue={ingredient?.storage_location ?? ''}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {state.error && (

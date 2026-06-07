@@ -13,6 +13,7 @@
     "suppliers": "Поставщики",
     "food_cost": "Себестоимость",
     "inventory_value": "Стоимость склада",
+    "production": "Производство",
     "signout": "Выйти",
     "section": {
       "main": "ОСНОВНОЕ",
@@ -53,7 +54,11 @@
     "col_type": "Тип",
     "col_quantity": "Кол-во",
     "col_user": "Пользователь",
-    "items_below": "{count} ингредиентов ниже порога"
+    "items_below": "{count} ингредиентов ниже порога",
+    "expiry_title": "Истекающие продукты",
+    "no_expiring": "Нет продуктов с истекающим сроком",
+    "days_left": "{days} дн",
+    "expired_label": "Просрочено"
   },
   "ingredients": {
     "title": "Ингредиенты",
@@ -71,7 +76,12 @@
     "low_stock": "Порог низкого остатка",
     "current_stock": "Текущий остаток",
     "empty": "Ингредиентов пока нет",
-    "search_placeholder": "Поиск ингредиента..."
+    "search_placeholder": "Поиск ингредиента...",
+    "is_produced": "Этот ингредиент производится",
+    "is_produced_help": "Остаток поступает из производства, а не из поставок",
+    "shelf_life": "Срок годности (дней)",
+    "storage_location": "Место хранения",
+    "storage_placeholder": "напр. Холодильник, Морозильник, Склад"
   },
   "recipes": {
     "title": "Рецепты",
@@ -128,7 +138,14 @@
     "notes": "Заметки",
     "count_saved": "Инвентаризация сохранена",
     "delivery_saved": "Поставка записана",
-    "waste_saved": "Списание записано"
+    "waste_saved": "Списание записано",
+    "expiry_date": "Срок годности (необязательно)",
+    "batches": "Партии",
+    "batch_received": "Принято",
+    "batch_remaining": "Остаток",
+    "batch_expiry": "Срок",
+    "batch_cost": "Цена за ед.",
+    "no_batches": "Нет активных партий"
   },
   "reports": {
     "title": "Отчёты",
@@ -156,6 +173,11 @@
     "add_supplier": "Добавить поставщика",
     "no_suppliers": "Поставщиков пока нет"
   },
+  "production": {
+    "title": "Производство",
+    "coming_soon": "Модуль производства скоро появится",
+    "coming_soon_desc": "Превращение сырья в готовую продукцию будет добавлено в Фазе 2."
+  },
   "role": {
     "owner": "Владелец",
     "manager": "Менеджер",
@@ -166,7 +188,10 @@
     "count": "Подсчёт",
     "waste": "Списание",
     "adjustment": "Корректировка",
-    "sale": "Продажа"
+    "sale": "Продажа",
+    "production_input": "Вход производства",
+    "production_output": "Выход производства",
+    "expiry_writeoff": "Списание по сроку"
   },
   "waste_category": {
     "spoilage": "Порча",

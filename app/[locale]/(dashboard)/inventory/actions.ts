@@ -55,8 +55,14 @@ export async function submitStockCount(
   redirect(`/${locale}/inventory`)
 }
 
-// DELIVERY — one 'delivery' movement per line (positive delta). Also updates
-// the ingredient's cost_per_unit when the paid unit cost differs.
+// DELIVERY — for each line:
+//   1. append a 'delivery' stock_movement (positive delta, append-only)
+//   2. create an ingredient_batches row (the physical batch) linked back to
+//      that movement via created_from_movement_id, and stamp the movement's
+//      batch_id + expiry_date
+//   3. refresh ingredient.cost_per_unit when the paid price changed
+// Movements are inserted one per line so each batch can link to its own
+// movement id (the FK that ties the append-only log to the batch table).
 export async function submitDelivery(
   locale: string,
   _prev: InventoryActionResult,
@@ -69,37 +75,70 @@ export async function submitDelivery(
   const supplierId = parsed.data.supplier_id || null
   const notes = parsed.data.notes || null
 
-  const rows: MovementInsert[] = parsed.data.lines.map((line) => ({
-    tenant_id: ctx.tenantId,
-    ingredient_id: line.ingredient_id,
-    movement_type: 'delivery',
-    quantity: line.quantity,
-    is_absolute: false,
-    unit_cost: line.unit_cost,
-    supplier_id: supplierId,
-    notes,
-    recorded_by: ctx.userId,
-  }))
-
   const supabase = createClient()
-  const { error } = await supabase.from('stock_movements').insert(rows)
-  if (error) return { error: 'generic' }
 
-  // Refresh ingredient prices to the latest paid cost where it changed.
+  // Need each ingredient's base unit (for the batch) and current price.
   const { data: ingredients } = await supabase
     .from('ingredients')
-    .select('id, cost_per_unit')
+    .select('id, cost_per_unit, unit')
     .eq('tenant_id', ctx.tenantId)
     .in(
       'id',
       parsed.data.lines.map((l) => l.ingredient_id)
     )
 
-  const current = new Map(
-    (ingredients ?? []).map((i) => [i.id, i.cost_per_unit])
+  const ingredientById = new Map(
+    (ingredients ?? []).map((i) => [i.id, i])
   )
+
   for (const line of parsed.data.lines) {
-    const existing = current.get(line.ingredient_id)
+    const expiry = line.expiry_date ? line.expiry_date : null
+    const ing = ingredientById.get(line.ingredient_id)
+    const unit = ing?.unit ?? ''
+
+    // 1. Append the delivery movement and grab its id.
+    const { data: movement, error: moveErr } = await supabase
+      .from('stock_movements')
+      .insert({
+        tenant_id: ctx.tenantId,
+        ingredient_id: line.ingredient_id,
+        movement_type: 'delivery',
+        quantity: line.quantity,
+        is_absolute: false,
+        unit_cost: line.unit_cost,
+        supplier_id: supplierId,
+        notes,
+        recorded_by: ctx.userId,
+        expiry_date: expiry,
+      })
+      .select('id')
+      .single()
+
+    if (moveErr || !movement) return { error: 'generic' }
+
+    // 2. Create the physical batch for this delivery line. The link is
+    //    one-directional (batch.created_from_movement_id → movement); we do NOT
+    //    write back to the append-only movement. movement.batch_id is reserved
+    //    for consumption movements (production_input / expiry_writeoff).
+    const { error: batchErr } = await supabase
+      .from('ingredient_batches')
+      .insert({
+        tenant_id: ctx.tenantId,
+        ingredient_id: line.ingredient_id,
+        supplier_id: supplierId,
+        quantity_received: line.quantity,
+        quantity_remaining: line.quantity,
+        unit,
+        unit_cost: line.unit_cost,
+        expiry_date: expiry,
+        status: 'active',
+        created_from_movement_id: movement.id,
+      })
+
+    if (batchErr) return { error: 'generic' }
+
+    // 3. Refresh the ingredient price when the paid cost changed.
+    const existing = ing?.cost_per_unit
     if (existing != null && existing !== line.unit_cost) {
       await supabase
         .from('ingredients')

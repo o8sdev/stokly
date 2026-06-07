@@ -8,6 +8,7 @@ import type {
   WasteCategory,
   Tenant,
 } from '@/types/database'
+import type { IngredientBatch } from '@/types/app'
 
 // All loaders take an explicit tenantId (resolved via requireTenant) so the
 // tenant scope is always server-controlled. RLS provides defence in depth.
@@ -138,6 +139,22 @@ export async function getWasteCategories(
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true })
   return data ?? []
+}
+
+// All active batches for the tenant, ordered FIFO (oldest received first).
+// SUM(quantity_remaining) per ingredient must equal deriveStockLevel() — see
+// the invariant note in lib/calculations/stock-level.ts.
+export async function getActiveBatches(
+  tenantId: string
+): Promise<IngredientBatch[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('ingredient_batches')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'active')
+    .order('received_date', { ascending: true })
+  return (data ?? []) as IngredientBatch[]
 }
 
 export async function getTenant(tenantId: string): Promise<Tenant | null> {

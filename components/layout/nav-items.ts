@@ -3,6 +3,7 @@ import {
   Carrot,
   ChefHat,
   Boxes,
+  Factory,
   TrendingUp,
   Wallet,
   Users,
@@ -32,6 +33,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/ingredients', labelKey: 'ingredients', icon: Carrot },
       { href: '/recipes', labelKey: 'recipes', icon: ChefHat },
       { href: '/inventory', labelKey: 'inventory', icon: Boxes },
+      { href: '/production', labelKey: 'production', icon: Factory },
     ],
   },
   {

@@ -13,6 +13,7 @@
     "suppliers": "Təchizatçılar",
     "food_cost": "Yemək dəyəri",
     "inventory_value": "Anbar dəyəri",
+    "production": "İstehsal",
     "signout": "Çıxış",
     "section": {
       "main": "ƏSAS",
@@ -53,7 +54,11 @@
     "col_type": "Növ",
     "col_quantity": "Miqdar",
     "col_user": "İstifadəçi",
-    "items_below": "{count} inqrediyent həddən aşağı"
+    "items_below": "{count} inqrediyent həddən aşağı",
+    "expiry_title": "Vaxtı Bitən Məhsullar",
+    "no_expiring": "Yaxın vaxtda vaxtı bitən məhsul yoxdur",
+    "days_left": "{days} gün",
+    "expired_label": "Vaxtı keçib"
   },
   "ingredients": {
     "title": "İnqrediyentlər",
@@ -71,7 +76,12 @@
     "low_stock": "Az stok həddi",
     "current_stock": "Cari stok",
     "empty": "Hələ inqrediyent yoxdur",
-    "search_placeholder": "İnqrediyent axtar..."
+    "search_placeholder": "İnqrediyent axtar...",
+    "is_produced": "Bu inqrediyent istehsal edilir",
+    "is_produced_help": "Stoku çatdırılmadan deyil, istehsaldan gəlir",
+    "shelf_life": "Raf ömrü (gün)",
+    "storage_location": "Saxlama yeri",
+    "storage_placeholder": "məs. Soyuducu, Dondurucu, Anbar"
   },
   "recipes": {
     "title": "Reseptlər",
@@ -128,7 +138,14 @@
     "notes": "Qeydlər",
     "count_saved": "Stok sayımı yadda saxlanıldı",
     "delivery_saved": "Çatdırılma qeyd edildi",
-    "waste_saved": "İtki qeyd edildi"
+    "waste_saved": "İtki qeyd edildi",
+    "expiry_date": "Son istifadə tarixi (ixtiyari)",
+    "batches": "Partiyalar",
+    "batch_received": "Qəbul",
+    "batch_remaining": "Qalıq",
+    "batch_expiry": "Son tarix",
+    "batch_cost": "Vahid dəyəri",
+    "no_batches": "Aktiv partiya yoxdur"
   },
   "reports": {
     "title": "Hesabatlar",
@@ -156,6 +173,11 @@
     "add_supplier": "Təchizatçı əlavə et",
     "no_suppliers": "Hələ təchizatçı yoxdur"
   },
+  "production": {
+    "title": "İstehsal",
+    "coming_soon": "İstehsal modulu tezliklə gəlir",
+    "coming_soon_desc": "Xammalın hazır məhsula çevrilməsi Faza 2-də əlavə olunacaq."
+  },
   "role": {
     "owner": "Sahib",
     "manager": "Menecer",
@@ -166,7 +188,10 @@
     "count": "Sayım",
     "waste": "İtki",
     "adjustment": "Düzəliş",
-    "sale": "Satış"
+    "sale": "Satış",
+    "production_input": "İstehsal girişi",
+    "production_output": "İstehsal çıxışı",
+    "expiry_writeoff": "Vaxt bitmə silinməsi"
   },
   "waste_category": {
     "spoilage": "Korlanma",

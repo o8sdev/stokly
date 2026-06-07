@@ -15,6 +15,9 @@ function parsePayload(formData: FormData) {
   const yieldDisplay = Number(formData.get('yield_percent_display') ?? 0)
   const supplierRaw = String(formData.get('supplier_id') ?? '')
   const thresholdRaw = String(formData.get('low_stock_threshold') ?? '')
+  const isProduced = formData.get('is_produced') === 'on'
+  const shelfRaw = String(formData.get('default_shelf_life_days') ?? '')
+  const storageRaw = String(formData.get('storage_location') ?? '')
 
   return ingredientSchema.safeParse({
     name: formData.get('name'),
@@ -25,6 +28,10 @@ function parsePayload(formData: FormData) {
     yield_percent: yieldDisplay / 100,
     supplier_id: supplierRaw ? supplierRaw : null,
     low_stock_threshold: thresholdRaw === '' ? null : Number(thresholdRaw),
+    is_produced: isProduced,
+    default_shelf_life_days:
+      isProduced && shelfRaw !== '' ? Number(shelfRaw) : null,
+    storage_location: isProduced && storageRaw ? storageRaw : null,
   })
 }
 
@@ -50,6 +57,9 @@ export async function createIngredient(
     yield_percent: parsed.data.yield_percent,
     supplier_id: parsed.data.supplier_id ?? null,
     low_stock_threshold: parsed.data.low_stock_threshold ?? null,
+    is_produced: parsed.data.is_produced,
+    default_shelf_life_days: parsed.data.default_shelf_life_days ?? null,
+    storage_location: parsed.data.storage_location ?? null,
   })
 
   if (error) return { error: 'generic' }
@@ -100,6 +110,9 @@ export async function updateIngredient(
       yield_percent: parsed.data.yield_percent,
       supplier_id: parsed.data.supplier_id ?? null,
       low_stock_threshold: parsed.data.low_stock_threshold ?? null,
+      is_produced: parsed.data.is_produced,
+      default_shelf_life_days: parsed.data.default_shelf_life_days ?? null,
+      storage_location: parsed.data.storage_location ?? null,
     })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)

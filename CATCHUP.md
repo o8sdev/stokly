@@ -5,7 +5,7 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-08_
+_Last updated: 2026-06-08 (batch expiry + production foundation landed)_
 
 ---
 
@@ -107,10 +107,30 @@ npm run lint        # next lint
   bordered cards, `stokly-theme.tsx` component library applied across every
   page. Login page visually verified.
 
-### In progress — Batch expiry (FIFO) + Production-run foundation
-See section 8 for the live task checklist.
+### Done — Batch expiry (FIFO) + Production-run foundation
+All 10 checklist items below complete. typecheck + build (39 routes) + lint
+green. Login smoke-tested. Pushed to `main`.
 
-## 8. Current task — batch expiry + production foundation
+Key files added/changed this round:
+- `supabase/migrations/003_batches_and_production.sql` (+ RLS at end of file)
+- `types/database.ts`, `types/app.ts`
+- `lib/calculations/stock-level.ts` (FIFO/expiry), `lib/calculations/production.ts`
+- `lib/data/queries.ts` → `getActiveBatches`
+- `lib/validations/{ingredient,stock-movement}.ts`
+- `app/[locale]/(dashboard)/inventory/actions.ts` (delivery → batches)
+- `app/[locale]/(dashboard)/ingredients/actions.ts` (produced fields)
+- `components/inventory/{delivery-form,inventory-table}.tsx`
+- `components/ingredients/ingredient-form.tsx`
+- `components/dashboard/expiry-widget.tsx`
+- `app/[locale]/(dashboard)/page.tsx` (expiry widget)
+- `app/[locale]/(dashboard)/production/{page,new/page}.tsx` (Phase-2 stubs)
+- nav: added Production entry; messages: az/ru new keys
+
+Deliberate decision: **auto expiry write-off on dashboard load was NOT wired
+up** (it would mutate data on every page view). `buildExpiryWriteOff()` exists
+as a helper; running it belongs in a scheduled job — see section 9.
+
+## 8. Completed task — batch expiry + production foundation
 
 Goal: design the data model + Phase-1 UI touchpoints for (a) batch-level expiry
 tracking with FIFO consumption and (b) production runs (raw → finished goods),
@@ -118,26 +138,33 @@ so Phase 2 can build the full UI without painful migrations.
 
 Checklist (updated as completed):
 
-- [ ] `003_batches_and_production.sql` — `ingredient_batches`,
+- [x] `003_batches_and_production.sql` — `ingredient_batches`,
       `production_runs`, `production_run_inputs`; extend `stock_movements`
       (batch_id, expiry_date, new movement_types); extend `ingredients`
-      (is_produced, default_shelf_life_days, storage_location).
-- [ ] `002_rls.sql` — RLS for the three new tables.
-- [ ] `types/app.ts` — IngredientBatch, ExpiringBatch, BatchConsumption,
-      ProductionRun, ProductionRunInput.
-- [ ] `types/database.ts` — typed rows for new tables + extended columns.
-- [ ] `lib/calculations/stock-level.ts` — `consumeFIFO`, `getExpiringBatches`,
-      `buildExpiryWriteOff` (+ invariant comment).
-- [ ] `lib/calculations/production.ts` — `calculateProductionCost`,
-      `calculateActualYield`.
-- [ ] Delivery form — optional per-line expiry date; create `ingredient_batches`
-      rows alongside `stock_movements` on submit.
-- [ ] Ingredient form — `is_produced` toggle + shelf-life + storage fields.
-- [ ] Dashboard — "Vaxtı Bitən Məhsullar" expiry-warning widget.
-- [ ] Stock dashboard — expandable per-ingredient batch breakdown.
-- [ ] Phase-2 placeholder routes: `production/page.tsx`,
-      `production/new/page.tsx`.
-- [ ] typecheck + build + lint green; push.
+      (is_produced, default_shelf_life_days, storage_location). **RLS for the
+      three new tables lives at the END of 003** (not 002) so migrations apply
+      in order.
+- [x] `002_rls.sql` — pointer note added; actual policies are in 003.
+- [x] `types/app.ts` — IngredientBatch, ExpiringBatch, BatchConsumption,
+      ProductionRun, ProductionRunInput, StockMovementInsert.
+- [x] `types/database.ts` — typed rows for new tables + extended columns +
+      new movement types + BatchStatus.
+- [x] `lib/calculations/stock-level.ts` — `consumeFIFO`, `getExpiringBatches`,
+      `buildExpiryWriteOff` (+ invariant comment at top).
+- [x] `lib/calculations/production.ts` — `calculateProductionCost`,
+      `calculateActualYield`, `defaultProductionExpiry`, `totalInputCost`.
+- [x] Delivery form — optional per-line expiry date; creates `ingredient_batches`
+      rows alongside `stock_movements` on submit (one movement + one batch per
+      line; movement.batch_id left null for deliveries — append-only respected).
+- [x] Ingredient form — `is_produced` toggle + shelf-life + storage fields
+      (conditional, Radix Switch submits `is_produced=on`).
+- [x] Dashboard — "Vaxtı Bitən Məhsullar" expiry-warning widget (red ≤2d,
+      amber ≤7d), empty state, stacked under low-stock.
+- [x] Stock dashboard — expandable per-ingredient batch breakdown
+      (`components/inventory/inventory-table.tsx`, client, click to expand).
+- [x] Phase-2 placeholder routes: `production/page.tsx` (coming-soon),
+      `production/new/page.tsx` (redirects to `/production`).
+- [x] typecheck + build + lint green; pushed.
 
 ## 9. Next steps (Phase 2 and beyond)
 

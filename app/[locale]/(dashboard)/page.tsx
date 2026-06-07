@@ -8,12 +8,16 @@ import {
   getRecipeIngredients,
   getStockMovements,
   getRecentMovements,
+  getActiveBatches,
 } from '@/lib/data/queries'
 import {
   computeRecipesWithCost,
   averageFoodCostPercent,
 } from '@/lib/calculations/recipe-cost'
-import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
+import {
+  deriveAllStockLevels,
+  getExpiringBatches,
+} from '@/lib/calculations/stock-level'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +32,10 @@ import {
   RecentMovementsWidget,
   type MovementRow,
 } from '@/components/dashboard/recent-movements-widget'
+import {
+  ExpiryWidget,
+  type ExpiryRow,
+} from '@/components/dashboard/expiry-widget'
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -40,13 +48,14 @@ export default async function DashboardPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, recipes, recipeIngredients, movements, recent] =
+  const [ingredients, recipes, recipeIngredients, movements, recent, batches] =
     await Promise.all([
       getIngredients(ctx.tenantId),
       getRecipes(ctx.tenantId),
       getRecipeIngredients(ctx.tenantId),
       getStockMovements(ctx.tenantId),
       getRecentMovements(ctx.tenantId, 8),
+      getActiveBatches(ctx.tenantId),
     ])
 
   const recipesWithCost = computeRecipesWithCost(
@@ -109,6 +118,16 @@ export default async function DashboardPage({
       user: m.recorded_by === ctx.userId ? ctx.email ?? '—' : '—',
     }
   })
+
+  // Batches expiring within 7 days, annotated with ingredient names.
+  const expiryRows: ExpiryRow[] = getExpiringBatches(batches, 7).map((b) => ({
+    id: b.id,
+    ingredientName: ingredientById.get(b.ingredient_id)?.name ?? '—',
+    quantityRemaining: b.quantity_remaining,
+    unit: b.unit,
+    expiryDate: b.expiry_date as string,
+    daysRemaining: b.days_remaining,
+  }))
 
   const band = foodCostBand(avgFoodCost)
 
@@ -185,13 +204,14 @@ export default async function DashboardPage({
         />
       </div>
 
-      {/* Two-column: movements (2) + low stock (1) */}
+      {/* Two-column: movements (2) + right stack (low stock + expiry) */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RecentMovementsWidget rows={recentRows} locale={locale} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="flex flex-col gap-4 lg:col-span-1">
           <LowStockWidget rows={lowStock} />
+          <ExpiryWidget rows={expiryRows} />
         </div>
       </div>
     </div>

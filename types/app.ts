@@ -1,4 +1,8 @@
-import type { Ingredient, Recipe, Supplier } from './database'
+import type { Ingredient, Recipe, Supplier, Database } from './database'
+
+// Convenience alias for inserting an append-only stock movement.
+export type StockMovementInsert =
+  Database['public']['Tables']['stock_movements']['Insert']
 
 // A single computed line inside a recipe cost calculation.
 export interface RecipeIngredientLine {
@@ -54,3 +58,62 @@ export type SubRecipeOption = {
 }
 
 export type SupplierOption = Pick<Supplier, 'id' | 'name'>
+
+/* ── Batch expiry / FIFO (migration 003) ──────────────────────────────── */
+
+export type IngredientBatch = {
+  id: string
+  tenant_id: string
+  ingredient_id: string
+  supplier_id: string | null
+  quantity_received: number
+  quantity_remaining: number
+  unit: string
+  unit_cost: number
+  received_date: string
+  expiry_date: string | null
+  status: 'active' | 'depleted' | 'expired' | 'written_off'
+  created_from_movement_id: string | null
+  created_at: string
+}
+
+export type ExpiringBatch = IngredientBatch & {
+  days_remaining: number
+  ingredient_name: string
+}
+
+export type BatchConsumption = {
+  batch_id: string
+  quantity_consumed: number
+  unit_cost: number
+}
+
+/* ── Production runs (migration 003) ───────────────────────────────────── */
+
+export type ProductionRun = {
+  id: string
+  tenant_id: string
+  output_ingredient_id: string
+  output_quantity: number
+  output_unit: string
+  output_batch_expiry: string | null
+  output_unit_cost: number | null
+  theoretical_yield_percent: number | null
+  actual_yield_percent: number | null
+  recipe_id: string | null
+  produced_by: string | null
+  storage_location: string | null
+  notes: string | null
+  produced_at: string
+  created_at: string
+}
+
+export type ProductionRunInput = {
+  id: string
+  production_run_id: string
+  ingredient_id: string
+  quantity_used: number
+  unit: string
+  source_batch_id: string | null
+  unit_cost_at_time: number
+}
