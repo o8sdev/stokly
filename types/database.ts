@@ -1,0 +1,263 @@
+// Supabase database types.
+// In a real project these are generated via:
+//   supabase gen types typescript --local > types/database.ts
+// They are hand-written here to match supabase/migrations exactly so the app
+// is fully typed without a running database.
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Role = 'owner' | 'manager' | 'staff'
+
+export type MovementType =
+  | 'delivery'
+  | 'count'
+  | 'waste'
+  | 'adjustment'
+  | 'sale'
+
+export interface Database {
+  public: {
+    Tables: {
+      tenants: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          currency: string
+          locale: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          currency?: string
+          locale?: string
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['tenants']['Insert']>
+        Relationships: []
+      }
+      tenant_members: {
+        Row: {
+          id: string
+          tenant_id: string
+          user_id: string
+          role: Role
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          user_id: string
+          role: Role
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['tenant_members']['Insert']
+        >
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          phone: string | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          phone?: string | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['suppliers']['Insert']>
+        Relationships: []
+      }
+      ingredients: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          name_az: string | null
+          name_ru: string | null
+          unit: string
+          cost_per_unit: number
+          yield_percent: number
+          supplier_id: string | null
+          low_stock_threshold: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          name_az?: string | null
+          name_ru?: string | null
+          unit: string
+          cost_per_unit?: number
+          yield_percent?: number
+          supplier_id?: string | null
+          low_stock_threshold?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['ingredients']['Insert']
+        >
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          name_az: string | null
+          name_ru: string | null
+          is_sub_recipe: boolean
+          serving_size: number | null
+          serving_unit: string | null
+          sale_price: number | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          name_az?: string | null
+          name_ru?: string | null
+          is_sub_recipe?: boolean
+          serving_size?: number | null
+          serving_unit?: string | null
+          sale_price?: number | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['recipes']['Insert']>
+        Relationships: []
+      }
+      recipe_ingredients: {
+        Row: {
+          id: string
+          recipe_id: string
+          ingredient_id: string | null
+          sub_recipe_id: string | null
+          quantity: number
+          unit: string
+          yield_override: number | null
+        }
+        Insert: {
+          id?: string
+          recipe_id: string
+          ingredient_id?: string | null
+          sub_recipe_id?: string | null
+          quantity: number
+          unit: string
+          yield_override?: number | null
+        }
+        Update: Partial<
+          Database['public']['Tables']['recipe_ingredients']['Insert']
+        >
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          id: string
+          tenant_id: string
+          ingredient_id: string
+          movement_type: MovementType
+          quantity: number
+          is_absolute: boolean
+          unit_cost: number | null
+          supplier_id: string | null
+          reason: string | null
+          notes: string | null
+          recorded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          ingredient_id: string
+          movement_type: MovementType
+          quantity: number
+          is_absolute?: boolean
+          unit_cost?: number | null
+          supplier_id?: string | null
+          reason?: string | null
+          notes?: string | null
+          recorded_by?: string | null
+          created_at?: string
+        }
+        // Append-only by domain rule (enforced via RLS — no update policy).
+        // The type stays a valid object so the typed client resolves; app code
+        // simply never issues updates against this table.
+        Update: Partial<
+          Database['public']['Tables']['stock_movements']['Insert']
+        >
+        Relationships: []
+      }
+      waste_categories: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          name_az: string | null
+          name_ru: string | null
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          name_az?: string | null
+          name_ru?: string | null
+        }
+        Update: Partial<
+          Database['public']['Tables']['waste_categories']['Insert']
+        >
+        Relationships: []
+      }
+    }
+    Views: Record<never, never>
+    Functions: {
+      current_tenant_id: {
+        Args: Record<string, never>
+        Returns: string
+      }
+      current_user_role: {
+        Args: Record<string, never>
+        Returns: string
+      }
+    }
+    Enums: Record<never, never>
+    CompositeTypes: Record<never, never>
+  }
+}
+
+// Convenience row aliases used across the app.
+export type Tenant = Database['public']['Tables']['tenants']['Row']
+export type TenantMember =
+  Database['public']['Tables']['tenant_members']['Row']
+export type Supplier = Database['public']['Tables']['suppliers']['Row']
+export type Ingredient = Database['public']['Tables']['ingredients']['Row']
+export type Recipe = Database['public']['Tables']['recipes']['Row']
+export type RecipeIngredient =
+  Database['public']['Tables']['recipe_ingredients']['Row']
+export type StockMovement =
+  Database['public']['Tables']['stock_movements']['Row']
+export type WasteCategory =
+  Database['public']['Tables']['waste_categories']['Row']

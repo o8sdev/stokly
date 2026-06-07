@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Stokly design tokens.
+  Palette (hex → HSL for the shadcn variable system):
+    brand teal   #00C896  → 165 100% 39%
+    deep navy    #0D1B2A  → 209 51% 11%
+    content bg   #F8FAFB  → 200 27% 98%
+    card         #FFFFFF  → 0 0% 100%
+    text primary #1A2332  → 217 32% 15%
+    text muted   #6B7A8D  → 214 14% 49%
+    border       #E2E8F0  → 214 32% 91%
+    danger       #E53E3E  → 0 76% 57%
+    warning      #D97706  → 32 95% 44%
+    success      #38A169  → 148 48% 43%
+*/
+
+@layer base {
+  :root {
+    --background: 200 27% 98%;
+    --foreground: 217 32% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 217 32% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 32% 15%;
+    --primary: 165 100% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 27% 96%;
+    --secondary-foreground: 217 32% 15%;
+    --muted: 200 27% 96%;
+    --muted-foreground: 214 14% 49%;
+    --accent: 165 60% 95%;
+    --accent-foreground: 209 51% 13%;
+    --destructive: 0 76% 57%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 165 100% 39%;
+    --radius: 0.75rem;
+
+    /* Sidebar-specific (deep navy surface) */
+    --sidebar: 209 51% 11%;
+    --sidebar-foreground: 213 20% 60%;
+    --sidebar-muted: 213 15% 38%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'ss01', 'cv01';
+  }
+  /* Tabular, lined numerals everywhere mono is used. */
+  .font-mono {
+    font-feature-settings: 'tnum', 'zero';
+  }
+}
+
+@layer components {
+  /* Flat, bordered card — no shadow per the design direction. */
+  .stokly-card {
+    @apply rounded-xl border border-border bg-card;
+  }
+
+  /* Table header cell treatment. */
+  .stokly-th {
+    @apply h-10 bg-background px-4 text-left align-middle text-[11px]
+      font-semibold uppercase tracking-[0.06em] text-muted-foreground;
+  }
+
+  /* Numeric value pill rendered in mono with tabular figures. */
+  .mono-value {
+    @apply font-mono tabular-nums;
+  }
+}
+
+/* ── Micro-interactions ───────────────────────────────────────────────── */
+@keyframes stokly-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-line-in {
+  animation: stokly-line-in 200ms ease-out;
+}
+
+/* Custom scrollbar for content areas — subtle, on brand. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(214 20% 80%) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: hsl(214 20% 80%);
+  border-radius: 9999px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}

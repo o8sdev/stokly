@@ -1,0 +1,163 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Pencil, Search, Trash2 } from 'lucide-react'
+import { Link } from '@/lib/i18n/navigation'
+import type { IngredientWithStock } from '@/types/app'
+import { deleteIngredient } from '@/app/[locale]/(dashboard)/ingredients/actions'
+import { TableCell, TableRow } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import {
+  DataTable,
+  MonoValue,
+  NeutralPill,
+  StockBadge,
+  EmptyState,
+  type StockStatus,
+} from '@/components/ui/stokly-theme'
+import { formatMoney, formatQuantity, cn } from '@/lib/utils'
+
+export function IngredientTable({
+  locale,
+  rows,
+}: {
+  locale: string
+  rows: IngredientWithStock[]
+}) {
+  const t = useTranslations()
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return rows
+    return rows.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        (r.name_az ?? '').toLowerCase().includes(q) ||
+        (r.name_ru ?? '').toLowerCase().includes(q)
+    )
+  }, [rows, query])
+
+  function stockStatus(row: IngredientWithStock): StockStatus {
+    if (row.currentStock <= 0) return 'out'
+    if (
+      row.low_stock_threshold != null &&
+      row.currentStock <= row.low_stock_threshold
+    )
+      return 'low'
+    return 'ok'
+  }
+
+  const statusLabel: Record<StockStatus, string> = {
+    ok: t('inventory.status_ok'),
+    low: t('inventory.status_low'),
+    out: t('inventory.status_zero'),
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="relative max-w-md">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('ingredients.search_placeholder')}
+          className="pl-9"
+        />
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="stokly-card">
+          <EmptyState
+            message={
+              query ? t('common.none') : t('ingredients.empty')
+            }
+            action={
+              !query ? (
+                <Button asChild size="sm">
+                  <Link href="/ingredients/new">{t('ingredients.add')}</Link>
+                </Button>
+              ) : undefined
+            }
+          />
+        </div>
+      ) : (
+        <DataTable
+          columns={[
+            { label: t('ingredients.name') },
+            { label: t('ingredients.unit') },
+            { label: t('ingredients.cost'), align: 'right' },
+            { label: t('ingredients.yield'), align: 'right' },
+            { label: t('ingredients.current_stock'), align: 'right' },
+            { label: t('ingredients.supplier') },
+            { label: t('common.actions'), align: 'right' },
+          ]}
+        >
+          {filtered.map((row) => {
+            const status = stockStatus(row)
+            return (
+              <TableRow key={row.id}>
+                <TableCell className="font-medium">{row.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {row.unit}
+                </TableCell>
+                <TableCell className="text-right">
+                  <MonoValue value={formatMoney(row.cost_per_unit)} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <NeutralPill>
+                    {Math.round(row.yield_percent * 100)}%
+                  </NeutralPill>
+                </TableCell>
+                <TableCell className="text-right">
+                  <span className="inline-flex items-center justify-end gap-2">
+                    <MonoValue
+                      value={formatQuantity(row.currentStock)}
+                      unit={row.unit}
+                    />
+                    <StockBadge status={status} label={statusLabel[status]} />
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {row.supplierName ?? (
+                    <span className="text-muted-foreground">
+                      {t('ingredients.no_supplier')}
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                    >
+                      <Link href={`/ingredients/${row.id}`}>
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <form action={deleteIngredient.bind(null, locale, row.id)}>
+                      <button
+                        type="submit"
+                        title={t('common.delete')}
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors',
+                          'hover:bg-[#FEF2F2] hover:text-[#E53E3E]'
+                        )}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </form>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </DataTable>
+      )}
+    </div>
+  )
+}

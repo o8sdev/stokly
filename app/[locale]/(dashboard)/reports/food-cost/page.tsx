@@ -1,0 +1,142 @@
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { requireTenant } from '@/lib/auth/tenant'
+import {
+  getIngredients,
+  getRecipes,
+  getRecipeIngredients,
+} from '@/lib/data/queries'
+import {
+  computeRecipesWithCost,
+  averageFoodCostPercent,
+} from '@/lib/calculations/recipe-cost'
+import { PageHeader } from '@/components/layout/page-header'
+import { TableCell, TableRow } from '@/components/ui/table'
+import {
+  MetricCard,
+  DataTable,
+  MonoValue,
+  FoodCostBadge,
+  EmptyState,
+  foodCostBand,
+} from '@/components/ui/stokly-theme'
+import { formatMoney } from '@/lib/utils'
+
+export default async function FoodCostReportPage({
+  params: { locale },
+}: {
+  params: { locale: string }
+}) {
+  setRequestLocale(locale)
+  const t = await getTranslations()
+  const ctx = await requireTenant(locale)
+
+  const [ingredients, recipes, recipeIngredients] = await Promise.all([
+    getIngredients(ctx.tenantId),
+    getRecipes(ctx.tenantId),
+    getRecipeIngredients(ctx.tenantId),
+  ])
+
+  // Dishes only (exclude sub-recipes), sorted most expensive food cost first.
+  const rows = computeRecipesWithCost(ingredients, recipes, recipeIngredients)
+    .filter((r) => !r.is_sub_recipe)
+    .sort((a, b) => b.foodCostPercent - a.foodCostPercent)
+
+  const avg = averageFoodCostPercent(rows)
+  const priced = rows.filter((r) => r.sale_price && r.sale_price > 0)
+  const highest = priced[0]
+  const lowest = priced[priced.length - 1]
+  const avgBand = foodCostBand(avg)
+
+  return (
+    <div>
+      <PageHeader title={t('reports.food_cost')} />
+
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard
+          label={t('reports.avg_food_cost')}
+          value={
+            <span style={{ color: priced.length ? avgBand.text : undefined }}>
+              {avg.toFixed(1)}
+            </span>
+          }
+          unit="%"
+        />
+        <MetricCard
+          label={t('reports.highest')}
+          value={
+            <span className="font-sans text-lg">{highest?.name ?? '—'}</span>
+          }
+          sub={
+            highest ? (
+              <FoodCostBadge percent={highest.foodCostPercent} />
+            ) : undefined
+          }
+        />
+        <MetricCard
+          label={t('reports.lowest')}
+          value={
+            <span className="font-sans text-lg">{lowest?.name ?? '—'}</span>
+          }
+          sub={
+            lowest ? (
+              <FoodCostBadge percent={lowest.foodCostPercent} />
+            ) : undefined
+          }
+        />
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="stokly-card">
+          <EmptyState message={t('recipes.empty')} />
+        </div>
+      ) : (
+        <DataTable
+          columns={[
+            { label: t('recipes.name') },
+            { label: t('recipes.total_cost'), align: 'right' },
+            { label: t('recipes.sale_price'), align: 'right' },
+            { label: t('recipes.food_cost'), align: 'right' },
+            { label: t('recipes.margin'), align: 'right' },
+          ]}
+        >
+          {rows.map((row) => {
+            const margin =
+              row.sale_price != null ? row.sale_price - row.totalCost : null
+            return (
+              <TableRow key={row.id}>
+                <TableCell className="font-medium">{row.name}</TableCell>
+                <TableCell className="text-right">
+                  <MonoValue value={formatMoney(row.totalCost)} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {row.sale_price ? (
+                    <MonoValue value={formatMoney(row.sale_price)} />
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {row.sale_price ? (
+                    <FoodCostBadge percent={row.foodCostPercent} />
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {margin != null ? (
+                    <MonoValue
+                      value={formatMoney(margin)}
+                      className={margin < 0 ? 'text-[#E53E3E]' : undefined}
+                    />
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </DataTable>
+      )}
+    </div>
+  )
+}
