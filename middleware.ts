@@ -5,6 +5,7 @@ import {
   updateSession,
   getLocaleFromPath,
   isAuthRoute,
+  isLandingRoute,
 } from '@/lib/supabase/middleware'
 
 const intlMiddleware = createIntlMiddleware({
@@ -21,22 +22,24 @@ export async function middleware(request: NextRequest) {
 
   const locale = getLocaleFromPath(pathname)
 
-  // 2. Decide whether this is a protected dashboard route. Everything that is
-  //    not an auth route (login/signup) and is under a locale prefix is the
-  //    dashboard group, which requires authentication.
+  // 2. Public routes need no auth: the marketing landing (locale root) and the
+  //    login / signup pages. Everything else (the dashboard group) is protected.
   const onAuthRoute = isAuthRoute(pathname)
+  const onLanding = isLandingRoute(pathname, locale)
+  const isPublic = onAuthRoute || onLanding
 
   // 3. Unauthenticated user trying to reach a protected route → /login.
-  if (!user && !onAuthRoute) {
+  if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = `/${locale}/login`
     return NextResponse.redirect(url)
   }
 
   // 4. Authenticated user landing on login/signup → dashboard home.
+  //    (The landing page stays reachable for signed-in users.)
   if (user && onAuthRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = `/${locale}`
+    url.pathname = `/${locale}/dashboard`
     return NextResponse.redirect(url)
   }
 

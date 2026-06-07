@@ -29,7 +29,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'main',
     items: [
-      { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
+      { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
       { href: '/ingredients', labelKey: 'ingredients', icon: Carrot },
       { href: '/recipes', labelKey: 'recipes', icon: ChefHat },
       { href: '/inventory', labelKey: 'inventory', icon: Boxes },
@@ -58,7 +58,7 @@ export const NAV_SECTIONS: NavSection[] = [
 
 // Flat list used by the mobile bottom tab bar (icons only, primary routes).
 export const MOBILE_NAV: NavItem[] = [
-  { href: '/', labelKey: 'dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
   { href: '/ingredients', labelKey: 'ingredients', icon: Carrot },
   { href: '/recipes', labelKey: 'recipes', icon: ChefHat },
   { href: '/inventory', labelKey: 'inventory', icon: Boxes },

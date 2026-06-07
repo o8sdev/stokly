@@ -95,10 +95,15 @@ npm run lint        # next lint
 
 ## 6. Project structure (high level)
 
+- `app/[locale]/(marketing)` — **public landing page at the locale root** (e.g.
+  `/az`). Dark "control-room" marketing site; no auth.
 - `app/[locale]/(auth)` — login / signup (+ `actions.ts`)
-- `app/[locale]/(dashboard)` — authed app: dashboard, ingredients, recipes,
-  inventory (count/delivery/waste), reports (food-cost/inventory-value),
-  settings (+ suppliers), production (Phase 2 placeholder)
+- `app/[locale]/(dashboard)` — authed app. **Home moved to `/[locale]/dashboard`**
+  (the root is the landing now). Ingredients, recipes, inventory
+  (count/delivery/waste), reports (food-cost/inventory-value), settings
+  (+ suppliers), production (Phase 2 placeholder)
+- `components/marketing` — landing components (nav, reveal, count-up, hero panel,
+  testimonials, faq, demo form)
 - `components/ui` — shadcn primitives + `stokly-theme.tsx` (StoklyCard,
   MetricCard, FoodCostBadge, StockBadge, DataTable, MonoValue, …)
 - `components/layout` — sidebar, header, mobile-nav
@@ -179,6 +184,23 @@ Checklist (updated as completed):
 - [x] Phase-2 placeholder routes: `production/page.tsx` (coming-soon),
       `production/new/page.tsx` (redirects to `/production`).
 - [x] typecheck + build + lint green; pushed.
+
+### Done — marketing landing page (dark control-room)
+- Public bilingual (AZ/RU) landing at the locale root `/[locale]`. **Routing
+  refactor:** dashboard home moved `/[locale]` → `/[locale]/dashboard`; middleware
+  makes the root public; nav/header/redirects updated; post-login →
+  `/dashboard`.
+- Aesthetic: deep-navy + teal, **Bricolage Grotesque** display + DM Sans +
+  JetBrains Mono, grid/grain/glow, IntersectionObserver scroll-reveal, count-up
+  stats, hero instrument-panel, testimonials marquee, FAQ accordion, demo CTA.
+  All CSS/IO — no animation libraries added.
+- Sections: hero, trust strip, problem, services bento, how-it-works, mission,
+  metrics band, testimonials, demo+CTA, FAQ, final CTA, footer.
+- **Placeholders to swap later:** testimonials are realistic but fictional;
+  the demo form is front-end only (success state, not wired to a backend).
+- Gotcha fixed: `CountUp` must format numbers deterministically (not
+  `toLocaleString`) — Node vs browser ICU differ and cause hydration mismatches.
+  A `<noscript>` fallback reveals content if JS is off.
 
 ### Done — service_role key eliminated (migration 005)
 - Signup provisioning moved into the `on_auth_user_created` trigger

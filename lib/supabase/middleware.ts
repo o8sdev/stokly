@@ -53,3 +53,13 @@ const AUTH_PATHS = ['/login', '/signup']
 export function isAuthRoute(pathname: string): boolean {
   return AUTH_PATHS.some((p) => pathname.includes(p))
 }
+
+// The public marketing landing page lives at the locale root (e.g. /az). It is
+// reachable by everyone, signed-in or not.
+export function isLandingRoute(pathname: string, locale: string): boolean {
+  return (
+    pathname === '/' ||
+    pathname === `/${locale}` ||
+    pathname === `/${locale}/`
+  )
+}

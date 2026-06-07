@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono } from 'next/font/google'
+import { DM_Sans, JetBrains_Mono, Bricolage_Grotesque } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
@@ -7,7 +7,8 @@ import { locales } from '@/i18n'
 import { cn } from '@/lib/utils'
 import '../globals.css'
 
-// Display / body type — DM Sans. Numeric / money type — JetBrains Mono.
+// Body type — DM Sans. Numeric / money type — JetBrains Mono.
+// Marketing display headlines — Bricolage Grotesque (landing page only).
 const dmSans = DM_Sans({
   subsets: ['latin', 'latin-ext'],
   weight: ['400', '500', '600'],
@@ -19,6 +20,13 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin', 'latin-ext'],
   weight: ['400', '500'],
   variable: '--font-mono',
+  display: 'swap',
+})
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-display',
   display: 'swap',
 })
 
@@ -48,7 +56,11 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={cn(dmSans.variable, jetbrainsMono.variable)}
+      className={cn(
+        dmSans.variable,
+        jetbrainsMono.variable,
+        bricolage.variable
+      )}
     >
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>

@@ -25,7 +25,7 @@ export async function login(
     return { error: 'invalid' }
   }
 
-  redirect(`/${locale}`)
+  redirect(`/${locale}/dashboard`)
 }
 
 export async function signup(
@@ -65,7 +65,7 @@ export async function signup(
     return { error: 'generic' }
   }
 
-  redirect(`/${locale}`)
+  redirect(`/${locale}/dashboard`)
 }
 
 export async function signout(locale: string): Promise<void> {
