@@ -29,12 +29,8 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 
 ```bash
 npm install
-cp .env.local.example .env.local     # fill in real Supabase keys
-# apply migrations in order against your Supabase project:
-#   supabase/migrations/001_initial_schema.sql
-#   supabase/migrations/002_rls.sql
-#   supabase/migrations/003_batches_and_production.sql
-#   supabase/migrations/004_harden_function_search_path.sql
+cp .env.local.example .env.local     # only URL + anon key needed
+# apply migrations in filename order (001 → 005) against your Supabase project
 npm run dev
 ```
 
@@ -42,11 +38,16 @@ npm run dev
 
 - Supabase project: **stockly** — ref `anbvxpoxdalizlsdcsdb`
   (`https://anbvxpoxdalizlsdcsdb.supabase.co`), region ap-northeast-1.
-- Migrations **001–004 are already applied** (all 11 tables, RLS on, 19
-  policies; helper functions hardened with `search_path=''`).
-- `.env.local` is NOT committed — get the URL + anon key + service_role key from
-  Supabase → Project Settings → API and paste them into `.env.local` yourself.
-  Never put the service_role key in chat or git.
+- Migrations **001–005 are already applied** (11 tables, RLS on, helper
+  functions hardened, signup-provisioning trigger live).
+- **`.env.local` only needs two public values** — `NEXT_PUBLIC_SUPABASE_URL`
+  and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. **No `service_role` secret** (signup
+  provisioning is a DB trigger). The local `.env.local` is already populated and
+  git-ignored.
+- Auth: if you want signup to land straight on the dashboard, disable
+  **Confirm email** in Supabase → Authentication → Providers → Email. With it
+  on, the tenant is still provisioned at signup but the user must confirm before
+  logging in.
 
 Verification commands (all must pass clean):
 
@@ -88,7 +89,9 @@ npm run lint        # next lint
   `never`). Every table's `Update` type must be a real object, not `never`.
 - `next.config` must be **`.mjs`** (Next 14 rejects `.ts`).
 - Signup provisions tenant + owner member + waste categories via the
-  **service-role client** (RLS blocks the first inserts).
+  **`on_auth_user_created` DB trigger** (`handle_new_tenant`, SECURITY DEFINER,
+  migration 005). The signup form passes `restaurant_name` + `locale` in user
+  metadata; the trigger reads it. No service-role key anywhere in the app.
 
 ## 6. Project structure (high level)
 
@@ -176,6 +179,14 @@ Checklist (updated as completed):
 - [x] Phase-2 placeholder routes: `production/page.tsx` (coming-soon),
       `production/new/page.tsx` (redirects to `/production`).
 - [x] typecheck + build + lint green; pushed.
+
+### Done — service_role key eliminated (migration 005)
+- Signup provisioning moved into the `on_auth_user_created` trigger
+  (`handle_new_tenant`, SECURITY DEFINER, `search_path=''`). Signup action now
+  just calls `auth.signUp` with `restaurant_name`/`locale` metadata; removed
+  `createServiceClient` and the `slugify` util. The app no longer reads
+  `SUPABASE_SERVICE_ROLE_KEY` at all — `.env.local` / `.env.local.example` /
+  README updated. `.env.local` is populated (URL + anon key) and git-ignored.
 
 ### Done — DB provisioned + hardened
 - Applied migrations 001 → 004 to the **stockly** Supabase project via MCP.

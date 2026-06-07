@@ -33,22 +33,6 @@ export function createClient() {
   )
 }
 
-// Service-role client — bypasses RLS. Use ONLY in trusted server contexts
-// (e.g. signup, where we provision the tenant + first member before the
-// user has a tenant_members row). Never expose the service key to the client.
-export function createServiceClient() {
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return []
-        },
-        setAll() {
-          /* no-op: service client is stateless */
-        },
-      },
-    }
-  )
-}
+// NOTE: there is intentionally no service-role client. Tenant provisioning at
+// signup is handled by the `on_auth_user_created` database trigger
+// (migration 005), so the app never needs the SUPABASE_SERVICE_ROLE_KEY secret.

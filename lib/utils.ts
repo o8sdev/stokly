@@ -72,15 +72,3 @@ export function formatRelativeTime(
   // Fallback (should be unreachable).
   return rtf.format(0, 'second')
 }
-
-// Slugify a tenant name into a URL-safe slug. Appends a short suffix to
-// reduce collision risk since slugs are unique per install.
-export function slugify(name: string, suffix: string): string {
-  const base = name
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return `${base || 'restaurant'}-${suffix}`
-}

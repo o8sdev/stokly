@@ -24,15 +24,16 @@ Restaurant inventory and food-cost management SaaS for the Azerbaijani market �
    cp .env.local.example .env.local
    ```
 
-   Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
-   `SUPABASE_SERVICE_ROLE_KEY` (used by the signup flow to provision the first
-   tenant).
+   Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. No
+   service-role key is needed — tenant provisioning at signup runs in a
+   database trigger (migration 005).
 
-3. Apply the database migrations (via the Supabase CLI or SQL editor):
+3. Apply the database migrations (via the Supabase CLI or SQL editor),
+   in order `001` → `005`:
 
    ```bash
    supabase db push
-   # or run supabase/migrations/001_initial_schema.sql then 002_rls.sql
+   # or run supabase/migrations/*.sql in filename order
    ```
 
 4. Run the dev server:
