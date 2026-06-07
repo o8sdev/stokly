@@ -34,8 +34,19 @@ cp .env.local.example .env.local     # fill in real Supabase keys
 #   supabase/migrations/001_initial_schema.sql
 #   supabase/migrations/002_rls.sql
 #   supabase/migrations/003_batches_and_production.sql
+#   supabase/migrations/004_harden_function_search_path.sql
 npm run dev
 ```
+
+### Live database (already provisioned)
+
+- Supabase project: **stockly** — ref `anbvxpoxdalizlsdcsdb`
+  (`https://anbvxpoxdalizlsdcsdb.supabase.co`), region ap-northeast-1.
+- Migrations **001–004 are already applied** (all 11 tables, RLS on, 19
+  policies; helper functions hardened with `search_path=''`).
+- `.env.local` is NOT committed — get the URL + anon key + service_role key from
+  Supabase → Project Settings → API and paste them into `.env.local` yourself.
+  Never put the service_role key in chat or git.
 
 Verification commands (all must pass clean):
 
@@ -165,6 +176,15 @@ Checklist (updated as completed):
 - [x] Phase-2 placeholder routes: `production/page.tsx` (coming-soon),
       `production/new/page.tsx` (redirects to `/production`).
 - [x] typecheck + build + lint green; pushed.
+
+### Done — DB provisioned + hardened
+- Applied migrations 001 → 004 to the **stockly** Supabase project via MCP.
+  Verified: 11 tables, RLS on all, extended columns + 8-value movement_type
+  check, 19 policies. Hardened the 3 SECURITY DEFINER helpers (`search_path=''`,
+  fully-qualified refs). Remaining advisor WARNs (`current_tenant_id` /
+  `current_user_role` executable via RPC) are **intentionally accepted** —
+  revoking EXECUTE would break RLS, and they only expose the caller's own
+  membership. `rls_auto_enable` is Supabase-managed (not ours).
 
 ## 9. Next steps (Phase 2 and beyond)
 
