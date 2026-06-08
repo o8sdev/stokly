@@ -31,7 +31,7 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 ```bash
 npm install
 cp .env.local.example .env.local     # URL + anon key; + service_role for admin
-# apply migrations in filename order (001 → 018) against your Supabase project
+# apply migrations in filename order (001 → 019) against your Supabase project
 npm run dev
 ```
 
@@ -66,7 +66,7 @@ a tenant up/down a tier **instantly changes available functionality** (verified:
 professional→starter removes `bulk_import`; a per-tenant override re-grants it).
 Placeholder prices ship (49/99/169/299); edit live in `/admin/plans`.
 
-### Migrations 010–018 (all applied live)
+### Migrations 010–019 (all applied live)
 
 010 plans+features+matrix+overrides+resolvers · 011 tenant lifecycle (status/
 plan_tier FK/trial/last_active + DAD House backfill active/professional) ·
@@ -75,7 +75,27 @@ invitations, admin_notes, admin_audit_log, admin_notifications) · 014 signup
 trigger (trial defaults + signup event + new_signup notif) · 015 payment trigger
 (auto-upgrade + plan_upgraded) · 016 metrics RPCs (`admin_tenant_metrics`,
 `admin_onboarding_progress`, admin-guarded) · 017 admin roles (`is_super_admin`) ·
-018 lock new SECURITY DEFINER helpers to `authenticated`.
+018 lock new SECURITY DEFINER helpers to `authenticated` ·
+019 flexible counts (`daily_sales`, `count_periods`, `tenants.count_cycle_days`;
+tenant-scoped RLS + admin override).
+
+### Flexible stock counts (counts are reminders, never locks)
+
+Each confirmed count closes a **period** (last count → today) and stores a
+**regenerable, versioned** report in `count_periods.report_data`:
+opening + deliveries − closing = usage/COGS; food-cost % from `daily_sales`;
+structured discrepancies (missing-sales / negative-usage) rendered bilingually.
+Core: `lib/data/counts.ts` (boundaries, missing-sales, `createPeriodForCount`,
+`generatePeriodReport`), `lib/calculations/period-report.ts` (pure compute),
+`deriveStockLevelsAsOf`. **Daily sales**: `/app/sales` (+`/[date]`), one total
+per day. **Count flow**: a **pre-count checklist** (period preview + sales-
+completeness + edge warnings + ack) gates the existing single-submit count form
+(no DB draft); a **missing-sales slide-over** (tab per day, save-all) is reachable
+before and during a count. **Period report page** `/app/reports/period[/id]`
+(usage table, summary, amber missing-sales banner, [Hesabatı yenilə] regenerate,
+version footer). **Dashboard reminder** = 4 states (info/approaching/due/overdue)
+from days-since-last-count vs `count_cycle_days` (Settings); count always
+reachable from the inventory menu.
 
 ### Operator setup still needed
 
