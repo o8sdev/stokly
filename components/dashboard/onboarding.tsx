@@ -1,10 +1,18 @@
 import { getTranslations } from 'next-intl/server'
 import { UploadCloud, BookOpen, PlusCircle, ArrowRight } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
+import { QuickAdd } from '@/components/ingredients/quick-add'
+import type { GlobalIngredient } from '@/types/database'
 
 // Shown on the business dashboard while the tenant has zero ingredients.
 // Disappears automatically once the first ingredient exists.
-export async function OnboardingEmptyState() {
+export async function OnboardingEmptyState({
+  locale,
+  commonItems = [],
+}: {
+  locale: string
+  commonItems?: GlobalIngredient[]
+}) {
   const t = await getTranslations('onboarding')
 
   const options = [
@@ -72,6 +80,12 @@ export async function OnboardingEmptyState() {
           )
         })}
       </div>
+
+      {commonItems.length > 0 && (
+        <div className="mx-auto mt-8 max-w-3xl text-left">
+          <QuickAdd locale={locale} items={commonItems} />
+        </div>
+      )}
     </div>
   )
 }

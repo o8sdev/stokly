@@ -21,6 +21,7 @@ export async function addLibraryItem(
   const category = String(formData.get('category') ?? '').trim()
   const default_unit = String(formData.get('default_unit') ?? '').trim()
   const yieldDisplay = Number(formData.get('yield') ?? 100)
+  const is_common = formData.get('is_common') === 'on'
 
   if (!name_az || !category || !default_unit) return { error: 'validation' }
 
@@ -34,6 +35,7 @@ export async function addLibraryItem(
       Number.isFinite(yieldDisplay) && yieldDisplay > 0
         ? Math.min(1, yieldDisplay / 100)
         : 1,
+    is_common,
   })
   if (error) return { error: 'generic' }
 
@@ -48,5 +50,20 @@ export async function deleteLibraryItem(
   await requirePlatformAdmin(locale)
   const supabase = createClient()
   await supabase.from('global_ingredient_library').delete().eq('id', id)
+  revalidatePath(`/${locale}/admin/library`)
+}
+
+// Toggle whether a library item shows as a one-click "common" quick-add chip.
+export async function toggleLibraryCommon(
+  locale: string,
+  id: string,
+  value: boolean
+): Promise<void> {
+  await requirePlatformAdmin(locale)
+  const supabase = createClient()
+  await supabase
+    .from('global_ingredient_library')
+    .update({ is_common: value })
+    .eq('id', id)
   revalidatePath(`/${locale}/admin/library`)
 }

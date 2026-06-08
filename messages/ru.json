@@ -405,7 +405,8 @@
       "empty": "Библиотека пуста",
       "col_name": "Название",
       "col_category": "Категория",
-      "col_unit": "Единица"
+      "col_unit": "Единица",
+      "common": "Общий"
     },
     "blog": {
       "title": "Блог",
@@ -577,7 +578,10 @@
     "shelf_life": "Срок годности (дней)",
     "storage_location": "Место хранения",
     "storage_placeholder": "напр. Холодильник, Морозильник, Склад",
-    "import_button": "Импорт / Библиотека"
+    "import_button": "Импорт / Библиотека",
+    "quick_add_title": "Быстрое добавление",
+    "quick_add_hint": "Добавьте одним кликом — цену укажете позже",
+    "quick_add_all": "Добавить все"
   },
   "recipes": {
     "title": "Рецепты",

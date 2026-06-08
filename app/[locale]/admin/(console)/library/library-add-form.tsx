@@ -24,7 +24,7 @@ export function LibraryAddForm({ locale }: { locale: string }) {
     <form
       ref={formRef}
       action={formAction}
-      className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-6"
+      className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-7"
     >
       <input name="name_az" required placeholder={t('name_az')} className={field} />
       <input name="name_ru" placeholder={t('name_ru')} className={field} />
@@ -39,6 +39,10 @@ export function LibraryAddForm({ locale }: { locale: string }) {
         placeholder={t('yield')}
         className={field + ' font-mono'}
       />
+      <label className="flex h-10 items-center gap-2 px-1 text-xs text-slate-300">
+        <input type="checkbox" name="is_common" className="h-4 w-4 accent-brand" />
+        {t('common')}
+      </label>
       <SubmitButton className="h-10 gap-1.5">
         <Plus className="h-4 w-4" />
         {t('add')}

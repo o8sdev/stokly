@@ -169,6 +169,18 @@ export async function getGlobalLibrary(): Promise<GlobalIngredient[]> {
   return data ?? []
 }
 
+// Just the everyday basics (is_common), for the one-click quick-add chips.
+export async function getCommonLibrary(): Promise<GlobalIngredient[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('global_ingredient_library')
+    .select('*')
+    .eq('is_common', true)
+    .order('category', { ascending: true })
+    .order('name_az', { ascending: true })
+  return data ?? []
+}
+
 export async function getTenant(tenantId: string): Promise<Tenant | null> {
   const supabase = createClient()
   const { data } = await supabase

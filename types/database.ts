@@ -541,6 +541,7 @@ export interface Database {
           default_unit: string
           default_yield_percent: number | null
           sort_order: number | null
+          is_common: boolean
         }
         Insert: {
           id?: string
@@ -550,6 +551,7 @@ export interface Database {
           default_unit: string
           default_yield_percent?: number | null
           sort_order?: number | null
+          is_common?: boolean
         }
         Update: Partial<
           Database['public']['Tables']['global_ingredient_library']['Insert']

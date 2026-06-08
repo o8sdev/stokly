@@ -405,7 +405,8 @@
       "empty": "Kitabxana boşdur",
       "col_name": "Ad",
       "col_category": "Kateqoriya",
-      "col_unit": "Vahid"
+      "col_unit": "Vahid",
+      "common": "Ümumi"
     },
     "blog": {
       "title": "Bloq",
@@ -577,7 +578,10 @@
     "shelf_life": "Raf ömrü (gün)",
     "storage_location": "Saxlama yeri",
     "storage_placeholder": "məs. Soyuducu, Dondurucu, Anbar",
-    "import_button": "İdxal et / Kitabxana"
+    "import_button": "İdxal et / Kitabxana",
+    "quick_add_title": "Tez əlavə et",
+    "quick_add_hint": "Bir kliklə əlavə et — qiyməti sonra doldurarsan",
+    "quick_add_all": "Hamısını əlavə et"
   },
   "recipes": {
     "title": "Reseptlər",

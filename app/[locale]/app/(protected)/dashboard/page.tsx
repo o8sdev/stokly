@@ -10,6 +10,7 @@ import {
   getStockMovements,
   getRecentMovements,
   getActiveBatches,
+  getCommonLibrary,
 } from '@/lib/data/queries'
 import {
   computeRecipesWithCost,
@@ -74,11 +75,14 @@ export default async function DashboardPage({
   // guide the user to bulk-import / library / manual instead of empty widgets.
   // Gated by the onboarding_screen feature flag (per-plan / per-tenant).
   if (ingredients.length === 0) {
-    const onboardingEnabled = await tenantHasFeature(
-      ctx.tenantId,
-      'onboarding_screen'
-    )
-    if (onboardingEnabled) return <OnboardingEmptyState />
+    const [onboardingEnabled, libEnabled] = await Promise.all([
+      tenantHasFeature(ctx.tenantId, 'onboarding_screen'),
+      tenantHasFeature(ctx.tenantId, 'ingredient_library'),
+    ])
+    if (onboardingEnabled) {
+      const common = libEnabled ? await getCommonLibrary() : []
+      return <OnboardingEmptyState locale={locale} commonItems={common} />
+    }
   }
 
   const recipesWithCost = computeRecipesWithCost(

@@ -1,8 +1,8 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Star } from 'lucide-react'
 import { getGlobalLibrary } from '@/lib/data/queries'
 import { LibraryAddForm } from './library-add-form'
-import { deleteLibraryItem } from './actions'
+import { deleteLibraryItem, toggleLibraryCommon } from './actions'
 
 export default async function AdminLibraryPage({
   params: { locale },
@@ -43,6 +43,9 @@ export default async function AdminLibraryPage({
                 <th className="px-4 py-3 text-right font-semibold">
                   {t('yield')}
                 </th>
+                <th className="px-4 py-3 text-center font-semibold">
+                  {t('common')}
+                </th>
                 <th className="w-12 px-4 py-3" />
               </tr>
             </thead>
@@ -66,6 +69,33 @@ export default async function AdminLibraryPage({
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-slate-300">
                     {Math.round((g.default_yield_percent ?? 1) * 100)}%
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    <form
+                      action={toggleLibraryCommon.bind(
+                        null,
+                        locale,
+                        g.id,
+                        !g.is_common
+                      )}
+                    >
+                      <button
+                        type="submit"
+                        aria-label="common"
+                        className={
+                          'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-white/10 ' +
+                          (g.is_common
+                            ? 'text-brand'
+                            : 'text-slate-500 hover:text-white')
+                        }
+                      >
+                        <Star
+                          className={
+                            'h-4 w-4' + (g.is_common ? ' fill-current' : '')
+                          }
+                        />
+                      </button>
+                    </form>
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <form action={deleteLibraryItem.bind(null, locale, g.id)}>
