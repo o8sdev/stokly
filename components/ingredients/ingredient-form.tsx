@@ -15,6 +15,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { FieldHint } from '@/components/ui/field-hint'
+
+// Canonical units (same set the bulk import normalises to) so the stored
+// `ingredients.unit` value stays consistent across manual add + import.
+const UNIT_OPTIONS = [
+  { value: 'kq', key: 'kq' },
+  { value: 'q', key: 'q' },
+  { value: 'l', key: 'l' },
+  { value: 'ml', key: 'ml' },
+  { value: 'ədəd', key: 'piece' },
+  { value: 'yığım', key: 'bunch' },
+  { value: 'bağlama', key: 'pack' },
+  { value: 'şüşə', key: 'bottle' },
+  { value: 'qutu', key: 'box' },
+] as const
 
 export function IngredientForm({
   locale,
@@ -42,6 +57,14 @@ export function IngredientForm({
   const [isProduced, setIsProduced] = useState(
     ingredient?.is_produced ?? false
   )
+
+  // Preserve a legacy/free-text unit (e.g. imported "kg") as an extra option so
+  // editing never silently drops it.
+  const knownUnits: string[] = UNIT_OPTIONS.map((o) => o.value)
+  const legacyUnit =
+    ingredient?.unit && !knownUnits.includes(ingredient.unit)
+      ? ingredient.unit
+      : null
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5 stokly-card p-6">
@@ -77,16 +100,29 @@ export function IngredientForm({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="unit">{t('ingredients.unit')}</Label>
-          <Input
+          <select
             id="unit"
             name="unit"
             required
-            placeholder="kg"
             defaultValue={ingredient?.unit ?? ''}
-          />
+            className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+          >
+            <option value="" disabled>
+              {t('ingredients.select_unit')}
+            </option>
+            {legacyUnit && <option value={legacyUnit}>{legacyUnit}</option>}
+            {UNIT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {t(`ingredients.units.${o.key}`)}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="cost_per_unit">{t('ingredients.cost')}</Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="cost_per_unit">{t('ingredients.cost')}</Label>
+            <FieldHint text={t('ingredients.cost_hint')} />
+          </div>
           <Input
             id="cost_per_unit"
             name="cost_per_unit"
@@ -99,9 +135,12 @@ export function IngredientForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="yield_percent_display">
-            {t('ingredients.yield')}
-          </Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="yield_percent_display">
+              {t('ingredients.yield')}
+            </Label>
+            <FieldHint text={t('ingredients.yield_hint')} />
+          </div>
           <Input
             id="yield_percent_display"
             name="yield_percent_display"
@@ -115,7 +154,6 @@ export function IngredientForm({
           />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">{t('ingredients.yield_help')}</p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -136,9 +174,12 @@ export function IngredientForm({
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="low_stock_threshold">
-            {t('ingredients.low_stock')}
-          </Label>
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="low_stock_threshold">
+              {t('ingredients.low_stock')}
+            </Label>
+            <FieldHint text={t('ingredients.low_stock_hint')} />
+          </div>
           <Input
             id="low_stock_threshold"
             name="low_stock_threshold"
