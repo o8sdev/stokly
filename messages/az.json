@@ -704,13 +704,17 @@
     "revenue": "Gəlir",
     "no_price": "qiymət yoxdur",
     "no_menu_items": "Əvvəlcə resept/menyu məhsulları əlavə edin — sonra satışları məhsul və say üzrə qeyd edə bilərsiniz.",
-    "itemized": "detallı"
+    "itemized": "detallı",
+    "needs_count_title": "Əvvəlcə ilkin inventarizasiya sayımı edin",
+    "needs_count_body": "Satış əlavə etməzdən əvvəl biznesin başlanğıc (sıfır) stok sayımını aparın — anbarda olmayan məhsulu satmaq mümkün deyil. İlk sayım açılış qalıqlarını müəyyən edir; ondan sonra satışlar qeydə alına bilər.",
+    "go_to_count": "Sayıma keç"
   },
   "precount": {
     "title": "Sayıma başlamazdan əvvəl",
     "period": "Dövr",
     "period_intro": "Bu sayım aşağıdakı dövrü əhatə edəcək:",
     "days": "{count} gün",
+    "baseline_note": "Bu, biznesin ilkin (sıfır) sayımıdır — açılış qalıqlarını müəyyən edir. Satışların izlənməsi bu sayımdan sonra başlayır.",
     "sales_ok": "Bütün günlər üçün satış məlumatı daxil edilib",
     "sales_missing": "{count} gün üçün satış məlumatı tapılmadı",
     "enter_sales": "Satışları indi daxil et",

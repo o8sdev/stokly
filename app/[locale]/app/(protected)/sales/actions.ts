@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
+import { hasInitialCount } from '@/lib/data/counts'
 
 export interface SalesResult {
   error?: string
@@ -21,6 +22,7 @@ export async function saveDailySales(
 ): Promise<SalesResult> {
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  if (!(await hasInitialCount(ctx.tenantId))) return { error: 'no_count' }
 
   const date = String(formData.get('sale_date') ?? '')
   if (!dateRe.test(date)) return { error: 'validation' }
@@ -60,6 +62,7 @@ export async function saveDailySalesBatch(
 ): Promise<SalesResult> {
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  if (!(await hasInitialCount(ctx.tenantId))) return { error: 'no_count' }
   if (!Array.isArray(entries) || entries.length === 0) {
     return { error: 'validation' }
   }
@@ -108,6 +111,7 @@ export async function saveDailySalesItems(
 ): Promise<SalesResult> {
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  if (!(await hasInitialCount(ctx.tenantId))) return { error: 'no_count' }
 
   const date = String(payload.date ?? '')
   if (!dateRe.test(date)) return { error: 'validation' }

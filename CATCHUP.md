@@ -196,6 +196,21 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — sales require an initial (zero) stock count
+- Fixed a domain flaw: sales could be recorded before any stock existed. Now the
+  **initial count is a prerequisite** — `hasInitialCount(tenantId)` (any
+  count_period or 'count' movement) gates sales. The `/sales` + `/sales/[date]`
+  pages show a `NeedsInitialCount` guard (→ /app/inventory/count) and all three
+  sales actions (saveDailySales / saveDailySalesItems / saveDailySalesBatch)
+  reject with `no_count`.
+- Made the **first count a pure baseline**: `salesWindow` returns null when
+  there's no previous count, so the baseline count doesn't nag for sales / has no
+  COGS / theoretical usage (sales tracking starts after it). The pre-count modal
+  shows a "baseline note" and skips period-length warnings for the first count.
+- The dashboard `CountReminder` already prompts the "never counted" state, so new
+  businesses are guided to count first. Bilingual az/ru. typecheck + lint + build
+  green.
+
 ### Done — itemized sales (menu items × qty) + theoretical-vs-actual usage
 - Sales were a single money total per day, which can't relate to stock. Now a
   day's sales are entered as **receipt-style line items** — menu item (recipe) ×

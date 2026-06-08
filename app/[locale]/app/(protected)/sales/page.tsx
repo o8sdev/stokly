@@ -2,11 +2,13 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { createClient } from '@/lib/supabase/server'
 import { getRecipes } from '@/lib/data/queries'
+import { hasInitialCount } from '@/lib/data/counts'
 import { PageHeader } from '@/components/layout/page-header'
 import {
   SalesItemEditor,
   type MenuItem,
 } from '@/components/sales/sales-item-editor'
+import { NeedsInitialCount } from '@/components/sales/needs-count-guard'
 import { DailySalesForm } from '@/components/sales/daily-sales-form'
 import { EmptyState } from '@/components/ui/stokly-theme'
 import { Link } from '@/lib/i18n/navigation'
@@ -22,6 +24,16 @@ export default async function SalesPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
   const today = new Date().toISOString().slice(0, 10)
+
+  // Opening inventory must exist before any sale can be recorded.
+  if (!(await hasInitialCount(ctx.tenantId))) {
+    return (
+      <div>
+        <PageHeader title={t('sales.title')} description={t('sales.subtitle')} />
+        <NeedsInitialCount />
+      </div>
+    )
+  }
 
   const supabase = createClient()
   const recipes = await getRecipes(ctx.tenantId)

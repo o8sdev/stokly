@@ -47,11 +47,20 @@ export function PreCountModal({
 }) {
   const t = useTranslations()
   const [ack, setAck] = useState(false)
-  const { periodStart, periodEnd, daysInPeriod, cycleDays, missingSalesDates } =
-    preCount
+  const {
+    periodStart,
+    periodEnd,
+    daysInPeriod,
+    cycleDays,
+    missingSalesDates,
+    hasPreviousCount,
+  } = preCount
 
-  const tooShort = daysInPeriod < 2
-  const tooLong = daysInPeriod > cycleDays * 2
+  // The first count is a baseline that sets opening inventory; the period-length
+  // checks and sales reconciliation don't apply to it.
+  const isBaseline = !hasPreviousCount
+  const tooShort = !isBaseline && daysInPeriod < 2
+  const tooLong = !isBaseline && daysInPeriod > cycleDays * 2
   const allSalesPresent = missingSalesDates.length === 0
 
   return (
@@ -71,9 +80,14 @@ export function PreCountModal({
         </p>
       </section>
 
-      {/* §2 — Sales check */}
+      {/* §2 — Baseline note, or sales check for later counts */}
       <section className="rounded-lg border border-border p-3">
-        {allSalesPresent ? (
+        {isBaseline ? (
+          <p className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Receipt className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            {t('precount.baseline_note')}
+          </p>
+        ) : allSalesPresent ? (
           <p className="flex items-center gap-2 text-sm text-green-600">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
             {t('precount.sales_ok')}

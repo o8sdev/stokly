@@ -3,11 +3,13 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { createClient } from '@/lib/supabase/server'
 import { getRecipes } from '@/lib/data/queries'
+import { hasInitialCount } from '@/lib/data/counts'
 import { PageHeader } from '@/components/layout/page-header'
 import {
   SalesItemEditor,
   type MenuItem,
 } from '@/components/sales/sales-item-editor'
+import { NeedsInitialCount } from '@/components/sales/needs-count-guard'
 import { DailySalesForm } from '@/components/sales/daily-sales-form'
 import { Link } from '@/lib/i18n/navigation'
 import { formatDate } from '@/lib/utils'
@@ -22,6 +24,15 @@ export default async function SalesDatePage({
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) notFound()
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
+
+  if (!(await hasInitialCount(ctx.tenantId))) {
+    return (
+      <div>
+        <PageHeader title={`${t('sales.title')} — ${formatDate(date)}`} />
+        <NeedsInitialCount />
+      </div>
+    )
+  }
 
   const supabase = createClient()
   const recipes = await getRecipes(ctx.tenantId)

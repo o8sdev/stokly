@@ -92,14 +92,17 @@ async function getOpeningDate(supabase: DB, tenantId: string): Promise<string> {
   return (tenant?.created_at ?? new Date().toISOString()).slice(0, 10)
 }
 
-// Days a period newly covers = (previous count, today]. The first ever period
-// covers [opening, today]. Used for missing-sales detection + the sales sum.
+// Days a period newly covers = (previous count, today]. The very first count is
+// a baseline that establishes opening inventory — there were no sales before any
+// stock existed, so it has NO sales window (no missing-sales nag, no COGS/food-
+// cost, no theoretical usage). Sales tracking begins after the baseline count.
 function salesWindow(
   periodStart: string,
   periodEnd: string,
   hasPrev: boolean
 ): { start: string; end: string } | null {
-  const start = hasPrev ? addDays(periodStart, 1) : periodStart
+  if (!hasPrev) return null
+  const start = addDays(periodStart, 1)
   if (ms(start) > ms(periodEnd)) return null
   return { start, end: periodEnd }
 }
@@ -220,6 +223,26 @@ export async function getLastCountInfo(tenantId: string): Promise<LastCountInfo>
 
   const daysSince = lastCountDate ? daysBetween(lastCountDate, todayStr()) : null
   return { lastCountDate, daysSince, cycleDays }
+}
+
+// Has the business established opening inventory yet — i.e. done its initial
+// (zero) stock count? Sales can't be recorded before this: you can't sell stock
+// that was never counted in. True if any count period OR any 'count' movement
+// exists (the latter covers tenants from before count_periods).
+export async function hasInitialCount(tenantId: string): Promise<boolean> {
+  const supabase = createClient()
+  const { count: periods } = await supabase
+    .from('count_periods')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+  if ((periods ?? 0) > 0) return true
+
+  const { count: counts } = await supabase
+    .from('stock_movements')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .eq('movement_type', 'count')
+  return (counts ?? 0) > 0
 }
 
 // ── Period rows ──────────────────────────────────────────────────────────
