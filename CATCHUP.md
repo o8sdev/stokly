@@ -193,6 +193,28 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — navigation loading UX (progress bar + spinner + skeletons)
+- **`components/ui/navigation-progress.tsx`** (client, mounted once in the locale
+  layout inside `<Suspense>`): a thin teal top progress bar + a small corner
+  spinner shown during client-side route changes. App Router has no router
+  events, so it detects nav *start* from same-origin link clicks + a patched
+  `history.pushState`/`popstate`, and *completion* when `usePathname()` /
+  `useSearchParams()` change. Trickles to 90% then snaps to 100% + fades; a 10s
+  failsafe prevents a stuck bar.
+- **Skeletons:** `components/ui/skeleton.tsx` upgraded to a smooth gradient
+  **shimmer** (CSS `.skeleton` / `.skeleton-d` for light app vs. dark admin,
+  per-element `--sk-delay` stagger, `prefers-reduced-motion` aware).
+  `components/ui/skeletons.tsx` adds composable blocks (`PageHeaderSkeleton`,
+  `StatCardsSkeleton`, `CardSkeleton`, `TableSkeleton`, `CardGridSkeleton`).
+- **`components/ui/spinner.tsx`** — reusable `Spinner` + `LoadingScreen` for
+  Suspense fallbacks.
+- **Route `loading.tsx`** (instant skeletons during server navigation, via Next
+  Suspense): business app group catch-all + dashboard/ingredients/recipes/
+  inventory/reports; admin console group catch-all + tenants (dark). Intra-tab
+  navigation in each group is covered by the group-level file; page-specific
+  files override where a closer match helps.
+- typecheck + lint + build green.
+
 ### Done — one-click quick-add of common ingredients (migration 021)
 - `global_ingredient_library.is_common` flag (migration 021): flagged the 25
   existing basics + inserted 13 missing common items (fresh herbs Cəfəri/Keşniş/

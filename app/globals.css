@@ -95,6 +95,58 @@
   animation: stokly-line-in 200ms ease-out;
 }
 
+/* ── Skeleton shimmer (loading placeholders) ──────────────────────────────
+   .skeleton  → light app surfaces · .skeleton-d → dark admin console.
+   A muted base block with a soft gradient sweep traveling left→right. The
+   sweep delay is per-element via --sk-delay so groups can cascade. */
+.skeleton,
+.skeleton-d {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton {
+  background-color: hsl(var(--foreground) / 0.08);
+}
+.skeleton-d {
+  background-color: hsl(0 0% 100% / 0.08);
+}
+.skeleton::after,
+.skeleton-d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  animation-delay: var(--sk-delay, 0ms);
+}
+.skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--foreground) / 0.05),
+    transparent
+  );
+}
+.skeleton-d::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(0 0% 100% / 0.09),
+    transparent
+  );
+}
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after,
+  .skeleton-d::after {
+    animation: none;
+  }
+}
+
 /* Custom scrollbar for content areas — subtle, on brand. */
 .scroll-thin {
   scrollbar-width: thin;

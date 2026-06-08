@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import {
   DM_Sans,
   JetBrains_Mono,
@@ -10,6 +11,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { locales } from '@/i18n'
 import { cn } from '@/lib/utils'
+import { NavigationProgress } from '@/components/ui/navigation-progress'
 import '../globals.css'
 
 // Body type — DM Sans. Numeric / money type — JetBrains Mono.
@@ -79,6 +81,9 @@ export default async function LocaleLayout({
       )}
     >
       <body className="min-h-screen bg-background font-sans antialiased">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
