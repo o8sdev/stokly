@@ -193,6 +193,22 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — landing mockups reframed as control-room instrument panels
+- The product mockups read as macOS/iOS app screenshots (traffic-light window
+  chrome + `stokly.app/…` address-bar titles). Replaced `WindowChrome` with a
+  `Panel` carrying a **telemetry header**: a steady status LED, a boxed `STOKLY`
+  system mark, the module name in spaced mono, and a pulsing live dot + `CANLI`/
+  `ОНЛАЙН` + signal-bar readout. No traffic lights.
+- Titles are now module names (`İDARƏ PANELİ` / `RESEPT` / `İNVENTAR`, ru
+  `ПАНЕЛЬ`/`РЕЦЕПТ`/`СКЛАД`) — stored already-uppercase to avoid AZ dotted-İ
+  casing issues. New `landing.mock.live` key (az/ru).
+- Swapped the soft mint "iOS health" pills (`#ECFDF5`/`#065F46`) for terminal
+  tags (teal text + `border-brand/30` on `bg-brand/10`). Panel radius 14px +
+  inset top highlight; CSS `.mk-panel` / `.mk-led` / `.mk-live-dot` (+ reduced-
+  motion guard) replace `.mk-window`.
+- Verified on the live landing (preview): 4 panels, 0 traffic dots, 0 light
+  pills, 14px radius. typecheck + lint + build green.
+
 ### Done — navigation loading UX (progress bar + spinner + skeletons)
 - **`components/ui/navigation-progress.tsx`** (client, mounted once in the locale
   layout inside `<Suspense>`): a thin teal top progress bar + a small corner

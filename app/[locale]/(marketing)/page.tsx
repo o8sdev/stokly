@@ -75,6 +75,7 @@ export default async function LandingPage({
 
   const dashboardLabels: DashboardLabels = {
     title: t('mock.dashboard_title'),
+    live: t('mock.live'),
     foodCost: t('hero.panel.food_cost'),
     inventory: t('hero.panel.inventory'),
     waste: t('hero.panel.waste'),
@@ -85,6 +86,7 @@ export default async function LandingPage({
   }
   const recipeLabels = {
     title: t('mock.recipe_title'),
+    live: t('mock.live'),
     recipeName: t('mock.recipe_name'),
     total: t('mock.total'),
     perServing: t('mock.per_serving'),
@@ -93,6 +95,7 @@ export default async function LandingPage({
   }
   const inventoryLabels = {
     title: t('mock.inv_title'),
+    live: t('mock.live'),
     name: t('mock.name'),
     stock: t('mock.stock'),
     status: t('mock.status'),

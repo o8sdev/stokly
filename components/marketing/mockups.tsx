@@ -1,29 +1,46 @@
 import { cn } from '@/lib/utils'
 import { TrendingUp, Boxes, CalendarClock } from 'lucide-react'
 
-/* Realistic dark Stokly UI mockups, presented on the light page as floating
-   "product shots". Static by design — crisp, premium, no animation needed. */
+/* Stokly product readouts framed as live control-room instrument panels —
+   deliberately NOT desktop-app screenshots. Each panel carries a technical
+   telemetry header (status LED · system mark · module · live signal) instead of
+   macOS window chrome. */
 
-function WindowChrome({
+function Panel({
   title,
+  live,
   children,
   className,
 }: {
   title: string
+  live: string
   children: React.ReactNode
   className?: string
 }) {
   return (
-    <div className={cn('mk-window overflow-hidden', className)}>
-      <div className="flex items-center gap-2 border-b border-white/[0.07] px-4 py-3">
-        <span className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        </span>
-        <span className="ml-2 font-mono text-[11px] text-slate-500">
-          {title}
-        </span>
+    <div className={cn('mk-panel relative overflow-hidden', className)}>
+      {/* Telemetry header */}
+      <div className="flex items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="mk-led shrink-0" aria-hidden />
+          <span className="hidden shrink-0 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-400 sm:inline-block">
+            Stokly
+          </span>
+          <span className="truncate font-mono text-[11px] font-medium tracking-[0.18em] text-slate-300">
+            {title}
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="mk-live-dot shrink-0" aria-hidden />
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-brand">
+            {live}
+          </span>
+          <span className="ml-0.5 hidden items-end gap-[2px] sm:flex" aria-hidden>
+            <span className="h-1.5 w-[3px] rounded-[1px] bg-brand/35" />
+            <span className="h-2.5 w-[3px] rounded-[1px] bg-brand/60" />
+            <span className="h-3 w-[3px] rounded-[1px] bg-brand" />
+          </span>
+        </div>
       </div>
       {children}
     </div>
@@ -82,6 +99,7 @@ function FloatCard({
 
 export interface DashboardLabels {
   title: string
+  live: string
   foodCost: string
   inventory: string
   waste: string
@@ -91,11 +109,11 @@ export interface DashboardLabels {
   days: string
 }
 
-// The dashboard window on its own (reused in a showcase section).
+// The dashboard panel on its own (reused in a showcase section).
 export function MockDashboard({ labels }: { labels: DashboardLabels }) {
   const bars = [38, 52, 44, 61, 49, 70, 58, 77, 64, 85, 72, 92]
   return (
-    <WindowChrome title={labels.title} className="mk-shadow-deep">
+    <Panel title={labels.title} live={labels.live} className="mk-shadow-deep">
       <div className="space-y-4 p-5">
         {/* Metric row */}
         <div className="grid grid-cols-3 gap-3">
@@ -133,11 +151,11 @@ export function MockDashboard({ labels }: { labels: DashboardLabels }) {
           </div>
         </div>
       </div>
-    </WindowChrome>
+    </Panel>
   )
 }
 
-// Hero centerpiece: the dashboard window with floating accent cards.
+// Hero centerpiece: the dashboard panel with floating accent cards.
 export function HeroMock({ labels }: { labels: DashboardLabels }) {
   return (
     <div className="relative">
@@ -154,11 +172,8 @@ export function HeroMock({ labels }: { labels: DashboardLabels }) {
           <span className="font-mono text-2xl font-semibold text-brand">
             28,4%
           </span>
-          <span
-            className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold"
-            style={{ background: '#ECFDF5', color: '#065F46' }}
-          >
-            Good
+          <span className="rounded border border-brand/30 bg-brand/10 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-brand">
+            optimal
           </span>
         </div>
       </FloatCard>
@@ -217,6 +232,7 @@ export function MockRecipe({
 }: {
   labels: {
     title: string
+    live: string
     recipeName: string
     total: string
     perServing: string
@@ -231,7 +247,7 @@ export function MockRecipe({
     { name: 'Ədviyyat qarışığı', qty: '0,010 kg', cost: '0,22' },
   ]
   return (
-    <WindowChrome title={labels.title} className="mk-shadow-deep">
+    <Panel title={labels.title} live={labels.live} className="mk-shadow-deep">
       <div className="grid gap-px bg-white/[0.05] sm:grid-cols-[1.4fr_1fr]">
         {/* Lines */}
         <div className="bg-[#0c1828] p-5">
@@ -270,10 +286,7 @@ export function MockRecipe({
                 <span className="text-sm text-slate-400">
                   {labels.foodCost}
                 </span>
-                <span
-                  className="rounded-md px-2.5 py-1 font-mono text-xl font-semibold"
-                  style={{ background: '#ECFDF5', color: '#065F46' }}
-                >
+                <span className="rounded-md border border-brand/30 bg-brand/10 px-2.5 py-1 font-mono text-xl font-semibold text-brand">
                   26,7%
                 </span>
               </div>
@@ -282,7 +295,7 @@ export function MockRecipe({
           </div>
         </div>
       </div>
-    </WindowChrome>
+    </Panel>
   )
 }
 
@@ -317,6 +330,7 @@ export function MockInventory({
 }: {
   labels: {
     title: string
+    live: string
     name: string
     stock: string
     status: string
@@ -325,7 +339,7 @@ export function MockInventory({
   }
 }) {
   return (
-    <WindowChrome title={labels.title} className="mk-shadow-deep">
+    <Panel title={labels.title} live={labels.live} className="mk-shadow-deep">
       <div className="p-5">
         <div className="grid grid-cols-[1.6fr_1fr_0.8fr] gap-2 border-b border-white/[0.07] pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
           <span>{labels.name}</span>
@@ -337,7 +351,7 @@ export function MockInventory({
         <InvRow name="Mozzarella" stock="0,0 kg" status="out" />
         <InvRow name="Zeytun yağı" stock="9,5 L" status="ok" />
       </div>
-    </WindowChrome>
+    </Panel>
   )
 }
 
