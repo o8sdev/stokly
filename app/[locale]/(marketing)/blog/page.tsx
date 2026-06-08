@@ -16,6 +16,10 @@ function pick(locale: string, az: string | null, ru: string | null): string {
   return (locale === 'ru' ? ru || az : az || ru) ?? ''
 }
 
+// ISR: refresh the static list periodically so posts added directly in the DB
+// appear without a redeploy. Publishing via /admin also revalidates instantly.
+export const revalidate = 300
+
 export default async function BlogIndexPage({
   params: { locale },
 }: {

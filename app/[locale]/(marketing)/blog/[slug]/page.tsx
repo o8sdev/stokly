@@ -17,6 +17,8 @@ function pick(locale: string, az: string | null, ru: string | null): string {
   return (locale === 'ru' ? ru || az : az || ru) ?? ''
 }
 
+export const revalidate = 300
+
 export default async function BlogPostPage({
   params: { locale, slug },
 }: {
