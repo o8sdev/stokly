@@ -601,7 +601,16 @@
     "serving_size_ph": "məs. 4",
     "serving_unit": "Porsiya vahidi",
     "serving_unit_hint": "Bir porsiyanın adı — məs. porsiya, ədəd, litr, kq. Yalnız etiket üçündür, hesablamaya təsir etmir.",
-    "serving_unit_ph": "məs. porsiya",
+    "serving_unit_ph": "Seçin…",
+    "serving_units": {
+      "portion": "Porsiya",
+      "piece": "Ədəd",
+      "slice": "Dilim",
+      "kg": "Kiloqram (kq)",
+      "gram": "Qram (q)",
+      "liter": "Litr (l)",
+      "ml": "Millilitr (ml)"
+    },
     "ingredient_count": "İnqrediyentlər",
     "margin": "Marja",
     "filter_all": "Hamısı",

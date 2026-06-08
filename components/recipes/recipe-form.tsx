@@ -26,6 +26,19 @@ import { ingredientLineCost } from '@/lib/calculations/food-cost'
 import { RecipeIngredientsEditor } from './recipe-ingredients-editor'
 import { RecipeCostSummary } from './recipe-cost-summary'
 
+// Serving-unit choices: the name of one portion. Covers plated dishes
+// (portion / piece / slice) and bulk sub-recipes (weight / volume). The stored
+// value is label-only and doesn't affect any calculation.
+const SERVING_UNIT_OPTIONS = [
+  { value: 'porsiya', key: 'portion' },
+  { value: 'ədəd', key: 'piece' },
+  { value: 'dilim', key: 'slice' },
+  { value: 'kq', key: 'kg' },
+  { value: 'q', key: 'gram' },
+  { value: 'l', key: 'liter' },
+  { value: 'ml', key: 'ml' },
+] as const
+
 let keyCounter = 0
 function nextKey(): string {
   keyCounter += 1
@@ -185,6 +198,13 @@ export function RecipeForm({
 
   const parsedServing = servingSize === '' ? null : Number(servingSize)
 
+  // Preserve a free-text serving unit saved before this became a dropdown.
+  const knownServingUnits: string[] = SERVING_UNIT_OPTIONS.map((o) => o.value)
+  const legacyServingUnit =
+    recipe?.serving_unit && !knownServingUnits.includes(recipe.serving_unit)
+      ? recipe.serving_unit
+      : null
+
   return (
     <form action={formAction}>
       <input type="hidden" name="payload" value={payload} />
@@ -289,12 +309,24 @@ export function RecipeForm({
                   </Label>
                   <FieldHint text={t('recipes.serving_unit_hint')} />
                 </div>
-                <Input
+                <select
                   id="serving_unit"
                   value={servingUnit}
                   onChange={(e) => setServingUnit(e.target.value)}
-                  placeholder={t('recipes.serving_unit_ph')}
-                />
+                  className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                >
+                  <option value="">{t('recipes.serving_unit_ph')}</option>
+                  {legacyServingUnit && (
+                    <option value={legacyServingUnit}>
+                      {legacyServingUnit}
+                    </option>
+                  )}
+                  {SERVING_UNIT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {t(`recipes.serving_units.${o.key}`)}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
