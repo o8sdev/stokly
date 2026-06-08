@@ -74,6 +74,7 @@
       "flags": "Feature Flags",
       "logs": "Audit Log",
       "library": "Kitabxana",
+      "blog": "Bloq",
       "new_business": "Yeni biznes",
       "home": "Əsas"
     },
@@ -406,6 +407,36 @@
       "col_category": "Kateqoriya",
       "col_unit": "Vahid"
     },
+    "blog": {
+      "title": "Bloq",
+      "subtitle": "Açıq sayt üçün məqalələr.",
+      "new": "Yeni məqalə",
+      "new_title": "Yeni məqalə",
+      "edit_title": "Məqaləni redaktə et",
+      "empty": "Hələ məqalə yoxdur",
+      "col_title": "Başlıq",
+      "col_status": "Status",
+      "col_date": "Tarix",
+      "draft": "Qaralama",
+      "published": "Dərc olunub",
+      "publish": "Dərc et",
+      "unpublish": "Geri götür",
+      "delete": "Sil",
+      "view_live": "Saytda bax",
+      "back": "Bloqa qayıt",
+      "save": "Yadda saxla",
+      "slug": "Slug",
+      "slug_hint": "avtomatik",
+      "slug_taken": "Bu slug artıq istifadədədir",
+      "tag": "Etiket",
+      "cover": "Üz şəkli (URL)",
+      "status": "Status",
+      "title_field": "Başlıq",
+      "excerpt": "Qısa təsvir",
+      "body": "Mətn",
+      "required": "Başlıq və mətn (AZ) tələb olunur",
+      "error": "Xəta baş verdi"
+    },
     "home": {
       "title": "Admin paneli",
       "new_leads": "Yeni demo sorğuları",
@@ -611,6 +642,14 @@
     "period_reports": "Dövr hesabatları",
     "period_reports_desc": "Sayımdan sayıma istifadə və maya dəyəri"
   },
+  "blog": {
+    "eyebrow": "Bloq",
+    "title": "Stokly Bloqu",
+    "subtitle": "Mətbəx iqtisadiyyatı, inventar və maya dəyəri haqqında.",
+    "empty": "Hələ məqalə yoxdur. Tezliklə.",
+    "read_more": "Oxu",
+    "back": "Bütün məqalələr"
+  },
   "sales": {
     "title": "Satışlar",
     "subtitle": "Gündəlik ümumi satışları daxil edin",
@@ -806,13 +845,14 @@
       "testimonials": "Rəylər",
       "faq": "Suallar",
       "demo": "Demo sifariş et",
-      "login": "Daxil ol"
+      "login": "Daxil ol",
+      "blog": "Bloq"
     },
     "hero": {
-      "badge": "Azərbaycan restoranları üçün qurulub",
+      "badge": "Təxminlərə son — dəqiq rəqəmlər.",
       "title_lead": "Yemək dəyərini idarə et,",
       "title_accent": "mənfəəti qoru.",
-      "subtitle": "Stokly — restoran inventarı və yemək dəyəri platforması. Real vaxtda stok, FIFO partiya izləmə, dəqiq resept maya dəyəri və aydın hesabatlar — hamısı bir yerdə.",
+      "subtitle": "İnventar, resept maya dəyəri və itki — real vaxtda, bir platformada.",
       "cta_primary": "Demo sifariş et",
       "cta_features": "İmkanlara bax",
       "scroll": "Aşağı sürüşdürün",
@@ -843,7 +883,7 @@
         {
           "kicker": "Resept maya dəyəri",
           "title": "Hər reseptin əsl dəyərini real vaxtda görün.",
-          "desc": "İnqrediyent əlavə edin — çıxım faizi, maya dəyəri və yemək dəyəri faizi anında hesablanır. Menyu qiymətlərini təxminlə deyil, rəqəmlərlə qoyun.",
+          "desc": "İnqrediyent əlavə edin — maya dəyəri və yemək dəyəri faizi anında.",
           "bullets": [
             "Çıxıma görə dəqiq maya dəyəri",
             "Canlı yemək dəyəri faizi",
@@ -853,7 +893,7 @@
         {
           "kicker": "FIFO partiya izləmə",
           "title": "Hər partiyanı, hər son istifadə tarixini izləyin.",
-          "desc": "Çatdırılmalar ayrı partiyalar yaradır. Köhnə partiya əvvəl işlənir, vaxtı bitənlər avtomatik xəbərdarlıq verir — korlanma kəskin azalır.",
+          "desc": "Hər çatdırılma ayrı partiya. Köhnə əvvəl işlənir, vaxtı bitən xəbər verir.",
           "bullets": [
             "Partiya səviyyəsində qalıqlar",
             "Avtomatik son istifadə xəbərdarlıqları",
@@ -863,7 +903,7 @@
         {
           "kicker": "Panel və hesabatlar",
           "title": "Bütün mətbəxiniz bir baxışda.",
-          "desc": "Orta yemək dəyəri, anbar dəyəri, itki və marja — real vaxtda panel və aydın hesabatlarla. Harada pul itirdiyinizi dəqiq bilin.",
+          "desc": "Yemək dəyəri, inventar, itki və marja — bir panel, real vaxtda.",
           "bullets": [
             "Real vaxtda idarə paneli",
             "Yeməklər üzrə marja",
@@ -898,15 +938,15 @@
       "points": [
         {
           "title": "Görünməyən itki",
-          "desc": "Korlanma, artıq hazırlıq və vaxtı keçmiş məhsullar hər ay səssizcə mənfəəti yeyir."
+          "desc": "Korlanma və artıq hazırlıq səssizcə mənfəəti yeyir."
         },
         {
           "title": "Köhnəlmiş qiymətlər",
-          "desc": "Təchizatçı qiymətləri dəyişir, amma resept maya dəyəriniz cədvəldə donub qalır."
+          "desc": "Təchizatçı qiyməti dəyişir, reseptiniz donub qalır."
         },
         {
           "title": "Kor inventar",
-          "desc": "Əl ilə sayım yavaş və səhvlidir. Nə qədər stokunuz olduğunu dəqiq bilmirsiniz."
+          "desc": "Əl ilə sayım yavaş və səhvlidir."
         }
       ]
     },
@@ -917,27 +957,27 @@
       "items": [
         {
           "title": "Yemək dəyəri mühərriki",
-          "desc": "Çıxım faizini nəzərə alan dəqiq maya dəyəri. 200q soğan 85% çıxımla əslində 235q-dır — biz bunu hesablayırıq."
+          "desc": "Çıxımı nəzərə alan dəqiq maya dəyəri."
         },
         {
           "title": "FIFO partiya və son istifadə",
-          "desc": "Hər çatdırılma ayrıca partiyadır. Köhnə partiya əvvəl işlənir, vaxtı bitənlər avtomatik xəbərdarlıq verir."
+          "desc": "Hər partiya izlənir, vaxtı bitənlər xəbər verir."
         },
         {
           "title": "Canlı resept qurucu",
-          "desc": "İnqrediyent əlavə et — maya dəyəri və yemək dəyəri faizi hər klaviş vuruşunda yenilənir."
+          "desc": "Yazdıqca yemək dəyəri anında yenilənir."
         },
         {
           "title": "Mobil stok sayımı",
-          "desc": "Anbarda telefonla sürətli sayım. İri toxunma sahələri və real vaxtda fərq."
+          "desc": "Telefonla sürətli sayım — anbarda."
         },
         {
           "title": "Aydın hesabatlar",
-          "desc": "Yeməklər üzrə yemək dəyəri, marja və inventar dəyəri — bir baxışda."
+          "desc": "Maya dəyəri, marja və inventar — bir baxışda."
         },
         {
           "title": "İki dildə",
-          "desc": "Tam Azərbaycan və rus dili dəstəyi. Komandanız öz dilində işləyir."
+          "desc": "Tam Azərbaycan və rus dili."
         }
       ]
     },

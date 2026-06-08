@@ -165,6 +165,44 @@ export interface Database {
         >
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          id: string
+          slug: string
+          title_az: string
+          title_ru: string | null
+          excerpt_az: string | null
+          excerpt_ru: string | null
+          body_az: string
+          body_ru: string | null
+          cover_url: string | null
+          tag: string | null
+          status: 'draft' | 'published'
+          published_at: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          title_az: string
+          title_ru?: string | null
+          excerpt_az?: string | null
+          excerpt_ru?: string | null
+          body_az: string
+          body_ru?: string | null
+          cover_url?: string | null
+          tag?: string | null
+          status?: 'draft' | 'published'
+          published_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['blog_posts']['Insert']>
+        Relationships: []
+      }
       tenant_members: {
         Row: {
           id: string
@@ -874,6 +912,7 @@ export type GlobalIngredient =
   Database['public']['Tables']['global_ingredient_library']['Row']
 export type DailySale = Database['public']['Tables']['daily_sales']['Row']
 export type CountPeriod = Database['public']['Tables']['count_periods']['Row']
+export type BlogPost = Database['public']['Tables']['blog_posts']['Row']
 export type Plan = Database['public']['Tables']['plans']['Row']
 export type Feature = Database['public']['Tables']['features']['Row']
 export type PlanFeature =

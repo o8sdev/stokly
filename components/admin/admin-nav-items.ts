@@ -10,6 +10,7 @@ import {
   ToggleRight,
   ScrollText,
   BookOpen,
+  Newspaper,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -51,6 +52,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   {
     labelKey: 'system',
     items: [
+      { href: '/admin/blog', labelKey: 'blog', icon: Newspaper },
       { href: '/admin/feature-flags', labelKey: 'flags', icon: ToggleRight },
       { href: '/admin/logs', labelKey: 'logs', icon: ScrollText },
       { href: '/admin/library', labelKey: 'library', icon: BookOpen },
