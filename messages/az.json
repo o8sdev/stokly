@@ -504,6 +504,7 @@
       "create": "Hesab yarat",
       "created": "Biznes yaradıldı",
       "error": "Hesab yaradıla bilmədi",
+      "no_key": "SUPABASE_SERVICE_ROLE_KEY təyin edilməyib. Onu .env.local faylına əlavə edib serveri yenidən başladın.",
       "hint": "Sahibə e-poçt və müvəqqəti şifrəni verin — onlar /app/login ünvanından daxil olacaq."
     }
   },

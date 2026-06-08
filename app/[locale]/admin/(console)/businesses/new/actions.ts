@@ -27,7 +27,13 @@ export async function createBusiness(
     return { error: 'validation' }
   }
 
-  const admin = createAdminClient()
+  let admin: ReturnType<typeof createAdminClient>
+  try {
+    admin = createAdminClient()
+  } catch {
+    return { error: 'service_key' }
+  }
+
   const { error } = await admin.auth.admin.createUser({
     email,
     password,

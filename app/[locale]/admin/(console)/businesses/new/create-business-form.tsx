@@ -69,7 +69,11 @@ export function CreateBusinessForm({ locale }: { locale: string }) {
         />
       </div>
       {state.error && (
-        <p className="text-sm text-[#F08C8C]">{t('business.error')}</p>
+        <p className="text-sm text-[#F08C8C]">
+          {state.error === 'service_key'
+            ? t('business.no_key')
+            : t('business.error')}
+        </p>
       )}
       <SubmitButton pendingText={t('business.create')}>
         {t('business.create')}
