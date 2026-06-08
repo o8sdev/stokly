@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
 import {
@@ -48,12 +48,20 @@ export default async function IngredientsPage({
       <PageHeader
         title={t('ingredients.title')}
         action={
-          <Button asChild className="gap-2">
-            <Link href="/app/ingredients/new">
-              <Plus className="h-4 w-4" />
-              {t('ingredients.add')}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/app/ingredients/import">
+                <Upload className="h-4 w-4" />
+                {t('ingredients.import_button')}
+              </Link>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link href="/app/ingredients/new">
+                <Plus className="h-4 w-4" />
+                {t('ingredients.add')}
+              </Link>
+            </Button>
+          </div>
         }
       />
       <IngredientTable locale={locale} rows={rows} />

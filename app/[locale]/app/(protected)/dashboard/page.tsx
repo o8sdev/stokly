@@ -36,6 +36,7 @@ import {
   ExpiryWidget,
   type ExpiryRow,
 } from '@/components/dashboard/expiry-widget'
+import { OnboardingEmptyState } from '@/components/dashboard/onboarding'
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -57,6 +58,12 @@ export default async function DashboardPage({
       getRecentMovements(ctx.tenantId, 8),
       getActiveBatches(ctx.tenantId),
     ])
+
+  // First-login onboarding: until the catalog has at least one ingredient,
+  // guide the user to bulk-import / library / manual instead of empty widgets.
+  if (ingredients.length === 0) {
+    return <OnboardingEmptyState />
+  }
 
   const recipesWithCost = computeRecipesWithCost(
     ingredients,

@@ -9,6 +9,7 @@ import type {
   Tenant,
 } from '@/types/database'
 import type { IngredientBatch } from '@/types/app'
+import type { GlobalIngredient } from '@/types/database'
 
 // All loaders take an explicit tenantId (resolved via requireTenant) so the
 // tenant scope is always server-controlled. RLS provides defence in depth.
@@ -155,6 +156,17 @@ export async function getActiveBatches(
     .eq('status', 'active')
     .order('received_date', { ascending: true })
   return (data ?? []) as IngredientBatch[]
+}
+
+// The global quick-start catalog (not tenant-scoped; public read).
+export async function getGlobalLibrary(): Promise<GlobalIngredient[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('global_ingredient_library')
+    .select('*')
+    .order('category', { ascending: true })
+    .order('name_az', { ascending: true })
+  return data ?? []
 }
 
 export async function getTenant(tenantId: string): Promise<Tenant | null> {

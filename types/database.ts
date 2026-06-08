@@ -378,6 +378,30 @@ export interface Database {
         >
         Relationships: []
       }
+      global_ingredient_library: {
+        Row: {
+          id: string
+          name_az: string
+          name_ru: string | null
+          category: string
+          default_unit: string
+          default_yield_percent: number | null
+          sort_order: number | null
+        }
+        Insert: {
+          id?: string
+          name_az: string
+          name_ru?: string | null
+          category: string
+          default_unit: string
+          default_yield_percent?: number | null
+          sort_order?: number | null
+        }
+        Update: Partial<
+          Database['public']['Tables']['global_ingredient_library']['Insert']
+        >
+        Relationships: []
+      }
     }
     Views: Record<never, never>
     Functions: {
@@ -430,3 +454,5 @@ export type ProductionRunInputRow =
 export type DemoRequest =
   Database['public']['Tables']['demo_requests']['Row']
 export type DemoRequestStatus = DemoRequest['status']
+export type GlobalIngredient =
+  Database['public']['Tables']['global_ingredient_library']['Row']

@@ -30,7 +30,7 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 ```bash
 npm install
 cp .env.local.example .env.local     # URL + anon key; + service_role for admin
-# apply migrations in filename order (001 → 008) against your Supabase project
+# apply migrations in filename order (001 → 009) against your Supabase project
 npm run dev
 ```
 
@@ -47,8 +47,9 @@ npm run dev
 
 - Supabase project: **stockly** — ref `anbvxpoxdalizlsdcsdb`
   (`https://anbvxpoxdalizlsdcsdb.supabase.co`), region ap-northeast-1.
-- Migrations **001–008 are already applied** (RLS + admin override; demo +
-  platform-admin tables; helper functions hardened).
+- Migrations **001–009 are already applied** (RLS + admin override; demo +
+  platform-admin tables; global ingredient library + seed; helper functions
+  hardened).
 - `.env.local` (git-ignored, already populated) needs `NEXT_PUBLIC_SUPABASE_URL`
   + `NEXT_PUBLIC_SUPABASE_ANON_KEY`, **plus `SUPABASE_SERVICE_ROLE_KEY`**
   (server-side, ADMIN-ONLY — creating business accounts). Optional Resend vars
@@ -214,10 +215,26 @@ Checklist (updated as completed):
   (rhabibli@outlook.com); it was re-provisioned (tenant + owner + waste
   categories). Any data added to it before was lost.
 
-### Next — Phase B: bulk ingredient import + onboarding (per approved plan)
-Migration 007 (global library + seed), `xlsx` dep, parse module + template API,
-import page (Excel/CSV · library · paste), library multi-select, ingredients
-header buttons, first-login onboarding empty state, admin library CRUD.
+### Done — Phase B: bulk ingredient import + onboarding
+- Migrations **007** (global library + 59 seed rows) and **009** (admin write
+  on the library). `xlsx` (SheetJS) added.
+- `lib/import/parse-ingredients.ts` — unit normalization (AZ/RU/EN→AZ), draft
+  validation, matrix + paste parsers (pure, shared client/server).
+- `app/api/templates/ingredients/route.ts` — GET returns a real .xlsx template
+  (verified: HTTP 200, 23 KB, "Microsoft Excel 2007+").
+- Import page `…/app/(protected)/ingredients/import` with 3 tabs: **Excel/CSV**
+  (client SheetJS parse), **Library** (multi-select), **Paste**. Shared editable
+  colour-coded preview (`components/import/import-preview.tsx`) → batch insert +
+  supplier auto-create (`…/ingredients/import/actions.ts`).
+- Standalone library page + the import "Library" tab share
+  `components/import/library-selector.tsx`.
+- Ingredients list gains an **İdxal et / Kitabxana** button; the business
+  dashboard shows a 3-option **onboarding empty state** when ingredients = 0.
+- Admin console `/admin/library` — curate the global catalog (add/delete).
+- typecheck + build (56 routes) + lint green. Template endpoint + middleware
+  routing verified via curl; the interactive import UI couldn't be
+  screenshot-verified this session (preview compiler flakiness) but is build-
+  clean and reuses verified Phase-A patterns.
 
 ### Done — landing redesigned to premium light/airy (Supy/MarketMan)
 - Reworked the landing from dark control-room → **light, airy, product-led**:
