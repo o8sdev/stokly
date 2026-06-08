@@ -21,13 +21,13 @@ export function DemoForm() {
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-[#04231A]">
           <Check className="h-6 w-6" />
         </div>
-        <p className="text-lg font-semibold text-white">{t('success')}</p>
+        <p className="text-lg font-semibold text-[#0d1b2a]">{t('success')}</p>
       </div>
     )
   }
 
   const field =
-    'h-11 w-full rounded-lg border border-white/12 bg-white/5 px-3.5 text-sm text-white placeholder:text-slate-500 transition-colors focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15'
+    'h-12 w-full rounded-xl border border-[#e2e8ee] bg-[#f8fafb] px-4 text-sm text-[#0d1b2a] placeholder:text-[#9aa7b4] transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/12'
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">

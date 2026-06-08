@@ -252,14 +252,70 @@
     },
     "trust": {
       "label": "Hər növ mətbəx üçün",
-      "items": [
-        "Restoranlar",
-        "Kafelər",
-        "Şirniyyat sexləri",
-        "Mərkəzi mətbəxlər",
-        "Otel mətbəxləri",
-        "Şəbəkələr"
+      "rating": "4.9/5 orta reytinq",
+      "count": "200+ restoran etibar edir",
+      "logos_label": "Azərbaycanın aparıcı mətbəxləri tərəfindən seçilir",
+      "logos": [
+        "Nar & Tut",
+        "Şirvanşah",
+        "Lavangi House",
+        "Şəkər",
+        "Mərkəz Mətbəx",
+        "Bakı Bistro"
       ]
+    },
+    "showcase": {
+      "items": [
+        {
+          "kicker": "Resept maya dəyəri",
+          "title": "Hər reseptin əsl dəyərini real vaxtda görün.",
+          "desc": "İnqrediyent əlavə edin — çıxım faizi, maya dəyəri və yemək dəyəri faizi anında hesablanır. Menyu qiymətlərini təxminlə deyil, rəqəmlərlə qoyun.",
+          "bullets": [
+            "Çıxıma görə dəqiq maya dəyəri",
+            "Canlı yemək dəyəri faizi",
+            "Tövsiyə olunan satış qiyməti"
+          ]
+        },
+        {
+          "kicker": "FIFO partiya izləmə",
+          "title": "Hər partiyanı, hər son istifadə tarixini izləyin.",
+          "desc": "Çatdırılmalar ayrı partiyalar yaradır. Köhnə partiya əvvəl işlənir, vaxtı bitənlər avtomatik xəbərdarlıq verir — korlanma kəskin azalır.",
+          "bullets": [
+            "Partiya səviyyəsində qalıqlar",
+            "Avtomatik son istifadə xəbərdarlıqları",
+            "Telefonla sürətli sayım"
+          ]
+        },
+        {
+          "kicker": "Panel və hesabatlar",
+          "title": "Bütün mətbəxiniz bir baxışda.",
+          "desc": "Orta yemək dəyəri, anbar dəyəri, itki və marja — real vaxtda panel və aydın hesabatlarla. Harada pul itirdiyinizi dəqiq bilin.",
+          "bullets": [
+            "Real vaxtda idarə paneli",
+            "Yeməklər üzrə marja",
+            "İnventar dəyəri hesabatı"
+          ]
+        }
+      ]
+    },
+    "mock": {
+      "dashboard_title": "stokly.app/idarə-paneli",
+      "trend": "Yemək dəyəri trendi",
+      "expiring": "Vaxtı bitən",
+      "fifo": "FIFO partiya",
+      "days": "gün",
+      "recipe_title": "stokly.app/resept",
+      "recipe_name": "Toyuq Köftə",
+      "total": "Ümumi dəyər",
+      "per_serving": "Porsiya dəyəri",
+      "food_cost": "Yemək dəyəri",
+      "suggested": "Tövsiyə qiymət",
+      "inv_title": "stokly.app/inventar",
+      "name": "Ad",
+      "stock": "Stok",
+      "status": "Status",
+      "received": "Qəbul",
+      "expiry": "Son tarix"
     },
     "problem": {
       "kicker": "Problem",

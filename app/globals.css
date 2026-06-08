@@ -217,3 +217,139 @@
 @keyframes mk-sheen {
   to { transform: rotate(360deg); }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   PREMIUM LIGHT SYSTEM — airy, product-led (Supy / MarketMan direction).
+   Light page · deep-ink type · teal accent · dark product mockups floating
+   with soft depth. Opt-in .mk-* classes.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --mk-ink: #0d1b2a;
+  --mk-ink-2: #46586b;
+  --mk-ink-3: #8a99a8;
+  --mk-line: #e7edf1;
+  --mk-teal: #00c896;
+  --mk-teal-ink: #00936c; /* legible teal on white */
+}
+
+/* Premium multi-layer soft shadows. */
+.mk-shadow-card {
+  box-shadow:
+    0 1px 2px rgba(13, 27, 42, 0.04),
+    0 8px 24px -12px rgba(13, 27, 42, 0.12);
+}
+.mk-shadow-float {
+  box-shadow:
+    0 2px 6px rgba(13, 27, 42, 0.05),
+    0 30px 60px -28px rgba(13, 27, 42, 0.35);
+}
+.mk-shadow-deep {
+  box-shadow:
+    0 4px 12px rgba(13, 27, 42, 0.08),
+    0 50px 100px -36px rgba(10, 22, 38, 0.55);
+}
+
+/* Light premium card. */
+.mk-card {
+  background: #ffffff;
+  border: 1px solid var(--mk-line);
+  border-radius: 20px;
+}
+
+/* Hover lift for interactive cards. */
+.mk-lift {
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease;
+}
+.mk-lift:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 2px 6px rgba(13, 27, 42, 0.05),
+    0 30px 60px -28px rgba(13, 27, 42, 0.3);
+}
+
+/* Dark product-window chrome for UI mockups. */
+.mk-window {
+  background: linear-gradient(168deg, #102032 0%, #0b1726 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+}
+
+/* Light glass nav. */
+.mk-glass-nav {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+}
+
+/* Soft tinted blooms for atmosphere on light backgrounds. */
+.mk-bloom-teal {
+  background: radial-gradient(
+    closest-side,
+    rgba(0, 200, 150, 0.16),
+    transparent 72%
+  );
+}
+.mk-bloom-cool {
+  background: radial-gradient(
+    closest-side,
+    rgba(64, 150, 255, 0.1),
+    transparent 72%
+  );
+}
+.mk-bloom-mint {
+  background: radial-gradient(
+    closest-side,
+    rgba(45, 224, 174, 0.14),
+    transparent 72%
+  );
+}
+
+/* Faint technical grid on a light surface. */
+.mk-grid-light {
+  background-image:
+    linear-gradient(to right, rgba(13, 27, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 27, 42, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 75%);
+}
+
+/* Teal gradient text tuned for legibility on white. */
+.mk-teal-grad {
+  background: linear-gradient(120deg, #00b888 0%, #00936c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Pill/wordmark logo (placeholder logo wall). */
+.mk-wordmark {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #9aa7b4;
+  transition: color 0.3s ease;
+}
+.mk-wordmark:hover {
+  color: var(--mk-ink);
+}
+
+/* Subtle entrance for the hero mockup (load-in float). */
+@keyframes mk-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-mk-rise {
+  animation: mk-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

@@ -185,7 +185,24 @@ Checklist (updated as completed):
       `production/new/page.tsx` (redirects to `/production`).
 - [x] typecheck + build + lint green; pushed.
 
-### Done — marketing landing page (dark control-room)
+### Done — landing redesigned to premium light/airy (Supy/MarketMan)
+- Reworked the landing from dark control-room → **light, airy, product-led**:
+  white page, deep-ink type, teal accent, big **dark Stokly UI mockups** floating
+  with soft premium shadows. Generous whitespace.
+- New `components/marketing/mockups.tsx`: `WindowChrome`, `MockDashboard` +
+  `HeroMock` (floating cards), `MockRecipe`, `MockInventory` — realistic product
+  shots built from the app's visual language.
+- Added: logo wall + ★ rating/trust line; three alternating product-showcase
+  sections (`landing.showcase`); premium light cards (`.mk-card`, `.mk-shadow-*`,
+  `.mk-lift`), light-glass nav, tinted blooms, refined type/spacing. One dark
+  metrics band + dark final-CTA band for contrast.
+- New i18n: `landing.trust.{rating,count,logos,logos_label}`, `landing.showcase`,
+  `landing.mock.*` (AZ + RU). Removed the old dark `hero-panel.tsx`.
+- Premium CSS lives under the "PREMIUM LIGHT SYSTEM" block in globals.css.
+  typecheck + build (41 routes) + lint green; verified across hero / mockups /
+  showcases at desktop + mobile.
+
+### Superseded — marketing landing page (dark control-room)
 - Public bilingual (AZ/RU) landing at the locale root `/[locale]`. **Routing
   refactor:** dashboard home moved `/[locale]` → `/[locale]/dashboard`; middleware
   makes the root public; nav/header/redirects updated; post-login →

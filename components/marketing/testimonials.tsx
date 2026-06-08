@@ -13,25 +13,27 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
   return (
     <div className="mk-marquee-pause relative overflow-hidden">
       {/* Edge fades */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#F8FAFB] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#F8FAFB] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-28 bg-gradient-to-l from-white to-transparent" />
 
-      <div className="flex w-max animate-mk-marquee gap-5">
+      <div className="flex w-max animate-mk-marquee gap-6">
         {doubled.map((item, i) => (
           <figure
             key={i}
-            className="flex w-[340px] shrink-0 flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white p-6"
+            className="mk-card mk-shadow-card flex w-[380px] shrink-0 flex-col justify-between p-7"
           >
-            <Quote className="h-6 w-6 text-brand/40" />
-            <blockquote className="mt-3 text-[15px] leading-relaxed text-[#1A2332]">
-              {item.quote}
-            </blockquote>
-            <figcaption className="mt-5 flex items-center gap-3 border-t border-[#F0F4F8] pt-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0D1B2A] font-display text-sm font-semibold text-brand">
+            <div>
+              <Quote className="h-7 w-7 text-brand/30" />
+              <blockquote className="mt-4 text-[17px] font-medium leading-relaxed text-[#0d1b2a]">
+                {item.quote}
+              </blockquote>
+            </div>
+            <figcaption className="mt-6 flex items-center gap-3 border-t border-[#eef2f5] pt-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0D1B2A] font-display text-sm font-semibold text-brand">
                 {item.name.charAt(0)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#1A2332]">
+                <p className="text-sm font-semibold text-[#0d1b2a]">
                   {item.name}
                 </p>
                 <p className="text-xs text-[#6B7A8D]">{item.role}</p>
