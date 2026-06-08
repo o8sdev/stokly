@@ -5,8 +5,8 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-08 (System Admin console rebuild — subscriptions, MRR,
-health scoring, onboarding pipeline, invitations, audit, notifications, Cmd+K)_
+_Last updated: 2026-06-08 (Blog (public + admin authoring), one-click quick-add
+of common ingredients, ingredient-form polish, landing-copy + URL/redirect fixes)_
 
 ---
 
@@ -31,7 +31,7 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 ```bash
 npm install
 cp .env.local.example .env.local     # URL + anon key; + service_role for admin
-# apply migrations in filename order (001 → 019) against your Supabase project
+# apply migrations in filename order (001 → 021) against your Supabase project
 npm run dev
 ```
 
@@ -66,7 +66,7 @@ a tenant up/down a tier **instantly changes available functionality** (verified:
 professional→starter removes `bulk_import`; a per-tenant override re-grants it).
 Placeholder prices ship (49/99/169/299); edit live in `/admin/plans`.
 
-### Migrations 010–019 (all applied live)
+### Migrations 010–021 (all applied live)
 
 010 plans+features+matrix+overrides+resolvers · 011 tenant lifecycle (status/
 plan_tier FK/trial/last_active + DAD House backfill active/professional) ·
@@ -77,7 +77,11 @@ trigger (trial defaults + signup event + new_signup notif) · 015 payment trigge
 `admin_onboarding_progress`, admin-guarded) · 017 admin roles (`is_super_admin`) ·
 018 lock new SECURITY DEFINER helpers to `authenticated` ·
 019 flexible counts (`daily_sales`, `count_periods`, `tenants.count_cycle_days`;
-tenant-scoped RLS + admin override).
+tenant-scoped RLS + admin override) ·
+020 blog (`blog_posts`: slug/bilingual title+excerpt+body/cover/status/
+published_at; public read of `published` only, platform-admin full write) ·
+021 library common (`global_ingredient_library.is_common` flag + 13 new common
+items; 38 common of 72).
 
 ### Flexible stock counts (counts are reminders, never locks)
 
@@ -188,6 +192,62 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — one-click quick-add of common ingredients (migration 021)
+- `global_ingredient_library.is_common` flag (migration 021): flagged the 25
+  existing basics + inserted 13 missing common items (fresh herbs Cəfəri/Keşniş/
+  Şüyüd/Nanə/Göy soğan/Tərxun, spices Sumaq/Sarıkök/Dəfnə yarpağı, pantry tomato-
+  paste/vinegar/yeast/honey). **38 common of 72 total**, verified live.
+- `getCommonLibrary()` + **`components/ingredients/quick-add.tsx`** (client): a
+  "Tez əlavə et" chip row — one tap adds an ingredient (cost 0, reusing the tested
+  `addFromLibrary`) and the chip disappears; "Hamısını əlavə et" adds the rest.
+  Already-added basics filtered out by name; the section hides when empty.
+- Surfaced on the **Ingredients page** (above the table) + the **onboarding empty
+  state**; gated by the `ingredient_library` entitlement.
+- Admin `/admin/library`: an **is_common checkbox** on the add form + a per-row
+  **star toggle** (`toggleLibraryCommon`) so the operator curates the chip set.
+- Bilingual az/ru. typecheck + lint + build green. Commit `f584274`.
+
+### Done — ingredient add-form polish
+- **Unit dropdown** (`UNIT_OPTIONS`) instead of free text on the ingredient form,
+  kept consistent with the DB / library units.
+- Hover **"?" hints** (`components/ui/field-hint.tsx`) on cost-per-unit and yield-%
+  fields; **"Az stok həddi" renamed → "Minimum stok həddi"** with an explanatory
+  hint. Commit `6d8ef0b`.
+
+### Done — blog (public reading + admin authoring)
+- Migration **020** `blog_posts` (slug, bilingual title/excerpt/body, cover,
+  draft/published status, published_at) — public reads `published` only,
+  platform-admin full write.
+- Public pages under `app/[locale]/(marketing)`: **`/blog`** index + **`/blog/
+  [slug]`** article, sharing the marketing shell; **"Bloq" nav link** added.
+- System-admin CRUD in the admin console (list / create / edit / publish-unpublish
+  / delete), platform-admin gated. Sample posts seeded.
+- Bilingual az/ru. Designed to match the marketing aesthetic.
+
+### Done — landing copy revision + URL/redirect fixes
+- Removed "Azərbaycan restoranları üçün qurulub"; **shortened every landing
+  feature blurb** to short, precise, attention-grabbing facts (no deep specifics).
+  Full section-by-section AZ rewrite per operator wording (navbar, hero + chips,
+  showcases, mock UI, problem, features, how, mission, metrics, testimonials, CTA,
+  demo, FAQ, footer); HoReCa terminology ("Maya dəyəri", "itkilər", "real vaxt
+  rejimində", "Demo tələb et").
+- **Bug:** nav section/demo anchors were hash-only, so off the landing (e.g. on
+  `/blog`) they became `/blog#product`. Fixed → `/${locale}#section`. Commit
+  `bf758c3`.
+- **Bug:** `/blog` redirected to login — middleware used an allowlist. Inverted to
+  **protect only `/app` and `/admin`** (minus auth pages). Commit `29b6458`.
+- **Decision:** keep `/az` + `/ru` in URLs (next-intl `localePrefix: 'always'`).
+
+### Done — graceful missing-service-key handling
+- Create-business crashed with "Your project's URL and Key are required…" because
+  `SUPABASE_SERVICE_ROLE_KEY` was empty in `.env.local`. Hardened:
+  `createAdminClient` throws a typed `ServiceRoleKeyMissingError`; `createBusiness`
+  catches it → returns `{error:'service_key'}`; the form shows a localized
+  `business.no_key` message instead of an unhandled runtime error. Operator must
+  still paste the real key + restart for business creation to work. Commit
+  `0771cf3`. (Admin password was set to a temporary value via privileged SQL —
+  change it.)
 
 ### Done — Phase 1 MVP (scaffold)
 - Full schema (`001`), RLS (`002`), auth flow, i18n, all Phase-1 pages and
