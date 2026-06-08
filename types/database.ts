@@ -346,6 +346,38 @@ export interface Database {
         >
         Relationships: []
       }
+      demo_requests: {
+        Row: {
+          id: string
+          name: string
+          restaurant_name: string | null
+          email: string
+          message: string | null
+          status: 'new' | 'contacted' | 'sent' | 'closed'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          restaurant_name?: string | null
+          email: string
+          message?: string | null
+          status?: 'new' | 'contacted' | 'sent' | 'closed'
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['demo_requests']['Insert']
+        >
+        Relationships: []
+      }
+      platform_admins: {
+        Row: { user_id: string; created_at: string }
+        Insert: { user_id: string; created_at?: string }
+        Update: Partial<
+          Database['public']['Tables']['platform_admins']['Insert']
+        >
+        Relationships: []
+      }
     }
     Views: Record<never, never>
     Functions: {
@@ -356,6 +388,19 @@ export interface Database {
       current_user_role: {
         Args: Record<string, never>
         Returns: string
+      }
+      is_platform_admin: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
+      submit_demo_request: {
+        Args: {
+          p_name: string
+          p_restaurant: string
+          p_email: string
+          p_message: string
+        }
+        Returns: undefined
       }
     }
     Enums: Record<never, never>
@@ -382,3 +427,6 @@ export type ProductionRunRow =
   Database['public']['Tables']['production_runs']['Row']
 export type ProductionRunInputRow =
   Database['public']['Tables']['production_run_inputs']['Row']
+export type DemoRequest =
+  Database['public']['Tables']['demo_requests']['Row']
+export type DemoRequestStatus = DemoRequest['status']

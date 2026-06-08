@@ -14,7 +14,7 @@ import {
   createRecipe,
   updateRecipe,
   type RecipeActionResult,
-} from '@/app/[locale]/(dashboard)/recipes/actions'
+} from '@/app/[locale]/app/(protected)/recipes/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -339,7 +339,7 @@ export function RecipeForm({
             type="button"
             className="w-full"
           >
-            <Link href="/recipes">{t('common.cancel')}</Link>
+            <Link href="/app/recipes">{t('common.cancel')}</Link>
           </Button>
         </div>
       </div>

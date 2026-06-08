@@ -5,8 +5,8 @@ import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { Plus, Trash2 } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
-import { submitDelivery } from '@/app/[locale]/(dashboard)/inventory/actions'
-import type { InventoryActionResult } from '@/app/[locale]/(dashboard)/inventory/actions'
+import { submitDelivery } from '@/app/[locale]/app/(protected)/inventory/actions'
+import type { InventoryActionResult } from '@/app/[locale]/app/(protected)/inventory/actions'
 import type { IngredientOption, SupplierOption } from '@/types/app'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -238,7 +238,7 @@ export function DeliveryForm({
           {t('common.save')}
         </SubmitButton>
         <Button asChild variant="outline" type="button">
-          <Link href="/inventory">{t('common.cancel')}</Link>
+          <Link href="/app/inventory">{t('common.cancel')}</Link>
         </Button>
       </div>
     </form>

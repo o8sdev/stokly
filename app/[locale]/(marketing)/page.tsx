@@ -11,7 +11,6 @@ import {
   Star,
   type LucideIcon,
 } from 'lucide-react'
-import { Link } from '@/lib/i18n/navigation'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { Reveal } from '@/components/marketing/reveal'
 import { CountUp } from '@/components/marketing/count-up'
@@ -141,18 +140,18 @@ export default async function LandingPage({
           </Reveal>
           <Reveal delay={220}>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/signup"
+              <a
+                href="#demo"
                 className="group inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-[#04231A] shadow-[0_12px_30px_-10px_rgba(0,200,150,0.55)] transition-colors hover:bg-brand-hover"
               >
                 {t('hero.cta_primary')}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              </a>
               <a
-                href="#demo"
+                href="#product"
                 className="inline-flex h-12 items-center gap-2 rounded-xl border border-[#dde5ea] bg-white px-6 text-sm font-semibold text-[#0d1b2a] transition-colors hover:bg-[#f6f9f8]"
               >
-                {t('hero.cta_secondary')}
+                {t('hero.cta_features')}
               </a>
             </div>
           </Reveal>
@@ -473,13 +472,13 @@ export default async function LandingPage({
               </h2>
               <p className="mt-5 text-lg text-slate-300">{t('cta.subtitle')}</p>
               <div className="mt-9 flex justify-center">
-                <Link
-                  href="/signup"
+                <a
+                  href="#demo"
                   className="group inline-flex items-center gap-2 rounded-xl bg-brand px-8 py-4 text-base font-semibold text-[#04231A] shadow-[0_14px_40px_-12px_rgba(0,200,150,0.7)] transition-colors hover:bg-brand-hover"
                 >
                   {t('cta.button')}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
+                </a>
               </div>
             </Reveal>
           </div>
@@ -506,15 +505,10 @@ export default async function LandingPage({
                 {t('footer.links.services')}
               </FooterLink>
               <FooterLink href="#how">{t('footer.links.how')}</FooterLink>
+              <FooterLink href="#testimonials">
+                {t('nav.testimonials')}
+              </FooterLink>
               <FooterLink href="#demo">{t('footer.links.demo')}</FooterLink>
-            </FooterCol>
-            <FooterCol title={t('footer.company')}>
-              <FooterNavLink href="/login">
-                {t('footer.links.login')}
-              </FooterNavLink>
-              <FooterNavLink href="/signup">
-                {t('footer.links.signup')}
-              </FooterNavLink>
             </FooterCol>
           </div>
         </div>
@@ -567,22 +561,5 @@ function FooterLink({
     >
       {children}
     </a>
-  )
-}
-
-function FooterNavLink({
-  href,
-  children,
-}: {
-  href: string
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      className="text-sm text-[#5b6b7d] transition-colors hover:text-[#0d1b2a]"
-    >
-      {children}
-    </Link>
   )
 }

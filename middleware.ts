@@ -4,7 +4,6 @@ import { locales, defaultLocale } from '@/i18n'
 import {
   updateSession,
   getLocaleFromPath,
-  isAuthRoute,
   isLandingRoute,
 } from '@/lib/supabase/middleware'
 
@@ -22,29 +21,36 @@ export async function middleware(request: NextRequest) {
 
   const locale = getLocaleFromPath(pathname)
 
-  // 2. Public routes need no auth: the marketing landing (locale root) and the
-  //    login / signup pages. Everything else (the dashboard group) is protected.
-  const onAuthRoute = isAuthRoute(pathname)
+  // 2. Public routes: the marketing landing (locale root) + the two hidden
+  //    portal logins. Everything else under /app/* or /admin/* is protected.
   const onLanding = isLandingRoute(pathname, locale)
-  const isPublic = onAuthRoute || onLanding
+  const onBusinessLogin = pathname === `/${locale}/app/login`
+  const onAdminLogin = pathname === `/${locale}/admin/login`
+  const inAdminArea = pathname.startsWith(`/${locale}/admin`)
+  const isPublic = onLanding || onBusinessLogin || onAdminLogin
 
-  // 3. Unauthenticated user trying to reach a protected route → /login.
+  // 3. Unauthenticated → the portal-appropriate login.
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
-    url.pathname = `/${locale}/login`
+    url.pathname = inAdminArea
+      ? `/${locale}/admin/login`
+      : `/${locale}/app/login`
     return NextResponse.redirect(url)
   }
 
-  // 4. Authenticated user landing on login/signup → dashboard home.
-  //    (The landing page stays reachable for signed-in users.)
-  if (user && onAuthRoute) {
+  // 4. Authenticated user on a login page → that portal's home.
+  if (user && onAdminLogin) {
     const url = request.nextUrl.clone()
-    url.pathname = `/${locale}/dashboard`
+    url.pathname = `/${locale}/admin`
+    return NextResponse.redirect(url)
+  }
+  if (user && onBusinessLogin) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/${locale}/app/dashboard`
     return NextResponse.redirect(url)
   }
 
-  // 5. Run next-intl to attach locale handling, then merge in the auth cookies
-  //    that updateSession may have set on supabaseResponse.
+  // 5. Run next-intl, then merge in any refreshed auth cookies.
   const intlResponse = intlMiddleware(request)
   supabaseResponse.cookies.getAll().forEach((cookie) => {
     intlResponse.cookies.set(cookie.name, cookie.value)
@@ -54,6 +60,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Skip Next internals and static assets.
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }

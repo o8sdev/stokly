@@ -12,8 +12,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
-import { submitWaste } from '@/app/[locale]/(dashboard)/inventory/actions'
-import type { InventoryActionResult } from '@/app/[locale]/(dashboard)/inventory/actions'
+import { submitWaste } from '@/app/[locale]/app/(protected)/inventory/actions'
+import type { InventoryActionResult } from '@/app/[locale]/app/(protected)/inventory/actions'
 import type { IngredientOption } from '@/types/app'
 import type { WasteCategory } from '@/types/database'
 import { Button } from '@/components/ui/button'
@@ -171,7 +171,7 @@ export function WasteForm({
           {t('common.save')}
         </SubmitButton>
         <Button asChild variant="outline" type="button">
-          <Link href="/inventory">{t('common.cancel')}</Link>
+          <Link href="/app/inventory">{t('common.cancel')}</Link>
         </Button>
       </div>
     </form>

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Pencil, Search, Trash2 } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import type { IngredientWithStock } from '@/types/app'
-import { deleteIngredient } from '@/app/[locale]/(dashboard)/ingredients/actions'
+import { deleteIngredient } from '@/app/[locale]/app/(protected)/ingredients/actions'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -77,7 +77,7 @@ export function IngredientTable({
             action={
               !query ? (
                 <Button asChild size="sm">
-                  <Link href="/ingredients/new">{t('ingredients.add')}</Link>
+                  <Link href="/app/ingredients/new">{t('ingredients.add')}</Link>
                 </Button>
               ) : undefined
             }
@@ -135,7 +135,7 @@ export function IngredientTable({
                       size="icon"
                       className="h-8 w-8"
                     >
-                      <Link href={`/ingredients/${row.id}`}>
+                      <Link href={`/app/ingredients/${row.id}`}>
                         <Pencil className="h-4 w-4" />
                       </Link>
                     </Button>

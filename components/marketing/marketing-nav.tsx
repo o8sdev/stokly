@@ -71,19 +71,13 @@ export function MarketingNav({ locale }: { locale: string }) {
             <Globe className="h-3.5 w-3.5" />
             {locale === 'az' ? 'RU' : 'AZ'}
           </button>
-          <Link
-            href="/login"
-            className="rounded-md px-3 py-2 text-sm font-medium text-[#0d1b2a] transition-colors hover:bg-[#f1f5f7]"
-          >
-            {t('login')}
-          </Link>
-          <Link
-            href="/signup"
+          <a
+            href="#demo"
             className="group inline-flex items-center gap-1.5 rounded-lg bg-[#0d1b2a] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#16283c]"
           >
-            {t('start')}
+            {t('demo')}
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </a>
         </div>
 
         <button
@@ -116,18 +110,13 @@ export function MarketingNav({ locale }: { locale: string }) {
                 <Globe className="h-3.5 w-3.5" />
                 {locale === 'az' ? 'RU' : 'AZ'}
               </button>
-              <Link
-                href="/login"
-                className="flex-1 rounded-lg border border-[#e7edf1] px-3 py-2 text-center text-sm font-medium text-[#0d1b2a]"
-              >
-                {t('login')}
-              </Link>
-              <Link
-                href="/signup"
+              <a
+                href="#demo"
+                onClick={() => setOpen(false)}
                 className="flex-1 rounded-lg bg-[#0d1b2a] px-3 py-2 text-center text-sm font-semibold text-white"
               >
-                {t('start')}
-              </Link>
+                {t('demo')}
+              </a>
             </div>
           </div>
         </div>

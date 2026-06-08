@@ -29,25 +29,35 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 
 ```bash
 npm install
-cp .env.local.example .env.local     # only URL + anon key needed
-# apply migrations in filename order (001 → 005) against your Supabase project
+cp .env.local.example .env.local     # URL + anon key; + service_role for admin
+# apply migrations in filename order (001 → 008) against your Supabase project
 npm run dev
 ```
+
+### Portals (sales-led / invite-only model)
+
+- **Public** `/[locale]` — marketing + **demo request only**. No signup/login.
+- **Business** `/[locale]/app/login` (hidden) → `/app/dashboard` etc. Accounts
+  are admin-provisioned (no self-serve signup).
+- **System admin** `/[locale]/admin/login` (hidden) → `/admin` console:
+  demo-leads inbox, restaurants list + **Enter (god-mode impersonation)**,
+  create business. Gated by the `platform_admins` allowlist.
 
 ### Live database (already provisioned)
 
 - Supabase project: **stockly** — ref `anbvxpoxdalizlsdcsdb`
   (`https://anbvxpoxdalizlsdcsdb.supabase.co`), region ap-northeast-1.
-- Migrations **001–005 are already applied** (11 tables, RLS on, helper
-  functions hardened, signup-provisioning trigger live).
-- **`.env.local` only needs two public values** — `NEXT_PUBLIC_SUPABASE_URL`
-  and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. **No `service_role` secret** (signup
-  provisioning is a DB trigger). The local `.env.local` is already populated and
-  git-ignored.
-- Auth: if you want signup to land straight on the dashboard, disable
-  **Confirm email** in Supabase → Authentication → Providers → Email. With it
-  on, the tenant is still provisioned at signup but the user must confirm before
-  logging in.
+- Migrations **001–008 are already applied** (RLS + admin override; demo +
+  platform-admin tables; helper functions hardened).
+- `.env.local` (git-ignored, already populated) needs `NEXT_PUBLIC_SUPABASE_URL`
+  + `NEXT_PUBLIC_SUPABASE_ANON_KEY`, **plus `SUPABASE_SERVICE_ROLE_KEY`**
+  (server-side, ADMIN-ONLY — creating business accounts). Optional Resend vars
+  enable demo-lead emails.
+- **Provision the system admin:** create your user in Supabase → Authentication
+  → Users (auto-confirm), then run
+  `insert into platform_admins (user_id) select id from auth.users where email='you@...';`
+- Advisor WARN to clear when convenient: enable **Leaked Password Protection**
+  in Supabase → Authentication → Policies.
 
 Verification commands (all must pass clean):
 
@@ -184,6 +194,30 @@ Checklist (updated as completed):
 - [x] Phase-2 placeholder routes: `production/page.tsx` (coming-soon),
       `production/new/page.tsx` (redirects to `/production`).
 - [x] typecheck + build + lint green; pushed.
+
+### Done — Phase A: demo-only public site + two hidden portals + god-mode admin
+- Public site is demo-request only (no signup/login). Demo form persists to
+  `demo_requests` via the SECURITY DEFINER `submit_demo_request` RPC + best-effort
+  Resend email; verified end-to-end.
+- **Routing moved:** the whole business app now lives under `/[locale]/app/*`
+  (login at `/app/login`); the old `/dashboard` + `(auth)` groups are gone.
+  Nav/links/middleware/redirects all updated.
+- **System admin** at `/[locale]/admin/*`: console (leads inbox, tenants list,
+  create business), gated by `requirePlatformAdmin`. **God-mode** = migration 008
+  RLS admin-override + tenant impersonation (a `stokly_admin_tenant` cookie; the
+  admin "Enters" a restaurant and reuses the whole business app, with an
+  exit banner). Business creation uses the admin service client + the 005 trigger.
+- Build (49 routes) + typecheck + lint green. Admin login UI + lead capture
+  verified in the browser; full console/impersonation verified once a real admin
+  is provisioned.
+- NOTE: a cleanup query accidentally dropped the `DAD House` test tenant
+  (rhabibli@outlook.com); it was re-provisioned (tenant + owner + waste
+  categories). Any data added to it before was lost.
+
+### Next — Phase B: bulk ingredient import + onboarding (per approved plan)
+Migration 007 (global library + seed), `xlsx` dep, parse module + template API,
+import page (Excel/CSV · library · paste), library multi-select, ingredients
+header buttons, first-login onboarding empty state, admin library CRUD.
 
 ### Done — landing redesigned to premium light/airy (Supy/MarketMan)
 - Reworked the landing from dark control-room → **light, airy, product-led**:

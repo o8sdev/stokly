@@ -34,7 +34,61 @@
     "login_link": "Daxil ol",
     "signup_link": "Qeydiyyatdan keç",
     "error_invalid": "E-poçt və ya şifrə yanlışdır",
-    "error_generic": "Xəta baş verdi. Yenidən cəhd edin."
+    "error_generic": "Xəta baş verdi. Yenidən cəhd edin.",
+    "forbidden": "Bu hesabın admin icazəsi yoxdur."
+  },
+  "admin": {
+    "title": "Sistem admini",
+    "signout": "Çıxış",
+    "viewing_as": "Baxış rejimi:",
+    "exit_view": "Admin rejimindən çıx",
+    "nav": {
+      "home": "Əsas",
+      "leads": "Demo sorğuları",
+      "tenants": "Restoranlar",
+      "new_business": "Yeni biznes"
+    },
+    "home": {
+      "title": "Admin paneli",
+      "new_leads": "Yeni demo sorğuları",
+      "total_leads": "Ümumi sorğular",
+      "tenants": "Restoranlar"
+    },
+    "leads": {
+      "title": "Demo sorğuları",
+      "empty": "Hələ sorğu yoxdur",
+      "col_date": "Tarix",
+      "col_name": "Ad",
+      "col_restaurant": "Restoran",
+      "col_email": "E-poçt",
+      "col_message": "Mesaj",
+      "col_status": "Status"
+    },
+    "status": {
+      "new": "Yeni",
+      "contacted": "Əlaqə saxlanıldı",
+      "sent": "Video göndərildi",
+      "closed": "Bağlandı"
+    },
+    "tenants": {
+      "title": "Restoranlar",
+      "empty": "Hələ restoran yoxdur",
+      "col_name": "Ad",
+      "col_created": "Yaradılıb",
+      "enter": "Daxil ol",
+      "subtitle": "Hər hansı restorana daxil olub məlumatlarını idarə edin."
+    },
+    "business": {
+      "title": "Yeni biznes yarat",
+      "subtitle": "Restoran üçün hesab yaradın. Sahibi bu məlumatlarla daxil olacaq.",
+      "restaurant": "Restoranın adı",
+      "email": "Sahibin e-poçtu",
+      "password": "Müvəqqəti şifrə",
+      "create": "Hesab yarat",
+      "created": "Biznes yaradıldı",
+      "error": "Hesab yaradıla bilmədi",
+      "hint": "Sahibə e-poçt və müvəqqəti şifrəni verin — onlar /app/login ünvanından daxil olacaq."
+    }
   },
   "dashboard": {
     "title": "İdarə paneli",
@@ -232,16 +286,15 @@
       "how": "Necə işləyir",
       "testimonials": "Rəylər",
       "faq": "Suallar",
-      "login": "Daxil ol",
-      "start": "Pulsuz başla"
+      "demo": "Demo sifariş et"
     },
     "hero": {
       "badge": "Azərbaycan restoranları üçün qurulub",
       "title_lead": "Yemək dəyərini idarə et,",
       "title_accent": "mənfəəti qoru.",
       "subtitle": "Stokly — restoran inventarı və yemək dəyəri platforması. Real vaxtda stok, FIFO partiya izləmə, dəqiq resept maya dəyəri və aydın hesabatlar — hamısı bir yerdə.",
-      "cta_primary": "Pulsuz başla",
-      "cta_secondary": "Demo sifariş et",
+      "cta_primary": "Demo sifariş et",
+      "cta_features": "İmkanlara bax",
       "panel": {
         "live": "Canlı",
         "food_cost": "yemək dəyəri",
@@ -432,8 +485,8 @@
     },
     "cta": {
       "title": "Mətbəxinizin rəqəmlərinə bu gün nəzarət edin.",
-      "subtitle": "Pulsuz başlayın — kart tələb olunmur.",
-      "button": "Pulsuz başla"
+      "subtitle": "Pulsuz demo sifariş edin — komandanıza uyğun göstərək.",
+      "button": "Demo sifariş et"
     },
     "demo": {
       "kicker": "Demo",
@@ -444,7 +497,9 @@
       "email": "E-poçt",
       "message": "Mesaj (ixtiyari)",
       "submit": "Demo sifariş et",
-      "success": "Təşəkkürlər! Tezliklə sizinlə əlaqə saxlayacağıq."
+      "sending": "Göndərilir...",
+      "error": "Xəta baş verdi. Yenidən cəhd edin.",
+      "success": "Təşəkkürlər! Demo videonu tezliklə e-poçtunuza göndərəcəyik."
     },
     "faq": {
       "kicker": "Suallar",

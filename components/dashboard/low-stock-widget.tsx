@@ -41,7 +41,7 @@ export async function LowStockWidget({ rows }: { rows: LowStockRow[] }) {
                 </p>
               </div>
               <Link
-                href="/inventory/delivery"
+                href="/app/inventory/delivery"
                 className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
               >
                 {t('order')}

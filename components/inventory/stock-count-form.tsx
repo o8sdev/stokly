@@ -5,8 +5,8 @@ import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { Search, Minus, Plus } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
-import { submitStockCount } from '@/app/[locale]/(dashboard)/inventory/actions'
-import type { InventoryActionResult } from '@/app/[locale]/(dashboard)/inventory/actions'
+import { submitStockCount } from '@/app/[locale]/app/(protected)/inventory/actions'
+import type { InventoryActionResult } from '@/app/[locale]/app/(protected)/inventory/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -156,7 +156,7 @@ export function StockCountForm({
         <span className="text-sm text-muted-foreground">{filledCount}</span>
         <div className="flex gap-2">
           <Button asChild variant="outline" type="button">
-            <Link href="/inventory">{t('common.cancel')}</Link>
+            <Link href="/app/inventory">{t('common.cancel')}</Link>
           </Button>
           <SubmitButton
             pendingText={t('common.saving')}

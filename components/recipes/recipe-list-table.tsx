@@ -102,7 +102,7 @@ export function RecipeListTable({ rows }: { rows: RecipeWithCost[] }) {
               </TableCell>
               <TableCell className="text-right">
                 <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                  <Link href={`/recipes/${row.id}`}>
+                  <Link href={`/app/recipes/${row.id}`}>
                     <Pencil className="h-4 w-4" />
                   </Link>
                 </Button>

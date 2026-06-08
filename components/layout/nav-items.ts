@@ -29,19 +29,19 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'main',
     items: [
-      { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
-      { href: '/ingredients', labelKey: 'ingredients', icon: Carrot },
-      { href: '/recipes', labelKey: 'recipes', icon: ChefHat },
-      { href: '/inventory', labelKey: 'inventory', icon: Boxes },
-      { href: '/production', labelKey: 'production', icon: Factory },
+      { href: '/app/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
+      { href: '/app/ingredients', labelKey: 'ingredients', icon: Carrot },
+      { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
+      { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
+      { href: '/app/production', labelKey: 'production', icon: Factory },
     ],
   },
   {
     labelKey: 'reports',
     items: [
-      { href: '/reports/food-cost', labelKey: 'food_cost', icon: TrendingUp },
+      { href: '/app/reports/food-cost', labelKey: 'food_cost', icon: TrendingUp },
       {
-        href: '/reports/inventory-value',
+        href: '/app/reports/inventory-value',
         labelKey: 'inventory_value',
         icon: Wallet,
       },
@@ -50,17 +50,17 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'settings',
     items: [
-      { href: '/settings/suppliers', labelKey: 'suppliers', icon: Users },
-      { href: '/settings', labelKey: 'settings', icon: Settings },
+      { href: '/app/settings/suppliers', labelKey: 'suppliers', icon: Users },
+      { href: '/app/settings', labelKey: 'settings', icon: Settings },
     ],
   },
 ]
 
 // Flat list used by the mobile bottom tab bar (icons only, primary routes).
 export const MOBILE_NAV: NavItem[] = [
-  { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
-  { href: '/ingredients', labelKey: 'ingredients', icon: Carrot },
-  { href: '/recipes', labelKey: 'recipes', icon: ChefHat },
-  { href: '/inventory', labelKey: 'inventory', icon: Boxes },
-  { href: '/reports/food-cost', labelKey: 'food_cost', icon: TrendingUp },
+  { href: '/app/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
+  { href: '/app/ingredients', labelKey: 'ingredients', icon: Carrot },
+  { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
+  { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
+  { href: '/app/reports/food-cost', labelKey: 'food_cost', icon: TrendingUp },
 ]

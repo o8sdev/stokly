@@ -9,7 +9,7 @@ import {
   createIngredient,
   updateIngredient,
   type ActionResult,
-} from '@/app/[locale]/(dashboard)/ingredients/actions'
+} from '@/app/[locale]/app/(protected)/ingredients/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -208,7 +208,7 @@ export function IngredientForm({
           {t('common.save')}
         </SubmitButton>
         <Button asChild variant="outline" type="button">
-          <Link href="/ingredients">{t('common.cancel')}</Link>
+          <Link href="/app/ingredients">{t('common.cancel')}</Link>
         </Button>
       </div>
     </form>
