@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { FieldHint } from '@/components/ui/field-hint'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -264,9 +265,12 @@ export function RecipeForm({
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="serving_size">
-                  {t('recipes.serving_size')}
-                </Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="serving_size">
+                    {t('recipes.serving_size')}
+                  </Label>
+                  <FieldHint text={t('recipes.serving_size_hint')} />
+                </div>
                 <Input
                   id="serving_size"
                   type="number"
@@ -274,17 +278,22 @@ export function RecipeForm({
                   min="0"
                   value={servingSize}
                   onChange={(e) => setServingSize(e.target.value)}
+                  placeholder={t('recipes.serving_size_ph')}
                   className="font-mono tabular-nums"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="serving_unit">
-                  {t('recipes.serving_unit')}
-                </Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="serving_unit">
+                    {t('recipes.serving_unit')}
+                  </Label>
+                  <FieldHint text={t('recipes.serving_unit_hint')} />
+                </div>
                 <Input
                   id="serving_unit"
                   value={servingUnit}
                   onChange={(e) => setServingUnit(e.target.value)}
+                  placeholder={t('recipes.serving_unit_ph')}
                 />
               </div>
             </div>
