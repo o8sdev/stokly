@@ -840,27 +840,27 @@
   },
   "landing": {
     "nav": {
-      "services": "İmkanlar",
+      "services": "Funksiyalar",
       "how": "Necə işləyir",
-      "testimonials": "Rəylər",
-      "faq": "Suallar",
-      "demo": "Demo sifariş et",
+      "testimonials": "Müştəri rəyləri",
+      "faq": "Tez-tez verilən suallar",
+      "demo": "Demo tələb et",
       "login": "Daxil ol",
       "blog": "Bloq"
     },
     "hero": {
       "badge": "Təxminlərə son — dəqiq rəqəmlər.",
-      "title_lead": "Yemək dəyərini idarə et,",
+      "title_lead": "Maya dəyərini idarə et,",
       "title_accent": "mənfəəti qoru.",
-      "subtitle": "İnventar, resept maya dəyəri və itki — real vaxtda, bir platformada.",
-      "cta_primary": "Demo sifariş et",
+      "subtitle": "İnventar, resept maya dəyəri və itkilər — real vaxt rejimində, bir platformada.",
+      "cta_primary": "Demo tələb et",
       "cta_features": "İmkanlara bax",
       "scroll": "Aşağı sürüşdürün",
       "panel": {
         "live": "Canlı",
-        "food_cost": "yemək dəyəri",
-        "inventory": "Anbar dəyəri",
-        "waste": "Bu həftə itki",
+        "food_cost": "Maya dəyəri",
+        "inventory": "Anbar",
+        "waste": "Həftəlik itki",
         "margin": "Marja"
       }
     },
@@ -882,139 +882,139 @@
       "items": [
         {
           "kicker": "Resept maya dəyəri",
-          "title": "Hər reseptin əsl dəyərini real vaxtda görün.",
-          "desc": "İnqrediyent əlavə edin — maya dəyəri və yemək dəyəri faizi anında.",
+          "title": "Hər reseptin real dəyərini real vaxtda görün.",
+          "desc": "İnqrediyentləri əlavə edin — maya dəyəri və resept dəyəri faizi anında hesablanır.",
           "bullets": [
-            "Çıxıma görə dəqiq maya dəyəri",
-            "Canlı yemək dəyəri faizi",
+            "Çıxışa görə dəqiq maya dəyəri",
+            "Canlı maya dəyəri faizi",
             "Tövsiyə olunan satış qiyməti"
           ]
         },
         {
           "kicker": "FIFO partiya izləmə",
-          "title": "Hər partiyanı, hər son istifadə tarixini izləyin.",
-          "desc": "Hər çatdırılma ayrı partiya. Köhnə əvvəl işlənir, vaxtı bitən xəbər verir.",
+          "title": "Hər partiyanı, son istifadə tarixinə qədər tam izləyin.",
+          "desc": "Hər çatdırılma ayrıca partiya kimi qeyd olunur. Köhnə stoklar əvvəl istifadə olunur, istifadə müddəti yaxınlaşanlar isə avtomatik bildirilir.",
           "bullets": [
-            "Partiya səviyyəsində qalıqlar",
-            "Avtomatik son istifadə xəbərdarlıqları",
-            "Telefonla sürətli sayım"
+            "Partiya səviyyəsində stok izləmə",
+            "Avtomatik istifadə müddəti xəbərdarlıqları",
+            "Mobil cihazla sürətli inventar sayımı"
           ]
         },
         {
           "kicker": "Panel və hesabatlar",
-          "title": "Bütün mətbəxiniz bir baxışda.",
-          "desc": "Yemək dəyəri, inventar, itki və marja — bir panel, real vaxtda.",
+          "title": "Bütün əməliyyatlarınızı bir baxışda görün.",
+          "desc": "Maya dəyəri, inventar, itkilər və marja — hamısı bir paneldə, real vaxtda.",
           "bullets": [
-            "Real vaxtda idarə paneli",
-            "Yeməklər üzrə marja",
-            "İnventar dəyəri hesabatı"
+            "Real vaxt idarəetmə paneli",
+            "Məhsul üzrə marja analizi",
+            "İnventar dəyəri hesabatları"
           ]
         }
       ]
     },
     "mock": {
       "dashboard_title": "stokly.app/idarə-paneli",
-      "trend": "Yemək dəyəri trendi",
-      "expiring": "Vaxtı bitən",
+      "trend": "Maya dəyəri trendi",
+      "expiring": "Son istifadə tarixi yaxınlaşanlar",
       "fifo": "FIFO partiya",
       "days": "gün",
       "recipe_title": "stokly.app/resept",
       "recipe_name": "Toyuq Köftə",
-      "total": "Ümumi dəyər",
+      "total": "Ümumi maya dəyəri",
       "per_serving": "Porsiya dəyəri",
-      "food_cost": "Yemək dəyəri",
-      "suggested": "Tövsiyə qiymət",
+      "food_cost": "Maya dəyəri",
+      "suggested": "Tövsiyə olunan qiymət",
       "inv_title": "stokly.app/inventar",
       "name": "Ad",
       "stock": "Stok",
       "status": "Status",
       "received": "Qəbul",
-      "expiry": "Son tarix"
+      "expiry": "Son istifadə tarixi"
     },
     "problem": {
       "kicker": "Problem",
-      "title": "Mənfəətiniz təxminlərdə itir.",
-      "lead": "Əksər restoranlar gəlirinin 28–40%-ni yeməyə xərcləyir — amma bu rəqəmi real vaxtda bilən azdır.",
+      "title": "Mənfəətiniz təxminlər üzərində itir.",
+      "lead": "Əksər HoReCa biznesləri gəlirinin 28–40%-ni xammal və qidaya xərcləyir — amma bu rəqəmi real vaxtda izləyən azdır.",
       "points": [
         {
-          "title": "Görünməyən itki",
-          "desc": "Korlanma və artıq hazırlıq səssizcə mənfəəti yeyir."
+          "title": "Görünməyən itkilər",
+          "desc": "Korlanma və artıq istehsal səssiz şəkildə mənfəəti azaldır."
         },
         {
           "title": "Köhnəlmiş qiymətlər",
-          "desc": "Təchizatçı qiyməti dəyişir, reseptiniz donub qalır."
+          "desc": "Təchizatçı qiymətləri dəyişir, reseptlər isə yenilənmir."
         },
         {
-          "title": "Kor inventar",
-          "desc": "Əl ilə sayım yavaş və səhvlidir."
+          "title": "Əl ilə inventar",
+          "desc": "Manual sayım yavaşdır və səhvlərə açıqdır."
         }
       ]
     },
     "services": {
       "kicker": "İmkanlar",
       "title": "Mətbəxinizi idarə etmək üçün lazım olan hər şey.",
-      "lead": "Bir platformada — təxmin yox, dəqiq rəqəmlər.",
+      "lead": "Bir platforma — təxmin yox, dəqiq rəqəmlər.",
       "items": [
         {
-          "title": "Yemək dəyəri mühərriki",
-          "desc": "Çıxımı nəzərə alan dəqiq maya dəyəri."
+          "title": "Maya dəyəri mühərriki",
+          "desc": "Çıxım nəzərə alınaraq dəqiq maya dəyəri hesablanır."
         },
         {
           "title": "FIFO partiya və son istifadə",
-          "desc": "Hər partiya izlənir, vaxtı bitənlər xəbər verir."
+          "desc": "Hər partiya izlənir, vaxtı yaxınlaşanlar bildirilir."
         },
         {
           "title": "Canlı resept qurucu",
-          "desc": "Yazdıqca yemək dəyəri anında yenilənir."
+          "desc": "Dəyişiklik etdikcə maya dəyəri yenilənir."
         },
         {
-          "title": "Mobil stok sayımı",
-          "desc": "Telefonla sürətli sayım — anbarda."
+          "title": "Mobil inventar sayımı",
+          "desc": "Telefonla sürətli sayım."
         },
         {
           "title": "Aydın hesabatlar",
-          "desc": "Maya dəyəri, marja və inventar — bir baxışda."
+          "desc": "Maya dəyəri, marja və inventar bir paneldə."
         },
         {
-          "title": "İki dildə",
-          "desc": "Tam Azərbaycan və rus dili."
+          "title": "Çoxdilli dəstək",
+          "desc": "Azərbaycan və rus dili tam dəstəklənir."
         }
       ]
     },
     "how": {
       "kicker": "Necə işləyir",
-      "title": "Üç addımda nəzarət.",
+      "title": "Üç addımda tam nəzarət.",
       "steps": [
         {
           "no": "01",
           "title": "Qur",
-          "desc": "İnqrediyentləri, təchizatçıları və reseptləri əlavə et. Bir saatdan az çəkir."
+          "desc": "İnqrediyentləri, təchizatçıları və reseptləri əlavə et. Bir saatdan az vaxt aparır."
         },
         {
           "no": "02",
-          "title": "İzlə",
-          "desc": "Çatdırılmaları, sayımları və itkiləri qeyd et. Stok real vaxtda yenilənir."
+          "title": "İzləyin",
+          "desc": "Çatdırılmalar, sayımlar və itkilər real vaxtda yenilənir."
         },
         {
           "no": "03",
-          "title": "Qazan",
-          "desc": "Yemək dəyərini gör, qiymətləri optimallaşdır, itkini azalt. Mənfəət böyüyür."
+          "title": "Optimizə et",
+          "desc": "Maya dəyərini analiz et, qiymətləri tənzimlə və itkini azaldın."
         }
       ]
     },
     "mission": {
       "kicker": "Bizim məqsəd",
-      "title": "Azərbaycan restoranlarını rəqəmlərlə güclü etmək.",
-      "body": "Biz inanırıq ki, hər restoran sahibi öz mətbəxinin iqtisadiyyatını dəqiq bilməlidir — təxminlə deyil. Stokly mürəkkəb maya dəyəri hesablamalarını real vaxtda, sadə və hər kəs üçün əlçatan edir.",
+      "title": "Azərbaycan HoReCa sektorunu data ilə gücləndirmək.",
+      "body": "Biz inanırıq ki, hər restoran öz mətbəx iqtisadiyyatını dəqiq bilməlidir — təxminlə yox. Stokly kompleks maya dəyəri və inventar idarəetməsini real vaxtda sadə və əlçatan edir.",
       "stat_value": "3%",
-      "stat_label": "Yemək dəyərində cəmi 3% azalma çox vaxt mənfəəti ikiqat artırır."
+      "stat_label": "Maya dəyərində 3% optimizasiya çox vaxt mənfəəti əhəmiyyətli dərəcədə artırır."
     },
     "metrics": {
-      "note": "* İllüstrativ göstəricilər",
+      "note": "Göstəricilər model əsaslıdır",
       "items": [
-        { "value": 25, "suffix": "%", "label": "yemək dəyərində orta azalma*" },
-        { "value": 30, "suffix": "%", "label": "daha az korlanma və itki*" },
-        { "value": 6, "suffix": " saat", "label": "həftədə qənaət olunan vaxt*" },
+        { "value": 25, "suffix": "%", "label": "orta maya dəyəri azalması" },
+        { "value": 30, "suffix": "%", "label": "itki və korlanmanın azalması" },
+        { "value": 6, "suffix": " saat", "label": "həftəlik vaxt qənaəti" },
         { "value": 2, "suffix": " dil", "label": "AZ + RU dəstəyi" }
       ]
     },
@@ -1023,73 +1023,73 @@
       "title": "Mətbəxlər Stokly ilə daha dəqiq işləyir.",
       "items": [
         {
-          "quote": "Stokly-dən əvvəl yemək dəyərimizi ayda bir dəfə, gec hesablayırdıq. İndi real vaxtda görürük və menyu qiymətlərini ona görə qururuq.",
+          "quote": "Stokly-dən əvvəl maya dəyərini ayda bir dəfə hesablayırdıq. İndi real vaxtda görürük və menyunu optimallaşdırırıq.",
           "name": "Elçin Məmmədov",
-          "role": "Sahib, Nar & Tut, Bakı"
+          "role": "Nar & Tut, Bakı"
         },
         {
-          "quote": "FIFO partiya izləmə korlanmanı kəskin azaltdı. Vaxtı bitən məhsullar üçün xəbərdarlıqlar bizə həftədə yüzlərlə manat qazandırır.",
+          "quote": "FIFO izləmə korlanmanı ciddi azaltdı. Hər həftə real qənaət yaradır.",
           "name": "Günel Əliyeva",
-          "role": "Baş aşpaz, Şirvanşah Restoran"
+          "role": "Şirvanşah Restoran"
         },
         {
-          "quote": "Mobil sayım anbarda işimizi sürətləndirdi. Komanda telefonla 10 dəqiqəyə sayımı bitirir.",
+          "quote": "Mobil sayım işi xeyli sürətləndirdi. 10 dəqiqəyə inventar bitir.",
           "name": "Rəşad Hüseynov",
-          "role": "Menecer, Lavangi House"
+          "role": "Lavangi House"
         },
         {
-          "quote": "Nəhayət, reseptlərimizin əsl maya dəyərini bilirik. İki dil dəstəyi bütün komanda üçün mükəmməldir.",
+          "quote": "Reseptlərin real maya dəyərini görmək oyunu dəyişdi.",
           "name": "Aysel Quliyeva",
-          "role": "Sahib, Şəkər Pâtisserie"
+          "role": "Şəkər Pâtisserie"
         }
       ]
     },
     "cta": {
-      "title": "Mətbəxinizin rəqəmlərinə bu gün nəzarət edin.",
-      "subtitle": "Pulsuz demo sifariş edin — komandanıza uyğun göstərək.",
-      "button": "Demo sifariş et"
+      "title": "Mətbəxinizin rəqəmlərinə bu gündən nəzarət edin.",
+      "subtitle": "Pulsuz demo tələb edin — sistemin biznesinizə necə uyğunlaşdığını göstərəcəyik.",
+      "button": "Demo tələb et"
     },
     "demo": {
       "kicker": "Demo",
-      "title": "Komandanızla canlı demo planlaşdırın.",
-      "lead": "15 dəqiqə. Stokly-nin sizin restoranınız üçün necə işlədiyini göstərək.",
-      "name": "Adınız",
-      "restaurant": "Restoranın adı",
+      "title": "Komandanız üçün canlı demo planlayın.",
+      "lead": "15 dəqiqəlik təqdimat — Stokly-nin sizin restoranınızda necə işlədiyini göstərək.",
+      "name": "Ad",
+      "restaurant": "Restoran",
       "email": "E-poçt",
       "message": "Mesaj (ixtiyari)",
-      "submit": "Demo sifariş et",
+      "submit": "Demo tələb et",
       "sending": "Göndərilir...",
       "error": "Xəta baş verdi. Yenidən cəhd edin.",
-      "success": "Təşəkkürlər! Demo videonu tezliklə e-poçtunuza göndərəcəyik."
+      "success": "Təşəkkürlər! Demo məlumatı tezliklə e-poçtunuza göndəriləcək."
     },
     "faq": {
       "kicker": "Suallar",
-      "title": "Tez-tez verilən suallar.",
+      "title": "Tez-tez verilən suallar",
       "items": [
         {
           "q": "Qurulması nə qədər vaxt aparır?",
-          "a": "İlk inqrediyentlərinizi və reseptlərinizi əlavə etmək adətən bir saatdan az çəkir. İstənilən vaxt genişləndirə bilərsiniz."
+          "a": "Təxminən bir saatdan az."
         },
         {
-          "q": "POS sistemi ilə inteqrasiya varmı?",
-          "a": "Satış əsaslı avtomatik stok azalması Faza 3-də POS inteqrasiyası ilə gəlir. İndi çatdırılma, sayım və itki tam dəstəklənir."
+          "q": "POS inteqrasiyası varmı?",
+          "a": "Hazırda planlanır, əsas fokus inventar və maya dəyəridir."
         },
         {
-          "q": "Məlumatlarım təhlükəsizdirmi?",
-          "a": "Bəli. Hər restoran öz izolyasiya olunmuş məkanına malikdir və məlumatlar sətir səviyyəsində təhlükəsizliklə qorunur."
+          "q": "Məlumatlar təhlükəsizdirmi?",
+          "a": "Bəli, izolyasiya olunmuş və şifrələnmiş sistemdə saxlanılır."
         },
         {
-          "q": "Hansı dillər dəstəklənir?",
-          "a": "Azərbaycan və rus dili tam dəstəklənir. İstənilən vaxt keçid edə bilərsiniz."
+          "q": "Hansı dillər var?",
+          "a": "Azərbaycan və rus dili."
         },
         {
-          "q": "Telefonda işləyirmi?",
-          "a": "Bəli. Stok sayımı və itki qeydi mobil üçün optimallaşdırılıb — anbarda və mətbəxdə istifadə üçün."
+          "q": "Mobil dəstək varmı?",
+          "a": "Bəli, tam mobil optimizasiya var."
         }
       ]
     },
     "footer": {
-      "tagline": "Restoran inventarı və yemək dəyəri idarəetməsi.",
+      "tagline": "HoReCa üçün inventar və maya dəyəri idarəetməsi.",
       "rights": "© 2026 Stokly. Bütün hüquqlar qorunur.",
       "product": "Məhsul",
       "company": "Şirkət",
