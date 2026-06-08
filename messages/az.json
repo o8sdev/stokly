@@ -37,7 +37,22 @@
     "signup_link": "Qeydiyyatdan keç",
     "error_invalid": "E-poçt və ya şifrə yanlışdır",
     "error_generic": "Xəta baş verdi. Yenidən cəhd edin.",
-    "forbidden": "Bu hesabın admin icazəsi yoxdur."
+    "forbidden": "Bu hesabın admin icazəsi yoxdur.",
+    "forgot_password": "Şifrəni unutmusunuz?",
+    "not_registered": "Qeydiyyatdan keçməmisiniz?",
+    "request_demo": "Demo tələb edin",
+    "forgot_title": "Şifrənin bərpası",
+    "forgot_subtitle": "E-poçtunuzu daxil edin — şifrə bərpası linkini göndərəcəyik.",
+    "send_reset_link": "Bərpa linki göndər",
+    "reset_sent": "Əgər bu e-poçt sistemdədirsə, bərpa linki göndərildi. Poçtunuzu yoxlayın.",
+    "back_to_login": "Girişə qayıt",
+    "reset_title": "Yeni şifrə təyin et",
+    "new_password": "Yeni şifrə",
+    "confirm_password": "Şifrəni təsdiqlə",
+    "update_password": "Şifrəni yenilə",
+    "reset_mismatch": "Şifrələr uyğun gəlmir",
+    "reset_weak": "Şifrə ən azı 6 simvol olmalıdır",
+    "reset_no_session": "Sessiyanın vaxtı bitib. Bərpa linkini yenidən tələb edin."
   },
   "admin": {
     "title": "Sistem admini",
@@ -790,7 +805,8 @@
       "how": "Necə işləyir",
       "testimonials": "Rəylər",
       "faq": "Suallar",
-      "demo": "Demo sifariş et"
+      "demo": "Demo sifariş et",
+      "login": "Daxil ol"
     },
     "hero": {
       "badge": "Azərbaycan restoranları üçün qurulub",

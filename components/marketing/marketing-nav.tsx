@@ -71,6 +71,12 @@ export function MarketingNav({ locale }: { locale: string }) {
             <Globe className="h-3.5 w-3.5" />
             {locale === 'az' ? 'RU' : 'AZ'}
           </button>
+          <Link
+            href="/app/login"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0d1b2a] transition-colors hover:bg-[#f1f5f7]"
+          >
+            {t('login')}
+          </Link>
           <a
             href="#demo"
             className="group inline-flex items-center gap-1.5 rounded-lg bg-[#0d1b2a] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#16283c]"
@@ -110,6 +116,13 @@ export function MarketingNav({ locale }: { locale: string }) {
                 <Globe className="h-3.5 w-3.5" />
                 {locale === 'az' ? 'RU' : 'AZ'}
               </button>
+              <Link
+                href="/app/login"
+                onClick={() => setOpen(false)}
+                className="rounded-lg border border-[#e7edf1] px-3 py-2 text-sm font-semibold text-[#0d1b2a]"
+              >
+                {t('login')}
+              </Link>
               <a
                 href="#demo"
                 onClick={() => setOpen(false)}

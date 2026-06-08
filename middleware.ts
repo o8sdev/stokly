@@ -26,8 +26,16 @@ export async function middleware(request: NextRequest) {
   const onLanding = isLandingRoute(pathname, locale)
   const onBusinessLogin = pathname === `/${locale}/app/login`
   const onAdminLogin = pathname === `/${locale}/admin/login`
+  // Password-recovery pages must be reachable without a prior session.
+  const onForgotPassword = pathname === `/${locale}/app/forgot-password`
+  const onResetPassword = pathname === `/${locale}/app/reset-password`
   const inAdminArea = pathname.startsWith(`/${locale}/admin`)
-  const isPublic = onLanding || onBusinessLogin || onAdminLogin
+  const isPublic =
+    onLanding ||
+    onBusinessLogin ||
+    onAdminLogin ||
+    onForgotPassword ||
+    onResetPassword
 
   // 3. Unauthenticated → the portal-appropriate login.
   if (!user && !isPublic) {

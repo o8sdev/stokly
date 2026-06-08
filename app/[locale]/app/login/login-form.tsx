@@ -3,6 +3,7 @@
 import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { loginBusiness, type AuthResult } from '@/lib/auth/actions'
+import { Link } from '@/lib/i18n/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -34,6 +35,25 @@ export function BusinessLoginForm({ locale }: { locale: string }) {
       <SubmitButton className="w-full" pendingText={t('common.loading')}>
         {t('auth.login_button')}
       </SubmitButton>
+
+      <div className="text-center">
+        <Link
+          href="/app/forgot-password"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          {t('auth.forgot_password')}
+        </Link>
+      </div>
+
+      <div className="border-t pt-4 text-center text-sm text-muted-foreground">
+        {t('auth.not_registered')}{' '}
+        <a
+          href={`/${locale}#demo`}
+          className="font-medium text-primary hover:underline"
+        >
+          {t('auth.request_demo')}
+        </a>
+      </div>
     </form>
   )
 }
