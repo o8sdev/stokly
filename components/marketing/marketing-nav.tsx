@@ -52,7 +52,7 @@ export function MarketingNav({ locale }: { locale: string }) {
           {SECTIONS.map((s) => (
             <a
               key={s.id}
-              href={`#${s.id}`}
+              href={`/${locale}#${s.id}`}
               className="text-sm font-medium text-[#9fb2aa] transition-colors hover:text-white"
             >
               {t(s.key)}
@@ -82,7 +82,7 @@ export function MarketingNav({ locale }: { locale: string }) {
             {t('login')}
           </Link>
           <a
-            href="#demo"
+            href={`/${locale}#demo`}
             className="group inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-[#04231A] shadow-[0_10px_30px_-10px_rgba(0,200,150,0.6)] transition-colors hover:bg-brand-hover"
           >
             {t('demo')}
@@ -105,7 +105,7 @@ export function MarketingNav({ locale }: { locale: string }) {
             {SECTIONS.map((s) => (
               <a
                 key={s.id}
-                href={`#${s.id}`}
+                href={`/${locale}#${s.id}`}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-2.5 text-sm font-medium text-[#cdd9d3] hover:bg-white/5 hover:text-white"
               >
@@ -135,7 +135,7 @@ export function MarketingNav({ locale }: { locale: string }) {
                 {t('login')}
               </Link>
               <a
-                href="#demo"
+                href={`/${locale}#demo`}
                 onClick={() => setOpen(false)}
                 className="flex-1 rounded-lg bg-brand px-3 py-2 text-center text-sm font-semibold text-[#04231A]"
               >
