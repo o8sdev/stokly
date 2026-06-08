@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ClipboardList, Truck, Trash2, Percent, Wallet, PackageX, Flame } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
 import {
   getIngredients,
   getRecipes,
@@ -61,8 +62,13 @@ export default async function DashboardPage({
 
   // First-login onboarding: until the catalog has at least one ingredient,
   // guide the user to bulk-import / library / manual instead of empty widgets.
+  // Gated by the onboarding_screen feature flag (per-plan / per-tenant).
   if (ingredients.length === 0) {
-    return <OnboardingEmptyState />
+    const onboardingEnabled = await tenantHasFeature(
+      ctx.tenantId,
+      'onboarding_screen'
+    )
+    if (onboardingEnabled) return <OnboardingEmptyState />
   }
 
   const recipesWithCost = computeRecipesWithCost(

@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Plus, Upload } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
 import {
   getIngredients,
   getSuppliers,
@@ -31,6 +32,7 @@ export default async function IngredientsPage({
     getStockMovements(ctx.tenantId),
   ])
 
+  const canImport = await tenantHasFeature(ctx.tenantId, 'bulk_import')
   const levels = deriveAllStockLevels(movements)
   const supplierName = new Map(suppliers.map((s) => [s.id, s.name]))
 
@@ -49,12 +51,14 @@ export default async function IngredientsPage({
         title={t('ingredients.title')}
         action={
           <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline" className="gap-2">
-              <Link href="/app/ingredients/import">
-                <Upload className="h-4 w-4" />
-                {t('ingredients.import_button')}
-              </Link>
-            </Button>
+            {canImport && (
+              <Button asChild variant="outline" className="gap-2">
+                <Link href="/app/ingredients/import">
+                  <Upload className="h-4 w-4" />
+                  {t('ingredients.import_button')}
+                </Link>
+              </Button>
+            )}
             <Button asChild className="gap-2">
               <Link href="/app/ingredients/new">
                 <Plus className="h-4 w-4" />

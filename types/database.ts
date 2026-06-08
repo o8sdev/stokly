@@ -26,6 +26,44 @@ export type MovementType =
 
 export type BatchStatus = 'active' | 'depleted' | 'expired' | 'written_off'
 
+export type TenantStatus =
+  | 'active'
+  | 'trial'
+  | 'suspended'
+  | 'churned'
+  | 'deleted'
+
+// plan_tier is a text FK → public.plans(key). These are the seeded defaults;
+// admins may add more plans, so the column type stays `string`.
+export type PlanKey =
+  | 'trial'
+  | 'starter'
+  | 'professional'
+  | 'growth'
+  | 'enterprise'
+
+export type PaymentMethod = 'bank_transfer' | 'cash' | 'other'
+
+export type InvitationStatus = 'unused' | 'redeemed' | 'revoked' | 'expired'
+
+export type NotificationType =
+  | 'new_signup'
+  | 'trial_expiring'
+  | 'onboarding_stuck'
+  | 'no_login'
+  | 'payment_overdue'
+  | 'plan_upgraded'
+
+export type AdminRole = 'super' | 'readonly'
+
+export type FeatureKey =
+  | 'ingredient_library'
+  | 'bulk_import'
+  | 'batch_expiry'
+  | 'onboarding_screen'
+  | 'report_food_cost'
+  | 'report_inventory_value'
+
 export interface Database {
   public: {
     Tables: {
@@ -36,6 +74,14 @@ export interface Database {
           slug: string
           currency: string
           locale: string
+          status: TenantStatus
+          plan_tier: string
+          trial_started_at: string | null
+          trial_ends_at: string | null
+          last_active_at: string | null
+          suspended_at: string | null
+          churned_at: string | null
+          deleted_at: string | null
           created_at: string
         }
         Insert: {
@@ -44,6 +90,14 @@ export interface Database {
           slug: string
           currency?: string
           locale?: string
+          status?: TenantStatus
+          plan_tier?: string
+          trial_started_at?: string | null
+          trial_ends_at?: string | null
+          last_active_at?: string | null
+          suspended_at?: string | null
+          churned_at?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['tenants']['Insert']>
@@ -371,8 +425,8 @@ export interface Database {
         Relationships: []
       }
       platform_admins: {
-        Row: { user_id: string; created_at: string }
-        Insert: { user_id: string; created_at?: string }
+        Row: { user_id: string; role: AdminRole; created_at: string }
+        Insert: { user_id: string; role?: AdminRole; created_at?: string }
         Update: Partial<
           Database['public']['Tables']['platform_admins']['Insert']
         >
@@ -402,6 +456,248 @@ export interface Database {
         >
         Relationships: []
       }
+      plans: {
+        Row: {
+          key: string
+          name_az: string
+          name_ru: string
+          description_az: string | null
+          description_ru: string | null
+          monthly_price: number
+          currency: string
+          is_trial: boolean
+          is_active: boolean
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          key: string
+          name_az: string
+          name_ru: string
+          description_az?: string | null
+          description_ru?: string | null
+          monthly_price?: number
+          currency?: string
+          is_trial?: boolean
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['plans']['Insert']>
+        Relationships: []
+      }
+      features: {
+        Row: {
+          key: string
+          name_az: string
+          name_ru: string
+          description_az: string | null
+          description_ru: string | null
+          category: string | null
+          global_enabled: boolean
+          sort_order: number
+        }
+        Insert: {
+          key: string
+          name_az: string
+          name_ru: string
+          description_az?: string | null
+          description_ru?: string | null
+          category?: string | null
+          global_enabled?: boolean
+          sort_order?: number
+        }
+        Update: Partial<Database['public']['Tables']['features']['Insert']>
+        Relationships: []
+      }
+      plan_features: {
+        Row: { plan_key: string; feature_key: string; included: boolean }
+        Insert: { plan_key: string; feature_key: string; included?: boolean }
+        Update: Partial<
+          Database['public']['Tables']['plan_features']['Insert']
+        >
+        Relationships: []
+      }
+      tenant_feature_overrides: {
+        Row: {
+          feature_key: string
+          tenant_id: string
+          enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          feature_key: string
+          tenant_id: string
+          enabled: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: Partial<
+          Database['public']['Tables']['tenant_feature_overrides']['Insert']
+        >
+        Relationships: []
+      }
+      activity_events: {
+        Row: {
+          id: string
+          tenant_id: string
+          user_id: string | null
+          type: string
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          user_id?: string | null
+          type: string
+          metadata?: Json
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['activity_events']['Insert']
+        >
+        Relationships: []
+      }
+      manual_payments: {
+        Row: {
+          id: string
+          tenant_id: string
+          amount: number
+          currency: string
+          method: PaymentMethod
+          plan_key: string | null
+          reference: string | null
+          period_start: string | null
+          period_end: string | null
+          paid_at: string
+          note: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          amount: number
+          currency?: string
+          method?: PaymentMethod
+          plan_key?: string | null
+          reference?: string | null
+          period_start?: string | null
+          period_end?: string | null
+          paid_at?: string
+          note?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['manual_payments']['Insert']
+        >
+        Relationships: []
+      }
+      invitations: {
+        Row: {
+          id: string
+          code: string
+          email: string | null
+          plan_key: string
+          status: InvitationStatus
+          tenant_id: string | null
+          expires_at: string | null
+          redeemed_at: string | null
+          note: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          email?: string | null
+          plan_key?: string
+          status?: InvitationStatus
+          tenant_id?: string | null
+          expires_at?: string | null
+          redeemed_at?: string | null
+          note?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['invitations']['Insert']>
+        Relationships: []
+      }
+      admin_notes: {
+        Row: {
+          id: string
+          tenant_id: string
+          body: string
+          author_id: string | null
+          author_email: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          body: string
+          author_id?: string | null
+          author_email?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['admin_notes']['Insert']>
+        Relationships: []
+      }
+      admin_audit_log: {
+        Row: {
+          id: string
+          actor_id: string | null
+          actor_email: string | null
+          action: string
+          target_tenant_id: string | null
+          details: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          actor_email?: string | null
+          action: string
+          target_tenant_id?: string | null
+          details?: Json
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['admin_audit_log']['Insert']
+        >
+        Relationships: []
+      }
+      admin_notifications: {
+        Row: {
+          id: string
+          type: NotificationType
+          tenant_id: string | null
+          title: string
+          body: string | null
+          dedupe_key: string
+          read_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          type: NotificationType
+          tenant_id?: string | null
+          title: string
+          body?: string | null
+          dedupe_key: string
+          read_at?: string | null
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['admin_notifications']['Insert']
+        >
+        Relationships: []
+      }
     }
     Views: Record<never, never>
     Functions: {
@@ -425,6 +721,64 @@ export interface Database {
           p_message: string
         }
         Returns: undefined
+      }
+      is_super_admin: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
+      plan_rank: {
+        Args: { p_key: string }
+        Returns: number
+      }
+      tenant_has_feature: {
+        Args: { p_tenant: string; p_feature: string }
+        Returns: boolean
+      }
+      tenant_entitlements: {
+        Args: { p_tenant: string }
+        Returns: { feature_key: string; enabled: boolean }[]
+      }
+      log_activity: {
+        Args: {
+          p_tenant: string
+          p_user: string | null
+          p_type: string
+          p_meta?: Json
+        }
+        Returns: undefined
+      }
+      admin_tenant_metrics: {
+        Args: { p_ids: string[] }
+        Returns: {
+          tenant_id: string
+          login_days_last_14: number
+          has_recipes: boolean
+          stock_count_last_7_days: number
+          delivery_logged_last_30_days: boolean
+          waste_logged_last_30_days: boolean
+          report_viewed_last_30_days: boolean
+          recipe_count: number
+          ingredient_count: number
+          stock_counts_last_28_days: number
+          payment_status: string
+        }[]
+      }
+      admin_onboarding_progress: {
+        Args: { p_ids: string[] }
+        Returns: {
+          tenant_id: string
+          created_at: string
+          first_ingredient_at: string | null
+          tenth_ingredient_at: string | null
+          first_recipe_at: string | null
+          first_count_at: string | null
+          first_delivery_at: string | null
+          first_waste_at: string | null
+          first_report_at: string | null
+          login_dates: string[] | null
+          first_payment_at: string | null
+          status: TenantStatus
+        }[]
       }
     }
     Enums: Record<never, never>
@@ -456,3 +810,19 @@ export type DemoRequest =
 export type DemoRequestStatus = DemoRequest['status']
 export type GlobalIngredient =
   Database['public']['Tables']['global_ingredient_library']['Row']
+export type Plan = Database['public']['Tables']['plans']['Row']
+export type Feature = Database['public']['Tables']['features']['Row']
+export type PlanFeature =
+  Database['public']['Tables']['plan_features']['Row']
+export type TenantFeatureOverride =
+  Database['public']['Tables']['tenant_feature_overrides']['Row']
+export type ActivityEvent =
+  Database['public']['Tables']['activity_events']['Row']
+export type ManualPayment =
+  Database['public']['Tables']['manual_payments']['Row']
+export type Invitation = Database['public']['Tables']['invitations']['Row']
+export type AdminNote = Database['public']['Tables']['admin_notes']['Row']
+export type AdminAuditLog =
+  Database['public']['Tables']['admin_audit_log']['Row']
+export type AdminNotification =
+  Database['public']['Tables']['admin_notifications']['Row']

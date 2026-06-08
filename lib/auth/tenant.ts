@@ -60,6 +60,16 @@ export async function requireTenant(locale: string): Promise<TenantContext> {
     redirect(`/${locale}/app/login`)
   }
 
+  // Throttled "last active" stamp — normal members only, never during admin
+  // impersonation. The OR filter makes this a no-op write when already fresh
+  // (within the last hour), so it is cheap to run on every protected request.
+  const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  await supabase
+    .from('tenants')
+    .update({ last_active_at: new Date().toISOString() })
+    .eq('id', member.tenant_id)
+    .or(`last_active_at.is.null,last_active_at.lt.${cutoff}`)
+
   return {
     userId: user.id,
     email: user.email ?? null,

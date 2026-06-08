@@ -5,7 +5,8 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-08 (batch expiry + production foundation landed)_
+_Last updated: 2026-06-08 (System Admin console rebuild — subscriptions, MRR,
+health scoring, onboarding pipeline, invitations, audit, notifications, Cmd+K)_
 
 ---
 
@@ -30,7 +31,7 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 ```bash
 npm install
 cp .env.local.example .env.local     # URL + anon key; + service_role for admin
-# apply migrations in filename order (001 → 009) against your Supabase project
+# apply migrations in filename order (001 → 018) against your Supabase project
 npm run dev
 ```
 
@@ -39,9 +40,49 @@ npm run dev
 - **Public** `/[locale]` — marketing + **demo request only**. No signup/login.
 - **Business** `/[locale]/app/login` (hidden) → `/app/dashboard` etc. Accounts
   are admin-provisioned (no self-serve signup).
-- **System admin** `/[locale]/admin/login` (hidden) → `/admin` console:
-  demo-leads inbox, restaurants list + **Enter (god-mode impersonation)**,
-  create business. Gated by the `platform_admins` allowlist.
+- **System admin** `/[locale]/admin/login` (hidden) → `/admin` console (sidebar:
+  ƏSAS / TENANTLAR / MALİYYƏ / SİSTEM). Gated by `platform_admins` allowlist;
+  `role` = `super` | `readonly` (read-only admins can't suspend/delete/edit
+  plans). Sections: **Dashboard** (MRR cards + 12-mo line + plan donut + churn /
+  onboarding-stuck / recent-activity panels + 60s activity feed), **Leads**,
+  **Notifications** (bell + 6 alert types, idempotent), **Tenants** (filter/sort/
+  paginate + health badge; detail tabs Overview/Ingredients/Recipes/Stock/Batches/
+  Payments/Notes; god-mode: impersonate, change plan ↑/↓, record payment, note,
+  **password-reset link**, **data export**, suspend, soft-delete, typed-confirm
+  hard-delete), **Onboarding** pipeline (10 milestones + WhatsApp nudges),
+  **Invitations** (single + bulk→CSV), **Revenue** (manual payments + overdue),
+  **Plans** (DB-driven prices + per-plan **feature matrix** toggles — edit pricing
+  & what each plan includes), **Feature Flags** (global kill-switch + per-tenant
+  overrides), **Audit Log**, **Library**. **Cmd+K** global search.
+
+### Subscriptions & entitlements (data-driven, admin-editable)
+
+`plans` (price + bilingual meta) · `features` (catalog + global kill-switch) ·
+`plan_features` (the per-plan toggle matrix) · `tenant_feature_overrides`
+(per-tenant grant/deny). Resolution = kill-switch → tenant override → plan
+inclusion, via SECURITY DEFINER `tenant_has_feature()` / `tenant_entitlements()`.
+The business app gates features with `tenantHasFeature(tenantId, key)`, so moving
+a tenant up/down a tier **instantly changes available functionality** (verified:
+professional→starter removes `bulk_import`; a per-tenant override re-grants it).
+Placeholder prices ship (49/99/169/299); edit live in `/admin/plans`.
+
+### Migrations 010–018 (all applied live)
+
+010 plans+features+matrix+overrides+resolvers · 011 tenant lifecycle (status/
+plan_tier FK/trial/last_active + DAD House backfill active/professional) ·
+012 activity_events + `log_activity` · 013 admin tables (manual_payments,
+invitations, admin_notes, admin_audit_log, admin_notifications) · 014 signup
+trigger (trial defaults + signup event + new_signup notif) · 015 payment trigger
+(auto-upgrade + plan_upgraded) · 016 metrics RPCs (`admin_tenant_metrics`,
+`admin_onboarding_progress`, admin-guarded) · 017 admin roles (`is_super_admin`) ·
+018 lock new SECURITY DEFINER helpers to `authenticated`.
+
+### Operator setup still needed
+
+- `SUPABASE_SERVICE_ROLE_KEY` (business creation, password reset, export, cron).
+- `CRON_SECRET` + a scheduler (Vercel Cron / GitHub Action) POSTing
+  `/api/admin/cron` for time-based notifications (else they refresh on dashboard
+  load). Real plan prices via `/admin/plans`. Change the temp admin password.
 
 ### Live database (already provisioned)
 

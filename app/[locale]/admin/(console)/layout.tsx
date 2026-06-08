@@ -1,8 +1,15 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { LogOut } from 'lucide-react'
+import { revalidatePath } from 'next/cache'
 import { requirePlatformAdmin } from '@/lib/auth/admin'
 import { signout } from '@/lib/auth/actions'
-import { AdminNav } from '@/components/admin/admin-nav'
+import { globalSearch, type SearchResult } from '@/lib/admin/search'
+import {
+  getUnreadNotificationCount,
+  getNotifications,
+  markAllNotificationsRead,
+} from '@/lib/admin/notifications'
+import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { AdminHeader } from '@/components/admin/admin-header'
 
 export default async function AdminConsoleLayout({
   children,
@@ -15,42 +22,53 @@ export default async function AdminConsoleLayout({
   const ctx = await requirePlatformAdmin(locale)
   const t = await getTranslations('admin')
 
-  async function handleSignout() {
+  const [unread, notifications] = await Promise.all([
+    getUnreadNotificationCount(),
+    getNotifications(5),
+  ])
+
+  const roleLabel = ctx.role === 'super' ? t('role_super') : t('role_readonly')
+
+  async function onSignout() {
     'use server'
     await signout(locale, `/${locale}/admin/login`)
   }
 
+  async function onMarkAllRead() {
+    'use server'
+    await requirePlatformAdmin(locale)
+    await markAllNotificationsRead()
+    revalidatePath(`/${locale}/admin`, 'layout')
+  }
+
+  async function onSearch(q: string): Promise<SearchResult[]> {
+    'use server'
+    await requirePlatformAdmin(locale)
+    return globalSearch(q, locale)
+  }
+
   return (
-    <div className="min-h-screen bg-[#0d1b2a] text-white">
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5">
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-brand" />
-              <span className="font-display text-lg font-bold">Stokly</span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                admin
-              </span>
-            </span>
-            <AdminNav />
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-slate-400 sm:inline">
-              {ctx.email}
-            </span>
-            <form action={handleSignout}>
-              <button
-                type="submit"
-                title={t('signout')}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>
+    <div className="flex h-screen overflow-hidden bg-[#0a1622] text-white">
+      <AdminSidebar
+        email={ctx.email}
+        roleLabel={roleLabel}
+        onSignout={onSignout}
+      />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <AdminHeader
+          locale={locale}
+          email={ctx.email}
+          roleLabel={roleLabel}
+          unreadCount={unread}
+          notifications={notifications}
+          onSignout={onSignout}
+          onMarkAllRead={onMarkAllRead}
+          onSearch={onSearch}
+        />
+        <main className="flex-1 overflow-y-auto scroll-thin p-4 md:p-6">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

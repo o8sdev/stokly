@@ -1,5 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
+import { logReportView } from '@/lib/business/track'
 import {
   getIngredients,
   getRecipes,
@@ -29,6 +31,22 @@ export default async function FoodCostReportPage({
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
+
+  if (!(await tenantHasFeature(ctx.tenantId, 'report_food_cost'))) {
+    return (
+      <div>
+        <PageHeader title={t('reports.food_cost')} />
+        <div className="stokly-card p-8 text-center text-sm text-muted-foreground">
+          {locale === 'ru'
+            ? 'Этот отчёт не входит в ваш текущий тариф.'
+            : 'Bu hesabat cari tarifinizə daxil deyil.'}
+        </div>
+      </div>
+    )
+  }
+  if (!ctx.isAdmin) {
+    await logReportView(ctx.tenantId, ctx.userId, 'food_cost')
+  }
 
   const [ingredients, recipes, recipeIngredients] = await Promise.all([
     getIngredients(ctx.tenantId),

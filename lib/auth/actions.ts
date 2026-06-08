@@ -21,6 +21,31 @@ export async function loginBusiness(
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return { error: 'invalid' }
 
+  // Record a login activity event for tenant users (never for platform admins,
+  // so impersonation/admin logins don't pollute a tenant's usage stats).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user) {
+    const { data: isAdmin } = await supabase.rpc('is_platform_admin')
+    if (isAdmin !== true) {
+      const { data: member } = await supabase
+        .from('tenant_members')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle()
+      if (member) {
+        await supabase.rpc('log_activity', {
+          p_tenant: member.tenant_id,
+          p_user: user.id,
+          p_type: 'login',
+          p_meta: {},
+        })
+      }
+    }
+  }
+
   redirect(`/${locale}/app/dashboard`)
 }
 
