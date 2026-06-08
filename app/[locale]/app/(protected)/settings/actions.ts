@@ -14,6 +14,7 @@ const tenantSchema = z.object({
   name: z.string().min(1).max(200),
   currency: z.string().min(1).max(10),
   locale: z.enum(['az', 'ru']),
+  count_cycle_days: z.coerce.number().int().min(1).max(365),
 })
 
 export async function updateTenant(
@@ -28,6 +29,7 @@ export async function updateTenant(
     name: formData.get('name'),
     currency: formData.get('currency'),
     locale: formData.get('locale'),
+    count_cycle_days: formData.get('count_cycle_days'),
   })
   if (!parsed.success) return { error: 'validation' }
 

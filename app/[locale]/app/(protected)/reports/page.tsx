@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { BarChart3, Boxes } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { PageHeader } from '@/components/layout/page-header'
 import {
@@ -20,16 +20,22 @@ export default async function ReportsPage({
 
   const cards = [
     {
-      href: '/reports/food-cost',
+      href: '/app/reports/food-cost',
       title: t('food_cost'),
       desc: t('food_cost_desc'),
       icon: BarChart3,
     },
     {
-      href: '/reports/inventory-value',
+      href: '/app/reports/inventory-value',
       title: t('inventory_value'),
       desc: t('inventory_value_desc'),
       icon: Boxes,
+    },
+    {
+      href: '/app/reports/period',
+      title: t('period_reports'),
+      desc: t('period_reports_desc'),
+      icon: ClipboardList,
     },
   ]
 

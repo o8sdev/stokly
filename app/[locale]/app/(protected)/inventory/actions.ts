@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant } from '@/lib/auth/tenant'
+import { createPeriodForCount } from '@/lib/data/counts'
 import {
   stockCountSchema,
   deliverySchema,
@@ -51,7 +52,13 @@ export async function submitStockCount(
   const { error } = await supabase.from('stock_movements').insert(rows)
   if (error) return { error: 'generic' }
 
+  // Close the period (last count → today) and generate its stored report.
+  const periodId = await createPeriodForCount(ctx.tenantId, ctx.userId)
+
   revalidatePath(`/${locale}/app/inventory`)
+  revalidatePath(`/${locale}/app/reports/period`)
+  revalidatePath(`/${locale}/app/dashboard`)
+  if (periodId) redirect(`/${locale}/app/reports/period/${periodId}`)
   redirect(`/${locale}/app/inventory`)
 }
 

@@ -53,6 +53,22 @@ export function SettingsForm({
         </div>
       </div>
 
+      <div className="max-w-[14rem] space-y-2">
+        <Label htmlFor="count_cycle_days">{t('settings.count_cycle_days')}</Label>
+        <Input
+          id="count_cycle_days"
+          name="count_cycle_days"
+          type="number"
+          min="1"
+          max="365"
+          defaultValue={tenant.count_cycle_days}
+          required
+        />
+        <p className="text-xs text-muted-foreground">
+          {t('settings.count_cycle_days_hint')}
+        </p>
+      </div>
+
       {state.error && (
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}

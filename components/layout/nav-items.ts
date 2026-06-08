@@ -8,6 +8,8 @@ import {
   Wallet,
   Users,
   Settings,
+  Receipt,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -33,6 +35,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/app/ingredients', labelKey: 'ingredients', icon: Carrot },
       { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
       { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
+      { href: '/app/sales', labelKey: 'sales', icon: Receipt },
       { href: '/app/production', labelKey: 'production', icon: Factory },
     ],
   },
@@ -44,6 +47,11 @@ export const NAV_SECTIONS: NavSection[] = [
         href: '/app/reports/inventory-value',
         labelKey: 'inventory_value',
         icon: Wallet,
+      },
+      {
+        href: '/app/reports/period',
+        labelKey: 'period_reports',
+        icon: ClipboardList,
       },
     ],
   },

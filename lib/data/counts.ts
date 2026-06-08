@@ -1,0 +1,321 @@
+import { createClient } from '@/lib/supabase/server'
+import { getIngredients, getStockMovements, getTenant } from '@/lib/data/queries'
+import { deriveStockLevelsAsOf } from '@/lib/calculations/stock-level'
+import {
+  computePeriodReport,
+  type PeriodReportData,
+} from '@/lib/calculations/period-report'
+import type { CountPeriod, Json } from '@/types/database'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
+
+type DB = SupabaseClient<Database>
+
+// ── Date helpers (UTC, 'YYYY-MM-DD') ─────────────────────────────────────
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+function ms(dateStr: string): number {
+  return Date.parse(`${dateStr}T00:00:00.000Z`)
+}
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(`${dateStr}T00:00:00.000Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+function daysBetween(start: string, end: string): number {
+  return Math.max(0, Math.round((ms(end) - ms(start)) / 86_400_000))
+}
+function enumerateDates(start: string, end: string): string[] {
+  const out: string[] = []
+  if (ms(start) > ms(end)) return out
+  let cur = start
+  for (let i = 0; i < 3650 && ms(cur) <= ms(end); i++) {
+    out.push(cur)
+    cur = addDays(cur, 1)
+  }
+  return out
+}
+
+// ── Boundaries & sales windows ───────────────────────────────────────────
+export interface PreCountInfo {
+  periodStart: string
+  periodEnd: string
+  daysInPeriod: number
+  cycleDays: number
+  hasPreviousCount: boolean
+  salesWindowStart: string | null
+  salesWindowEnd: string | null
+  missingSalesDates: string[]
+  todayHasSales: boolean
+}
+
+export interface LastCountInfo {
+  lastCountDate: string | null
+  daysSince: number | null
+  cycleDays: number
+}
+
+async function getLastCountPeriod(
+  supabase: DB,
+  tenantId: string
+): Promise<CountPeriod | null> {
+  const { data } = await supabase
+    .from('count_periods')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('counted_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return (data as CountPeriod | null) ?? null
+}
+
+// Earliest stock activity for the tenant — the opening boundary of the very
+// first count period. Falls back to the tenant's creation date.
+async function getOpeningDate(supabase: DB, tenantId: string): Promise<string> {
+  const { data } = await supabase
+    .from('stock_movements')
+    .select('created_at')
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  if (data?.created_at) return String(data.created_at).slice(0, 10)
+  const tenant = await getTenant(tenantId)
+  return (tenant?.created_at ?? new Date().toISOString()).slice(0, 10)
+}
+
+// Days a period newly covers = (previous count, today]. The first ever period
+// covers [opening, today]. Used for missing-sales detection + the sales sum.
+function salesWindow(
+  periodStart: string,
+  periodEnd: string,
+  hasPrev: boolean
+): { start: string; end: string } | null {
+  const start = hasPrev ? addDays(periodStart, 1) : periodStart
+  if (ms(start) > ms(periodEnd)) return null
+  return { start, end: periodEnd }
+}
+
+async function salesDatesInRange(
+  supabase: DB,
+  tenantId: string,
+  start: string,
+  end: string
+): Promise<Set<string>> {
+  const { data } = await supabase
+    .from('daily_sales')
+    .select('sale_date')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', start)
+    .lte('sale_date', end)
+  return new Set((data ?? []).map((r) => String(r.sale_date)))
+}
+
+async function salesTotalInRange(
+  supabase: DB,
+  tenantId: string,
+  start: string,
+  end: string
+): Promise<number> {
+  const { data } = await supabase
+    .from('daily_sales')
+    .select('total_amount')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', start)
+    .lte('sale_date', end)
+  return (data ?? []).reduce((sum, r) => sum + Number(r.total_amount ?? 0), 0)
+}
+
+// What the next count will cover + which sales days are missing. Drives the
+// pre-count checklist.
+export async function getPreCountInfo(tenantId: string): Promise<PreCountInfo> {
+  const supabase = createClient()
+  const tenant = await getTenant(tenantId)
+  const cycleDays = tenant?.count_cycle_days ?? 7
+
+  const prev = await getLastCountPeriod(supabase, tenantId)
+  const hasPreviousCount = !!prev
+  const periodStart = prev?.period_end ?? (await getOpeningDate(supabase, tenantId))
+  const periodEnd = todayStr()
+  const daysInPeriod = daysBetween(periodStart, periodEnd)
+
+  const win = salesWindow(periodStart, periodEnd, hasPreviousCount)
+  let missingSalesDates: string[] = []
+  let todayHasSales = true
+  if (win) {
+    const have = await salesDatesInRange(supabase, tenantId, win.start, win.end)
+    missingSalesDates = enumerateDates(win.start, win.end).filter((d) => !have.has(d))
+    todayHasSales = have.has(periodEnd)
+  }
+
+  return {
+    periodStart,
+    periodEnd,
+    daysInPeriod,
+    cycleDays,
+    hasPreviousCount,
+    salesWindowStart: win?.start ?? null,
+    salesWindowEnd: win?.end ?? null,
+    missingSalesDates,
+    todayHasSales,
+  }
+}
+
+// Days since the last confirmed count, for the dashboard reminder. Falls back
+// to the latest legacy 'count' movement when no period rows exist yet.
+export async function getLastCountInfo(tenantId: string): Promise<LastCountInfo> {
+  const supabase = createClient()
+  const tenant = await getTenant(tenantId)
+  const cycleDays = tenant?.count_cycle_days ?? 7
+
+  const prev = await getLastCountPeriod(supabase, tenantId)
+  let lastCountDate = prev?.period_end ?? null
+
+  if (!lastCountDate) {
+    const { data } = await supabase
+      .from('stock_movements')
+      .select('created_at')
+      .eq('tenant_id', tenantId)
+      .eq('movement_type', 'count')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (data?.created_at) lastCountDate = String(data.created_at).slice(0, 10)
+  }
+
+  const daysSince = lastCountDate ? daysBetween(lastCountDate, todayStr()) : null
+  return { lastCountDate, daysSince, cycleDays }
+}
+
+// ── Period rows ──────────────────────────────────────────────────────────
+export async function listPeriods(tenantId: string): Promise<CountPeriod[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('count_periods')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('period_end', { ascending: false })
+  return (data as CountPeriod[] | null) ?? []
+}
+
+export async function getPeriod(
+  tenantId: string,
+  id: string
+): Promise<CountPeriod | null> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('count_periods')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('id', id)
+    .maybeSingle()
+  return (data as CountPeriod | null) ?? null
+}
+
+// ── Report generation ────────────────────────────────────────────────────
+// (Re)compute the stored report for a period from all current data. Recomputes
+// missing-sales (late entries change it). `bumpVersion` increments the version
+// counter — true for explicit regeneration, false for the initial build.
+export async function generatePeriodReport(
+  tenantId: string,
+  periodId: string,
+  opts: { bumpVersion?: boolean } = {}
+): Promise<PeriodReportData | null> {
+  const supabase = createClient()
+  const period = await getPeriod(tenantId, periodId)
+  if (!period) return null
+
+  const { data: prevRow } = await supabase
+    .from('count_periods')
+    .select('counted_at')
+    .eq('tenant_id', tenantId)
+    .lt('counted_at', period.counted_at)
+    .order('counted_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const openingAsOf =
+    (prevRow?.counted_at as string | undefined) ??
+    `${period.period_start}T00:00:00.000Z`
+  const closingAsOf = period.counted_at
+
+  const [movements, ingredients] = await Promise.all([
+    getStockMovements(tenantId),
+    getIngredients(tenantId),
+  ])
+
+  const openingLevels = deriveStockLevelsAsOf(movements, openingAsOf)
+  const closingLevels = deriveStockLevelsAsOf(movements, closingAsOf)
+  const openMs = Date.parse(openingAsOf)
+  const closeMs = Date.parse(closingAsOf)
+  const periodMovements = movements.filter((m) => {
+    const t = new Date(m.created_at).getTime()
+    return t > openMs && t <= closeMs
+  })
+
+  const win = salesWindow(period.period_start, period.period_end, !!prevRow)
+  let missingSalesDates: string[] = []
+  let salesTotal = 0
+  if (win) {
+    const have = await salesDatesInRange(supabase, tenantId, win.start, win.end)
+    missingSalesDates = enumerateDates(win.start, win.end).filter((d) => !have.has(d))
+    salesTotal = await salesTotalInRange(supabase, tenantId, win.start, win.end)
+  }
+
+  const report = computePeriodReport({
+    periodStart: period.period_start,
+    periodEnd: period.period_end,
+    daysInPeriod: period.days_in_period,
+    ingredients,
+    openingLevels,
+    closingLevels,
+    periodMovements,
+    salesTotal,
+    missingSalesDates,
+  })
+
+  await supabase
+    .from('count_periods')
+    .update({
+      report_data: report as unknown as Json,
+      report_generated_at: new Date().toISOString(),
+      missing_sales_dates: missingSalesDates,
+      has_missing_sales: missingSalesDates.length > 0,
+      regeneration_count: period.regeneration_count + (opts.bumpVersion ? 1 : 0),
+    })
+    .eq('tenant_id', tenantId)
+    .eq('id', periodId)
+
+  return report
+}
+
+// Create the count period for a just-confirmed count, then build its report.
+// Returns the new period id (or null on failure).
+export async function createPeriodForCount(
+  tenantId: string,
+  userId: string
+): Promise<string | null> {
+  const supabase = createClient()
+  const prev = await getLastCountPeriod(supabase, tenantId)
+  const periodStart = prev?.period_end ?? (await getOpeningDate(supabase, tenantId))
+  const periodEnd = todayStr()
+  const daysInPeriod = daysBetween(periodStart, periodEnd)
+
+  const { data, error } = await supabase
+    .from('count_periods')
+    .insert({
+      tenant_id: tenantId,
+      period_start: periodStart,
+      period_end: periodEnd,
+      days_in_period: daysInPeriod,
+      recorded_by: userId,
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) return null
+
+  await generatePeriodReport(tenantId, data.id, { bumpVersion: false })
+  return data.id
+}

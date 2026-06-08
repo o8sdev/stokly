@@ -82,6 +82,7 @@ export interface Database {
           suspended_at: string | null
           churned_at: string | null
           deleted_at: string | null
+          count_cycle_days: number
           created_at: string
         }
         Insert: {
@@ -98,9 +99,70 @@ export interface Database {
           suspended_at?: string | null
           churned_at?: string | null
           deleted_at?: string | null
+          count_cycle_days?: number
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['tenants']['Insert']>
+        Relationships: []
+      }
+      daily_sales: {
+        Row: {
+          id: string
+          tenant_id: string
+          sale_date: string
+          total_amount: number
+          note: string | null
+          recorded_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          sale_date: string
+          total_amount?: number
+          note?: string | null
+          recorded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['daily_sales']['Insert']>
+        Relationships: []
+      }
+      count_periods: {
+        Row: {
+          id: string
+          tenant_id: string
+          period_start: string
+          period_end: string
+          days_in_period: number
+          counted_at: string
+          recorded_by: string | null
+          missing_sales_dates: string[]
+          has_missing_sales: boolean
+          regeneration_count: number
+          report_data: Json | null
+          report_generated_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          period_start: string
+          period_end: string
+          days_in_period?: number
+          counted_at?: string
+          recorded_by?: string | null
+          missing_sales_dates?: string[]
+          has_missing_sales?: boolean
+          regeneration_count?: number
+          report_data?: Json | null
+          report_generated_at?: string | null
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['count_periods']['Insert']
+        >
         Relationships: []
       }
       tenant_members: {
@@ -810,6 +872,8 @@ export type DemoRequest =
 export type DemoRequestStatus = DemoRequest['status']
 export type GlobalIngredient =
   Database['public']['Tables']['global_ingredient_library']['Row']
+export type DailySale = Database['public']['Tables']['daily_sales']['Row']
+export type CountPeriod = Database['public']['Tables']['count_periods']['Row']
 export type Plan = Database['public']['Tables']['plans']['Row']
 export type Feature = Database['public']['Tables']['features']['Row']
 export type PlanFeature =

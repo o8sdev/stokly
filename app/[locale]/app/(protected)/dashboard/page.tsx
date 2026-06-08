@@ -38,6 +38,8 @@ import {
   type ExpiryRow,
 } from '@/components/dashboard/expiry-widget'
 import { OnboardingEmptyState } from '@/components/dashboard/onboarding'
+import { CountReminder } from '@/components/dashboard/count-reminder'
+import { getLastCountInfo } from '@/lib/data/counts'
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -50,15 +52,23 @@ export default async function DashboardPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, recipes, recipeIngredients, movements, recent, batches] =
-    await Promise.all([
-      getIngredients(ctx.tenantId),
-      getRecipes(ctx.tenantId),
-      getRecipeIngredients(ctx.tenantId),
-      getStockMovements(ctx.tenantId),
-      getRecentMovements(ctx.tenantId, 8),
-      getActiveBatches(ctx.tenantId),
-    ])
+  const [
+    ingredients,
+    recipes,
+    recipeIngredients,
+    movements,
+    recent,
+    batches,
+    lastCount,
+  ] = await Promise.all([
+    getIngredients(ctx.tenantId),
+    getRecipes(ctx.tenantId),
+    getRecipeIngredients(ctx.tenantId),
+    getStockMovements(ctx.tenantId),
+    getRecentMovements(ctx.tenantId, 8),
+    getActiveBatches(ctx.tenantId),
+    getLastCountInfo(ctx.tenantId),
+  ])
 
   // First-login onboarding: until the catalog has at least one ingredient,
   // guide the user to bulk-import / library / manual instead of empty widgets.
@@ -171,6 +181,8 @@ export default async function DashboardPage({
           </div>
         }
       />
+
+      <CountReminder info={lastCount} />
 
       {/* Metric row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

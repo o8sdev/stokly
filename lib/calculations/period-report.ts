@@ -1,0 +1,182 @@
+import type { Ingredient, StockMovement } from '@/types/database'
+
+// ── Period report ────────────────────────────────────────────────────────
+// A stock-count period spans (last count → this count]. The report is a
+// classic usage/variance statement computed purely from inventory movement:
+//   usage_qty = opening + delivered − closing   (net depletion incl. waste)
+//   COGS      = Σ usage_qty × unit_cost
+//   food_cost = COGS / sales_total × 100         (sales from daily_sales)
+// Discrepancies are stored structured (not as fixed-language strings) so the
+// UI renders them in the active locale.
+
+export interface PeriodReportLine {
+  ingredient_id: string
+  name: string
+  unit: string
+  unit_cost: number
+  opening_qty: number
+  delivered_qty: number
+  waste_qty: number
+  closing_qty: number
+  usage_qty: number
+  usage_value: number
+}
+
+export type DiscrepancyType = 'missing_sales' | 'negative_usage'
+
+export interface Discrepancy {
+  type: DiscrepancyType
+  severity: 'warning' | 'info'
+  dates?: string[]
+  ingredient_id?: string
+  ingredient_name?: string
+}
+
+export interface PeriodReportData {
+  period_start: string
+  period_end: string
+  days_in_period: number
+  sales_total: number
+  cogs: number
+  food_cost_percent: number | null
+  opening_value: number
+  closing_value: number
+  deliveries_value: number
+  waste_value: number
+  lines: PeriodReportLine[]
+  discrepancies: Discrepancy[]
+}
+
+export interface PeriodReportInput {
+  periodStart: string
+  periodEnd: string
+  daysInPeriod: number
+  ingredients: Pick<Ingredient, 'id' | 'name' | 'unit' | 'cost_per_unit'>[]
+  openingLevels: Map<string, number>
+  closingLevels: Map<string, number>
+  periodMovements: StockMovement[]
+  salesTotal: number
+  missingSalesDates: string[]
+}
+
+const EPS = 1e-9
+const round2 = (n: number): number => Math.round(n * 100) / 100
+
+export function computePeriodReport(input: PeriodReportInput): PeriodReportData {
+  const {
+    ingredients,
+    openingLevels,
+    closingLevels,
+    periodMovements,
+    salesTotal,
+    missingSalesDates,
+    periodStart,
+    periodEnd,
+    daysInPeriod,
+  } = input
+
+  // Sum deliveries and waste per ingredient over the period.
+  const delivered = new Map<string, number>()
+  const wasted = new Map<string, number>()
+  for (const m of periodMovements) {
+    if (m.movement_type === 'delivery') {
+      delivered.set(m.ingredient_id, (delivered.get(m.ingredient_id) ?? 0) + m.quantity)
+    } else if (
+      m.movement_type === 'waste' ||
+      m.movement_type === 'expiry_writeoff'
+    ) {
+      wasted.set(
+        m.ingredient_id,
+        (wasted.get(m.ingredient_id) ?? 0) + Math.abs(m.quantity)
+      )
+    }
+  }
+
+  const lines: PeriodReportLine[] = []
+  const discrepancies: Discrepancy[] = []
+  let openingValue = 0
+  let closingValue = 0
+  let deliveriesValue = 0
+  let wasteValue = 0
+  let cogs = 0
+
+  for (const ing of ingredients) {
+    const opening_qty = openingLevels.get(ing.id) ?? 0
+    const closing_qty = closingLevels.get(ing.id) ?? 0
+    const delivered_qty = delivered.get(ing.id) ?? 0
+    const waste_qty = wasted.get(ing.id) ?? 0
+
+    // Skip lines with no inventory presence or activity this period.
+    if (
+      Math.abs(opening_qty) < EPS &&
+      Math.abs(closing_qty) < EPS &&
+      Math.abs(delivered_qty) < EPS &&
+      Math.abs(waste_qty) < EPS
+    ) {
+      continue
+    }
+
+    const cost = ing.cost_per_unit ?? 0
+    const usage_qty = opening_qty + delivered_qty - closing_qty
+    const usage_value = usage_qty * cost
+
+    openingValue += opening_qty * cost
+    closingValue += closing_qty * cost
+    deliveriesValue += delivered_qty * cost
+    wasteValue += waste_qty * cost
+    cogs += usage_value
+
+    lines.push({
+      ingredient_id: ing.id,
+      name: ing.name,
+      unit: ing.unit,
+      unit_cost: round2(cost),
+      opening_qty: round2(opening_qty),
+      delivered_qty: round2(delivered_qty),
+      waste_qty: round2(waste_qty),
+      closing_qty: round2(closing_qty),
+      usage_qty: round2(usage_qty),
+      usage_value: round2(usage_value),
+    })
+
+    // Negative usage ⇒ closing exceeds opening + deliveries: likely an
+    // unrecorded delivery or a count error worth a second look.
+    if (usage_qty < -EPS) {
+      discrepancies.push({
+        type: 'negative_usage',
+        severity: 'info',
+        ingredient_id: ing.id,
+        ingredient_name: ing.name,
+      })
+    }
+  }
+
+  if (missingSalesDates.length > 0) {
+    discrepancies.unshift({
+      type: 'missing_sales',
+      severity: 'warning',
+      dates: missingSalesDates,
+    })
+  }
+
+  lines.sort((a, b) => b.usage_value - a.usage_value)
+
+  const cogsR = round2(cogs)
+  const food_cost_percent =
+    salesTotal > EPS ? round2((cogsR / salesTotal) * 100) : null
+
+  return {
+    period_start: periodStart,
+    period_end: periodEnd,
+    days_in_period: daysInPeriod,
+    sales_total: round2(salesTotal),
+    cogs: cogsR,
+    food_cost_percent,
+    opening_value: round2(openingValue),
+    closing_value: round2(closingValue),
+    deliveries_value: round2(deliveriesValue),
+    waste_value: round2(wasteValue),
+    lines,
+    discrepancies,
+  }
+}

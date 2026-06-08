@@ -97,6 +97,19 @@ export function deriveAllStockLevels(
   return levels
 }
 
+// Derive every ingredient's stock level as it stood at a point in time, by
+// replaying only the movements on or before `asOfIso`. Used to snapshot opening
+// and closing inventory at the two boundaries of a count period.
+export function deriveStockLevelsAsOf(
+  movements: StockMovement[],
+  asOfIso: string
+): Map<string, number> {
+  const cutoff = new Date(asOfIso).getTime()
+  return deriveAllStockLevels(
+    movements.filter((m) => new Date(m.created_at).getTime() <= cutoff)
+  )
+}
+
 // Most recent 'count' movement timestamp for an ingredient, or null.
 export function lastCountDate(
   movements: StockMovement[],

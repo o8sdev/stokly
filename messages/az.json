@@ -14,6 +14,8 @@
     "food_cost": "Yemək dəyəri",
     "inventory_value": "Anbar dəyəri",
     "production": "İstehsal",
+    "sales": "Satışlar",
+    "period_reports": "Dövr hesabatları",
     "signout": "Çıxış",
     "section": {
       "main": "ƏSAS",
@@ -481,7 +483,15 @@
     "expiry_title": "Vaxtı Bitən Məhsullar",
     "no_expiring": "Yaxın vaxtda vaxtı bitən məhsul yoxdur",
     "days_left": "{days} gün",
-    "expired_label": "Vaxtı keçib"
+    "expired_label": "Vaxtı keçib",
+    "count_reminder": {
+      "start": "Sayımı başlat",
+      "never": "Hələ sayım aparılmayıb. İlk sayımınızı başladın.",
+      "info": "Son sayım: {days} gün əvvəl ({date})",
+      "approaching": "Sayım vaxtınıza yaxınlaşırsınız. Növbəti sayım: təxminən {date}",
+      "due": "Sayım vaxtıdır! Son sayımdan {days} gün keçib.",
+      "overdue_red": "Sayım {days} gün gecikir. Hesabat dəqiqliyi azalır."
+    }
   },
   "ingredients": {
     "title": "İnqrediyentlər",
@@ -582,7 +592,63 @@
     "lowest": "Ən aşağı dəyərli",
     "total_value": "Ümumi inventar dəyəri",
     "value": "Dəyər",
-    "grouped_supplier": "Təchizatçı üzrə qruplaşdır"
+    "grouped_supplier": "Təchizatçı üzrə qruplaşdır",
+    "period_reports": "Dövr hesabatları",
+    "period_reports_desc": "Sayımdan sayıma istifadə və maya dəyəri"
+  },
+  "sales": {
+    "title": "Satışlar",
+    "subtitle": "Gündəlik ümumi satışları daxil edin",
+    "date": "Tarix",
+    "amount": "Məbləğ (AZN)",
+    "note": "Qeyd",
+    "add_for_day": "Gün üçün satış əlavə et",
+    "recent": "Son satışlar",
+    "empty": "Hələ satış daxil edilməyib"
+  },
+  "precount": {
+    "title": "Sayıma başlamazdan əvvəl",
+    "period": "Dövr",
+    "period_intro": "Bu sayım aşağıdakı dövrü əhatə edəcək:",
+    "days": "{count} gün",
+    "sales_ok": "Bütün günlər üçün satış məlumatı daxil edilib",
+    "sales_missing": "{count} gün üçün satış məlumatı tapılmadı",
+    "enter_sales": "Satışları indi daxil et",
+    "continue_without": "Satışsız davam et",
+    "too_short": "Bu sayım son sayımdan cəmi {hours} saat sonradır. Davam etmək istədiyinizə əminsiniz?",
+    "too_long": "Bu dövr {days} gün əhatə edir. Adətən {cycle} gün sayım tövsiyə olunur. Uzun dövrlər hesabatın dəqiqliyini azalda bilər.",
+    "ack": "Satış məlumatlarını yoxladım və sayıma hazıram",
+    "start": "Sayımı başlat",
+    "add_sales": "Satış əlavə et",
+    "panel_title": "Əksik Satışları Daxil Et",
+    "panel_error": "Yadda saxlamaq alınmadı. Ən azı bir gün üçün məbləğ daxil edin.",
+    "save_all": "Bütün günləri yadda saxla"
+  },
+  "report_period": {
+    "title": "Dövr hesabatı",
+    "list_title": "Dövr hesabatları",
+    "list_subtitle": "Hər təsdiqlənmiş sayım bir dövrü bağlayır",
+    "empty": "Hələ sayım dövrü yoxdur",
+    "period": "Müddət (gün)",
+    "no_data": "Hesabat məlumatı yoxdur",
+    "regenerate": "Hesabatı yenilə",
+    "regenerated": "Hesabat yeniləndi",
+    "missing_banner": "{count} gün üçün satış məlumatı tapılmadı. COGS dəqiq olmaya bilər.",
+    "enter_sales": "Satışları daxil et",
+    "sales": "Satış",
+    "cogs": "COGS (maya)",
+    "food_cost": "Yemək dəyəri %",
+    "waste": "İtki",
+    "opening": "Açılış",
+    "deliveries": "Tədarük",
+    "closing": "Bağlanış",
+    "ingredient": "İnqrediyent",
+    "delivered": "Daxil olan",
+    "usage": "İstifadə",
+    "value": "Dəyər",
+    "version": "Versiya: {version}",
+    "disc_missing_sales": "Bu dövrdə {count} gün üçün satış məlumatı daxil edilməyib: {dates}. COGS hesablaması bu günlər üçün natamam ola bilər.",
+    "disc_negative_usage": "{name}: bağlanış miqdarı açılış + tədarükdən çoxdur — ehtimal ki qeydə alınmamış tədarük və ya sayım xətası."
   },
   "settings": {
     "title": "Tənzimləmələr",
@@ -595,7 +661,9 @@
     "supplier_phone": "Telefon",
     "supplier_notes": "Qeydlər",
     "add_supplier": "Təchizatçı əlavə et",
-    "no_suppliers": "Hələ təchizatçı yoxdur"
+    "no_suppliers": "Hələ təchizatçı yoxdur",
+    "count_cycle_days": "Sayım dövrü (gün)",
+    "count_cycle_days_hint": "Yalnız xatırlatma üçün — sayımı istənilən vaxt apara bilərsiniz."
   },
   "production": {
     "title": "İstehsal",
@@ -694,6 +762,7 @@
     "cancel": "Ləğv et",
     "delete": "Sil",
     "edit": "Redaktə et",
+    "view": "Bax",
     "search": "Axtar",
     "loading": "Yüklənir...",
     "saving": "Yadda saxlanılır...",

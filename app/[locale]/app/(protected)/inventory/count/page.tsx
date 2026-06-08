@@ -1,12 +1,11 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { getIngredients, getStockMovements } from '@/lib/data/queries'
+import { getPreCountInfo } from '@/lib/data/counts'
 import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
 import { PageHeader } from '@/components/layout/page-header'
-import {
-  StockCountForm,
-  type CountItem,
-} from '@/components/inventory/stock-count-form'
+import { CountFlow } from '@/components/inventory/count-flow'
+import type { CountItem } from '@/components/inventory/stock-count-form'
 
 export default async function StockCountPage({
   params: { locale },
@@ -17,9 +16,10 @@ export default async function StockCountPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, movements] = await Promise.all([
+  const [ingredients, movements, preCount] = await Promise.all([
     getIngredients(ctx.tenantId),
     getStockMovements(ctx.tenantId),
+    getPreCountInfo(ctx.tenantId),
   ])
 
   const levels = deriveAllStockLevels(movements)
@@ -33,7 +33,7 @@ export default async function StockCountPage({
   return (
     <div>
       <PageHeader title={t('inventory.count')} />
-      <StockCountForm locale={locale} items={items} />
+      <CountFlow locale={locale} items={items} preCount={preCount} />
     </div>
   )
 }
