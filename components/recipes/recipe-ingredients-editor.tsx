@@ -9,8 +9,10 @@ import type {
 } from '@/types/app'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { FieldHint } from '@/components/ui/field-hint'
 import { MonoValue } from '@/components/ui/stokly-theme'
 import { ingredientLineCost } from '@/lib/calculations/food-cost'
+import { UNIT_OPTIONS, UNIT_VALUES } from '@/lib/constants/units'
 
 export function RecipeIngredientsEditor({
   lines,
@@ -30,6 +32,7 @@ export function RecipeIngredientsEditor({
   onAddSubRecipe: () => void
 }) {
   const t = useTranslations('recipes')
+  const tUnits = useTranslations('ingredients.units')
 
   function lineCost(line: EditorLine): number {
     const qty = Number(line.quantity)
@@ -53,12 +56,18 @@ export function RecipeIngredientsEditor({
   return (
     <div className="space-y-2">
       {/* Desktop column header */}
-      <div className="hidden grid-cols-[20px_1fr_92px_60px_72px_92px_32px] items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground md:grid">
+      <div className="hidden grid-cols-[20px_1fr_92px_96px_84px_92px_32px] items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground md:grid">
         <span />
         <span>{t('line_ingredient')}</span>
         <span className="text-right">{t('line_quantity')}</span>
-        <span>{t('line_unit')}</span>
-        <span className="text-right">{t('line_yield_override')}</span>
+        <span className="flex items-center gap-1">
+          {t('line_unit')}
+          <FieldHint text={t('line_unit_hint')} />
+        </span>
+        <span className="flex items-center justify-end gap-1 text-right">
+          {t('line_yield_override')}
+          <FieldHint text={t('line_yield_hint')} />
+        </span>
         <span className="text-right">{t('line_cost')}</span>
         <span />
       </div>
@@ -79,7 +88,7 @@ export function RecipeIngredientsEditor({
         return (
           <div
             key={line.key}
-            className="animate-line-in grid grid-cols-2 items-center gap-2 rounded-lg border border-border bg-card p-2 md:grid-cols-[20px_1fr_92px_60px_72px_92px_32px] md:border-transparent md:bg-transparent md:p-0"
+            className="animate-line-in grid grid-cols-2 items-center gap-2 rounded-lg border border-border bg-card p-2 md:grid-cols-[20px_1fr_92px_96px_84px_92px_32px] md:border-transparent md:bg-transparent md:p-0"
           >
             {/* Drag handle (visual affordance) */}
             <span className="hidden cursor-grab items-center justify-center text-muted-foreground/50 md:flex">
@@ -89,9 +98,20 @@ export function RecipeIngredientsEditor({
             <div className="col-span-2 md:col-span-1">
               <select
                 value={line.sourceId}
-                onChange={(e) =>
-                  onChange(line.key, { sourceId: e.target.value })
-                }
+                onChange={(e) => {
+                  const id = e.target.value
+                  if (line.kind === 'ingredient') {
+                    // No unit conversion happens downstream, so default the
+                    // line unit to the chosen ingredient's own unit.
+                    const picked = ingredientOptions.find((o) => o.id === id)
+                    onChange(line.key, {
+                      sourceId: id,
+                      unit: picked?.unit ?? line.unit,
+                    })
+                  } else {
+                    onChange(line.key, { sourceId: id })
+                  }
+                }}
                 className="flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
               >
                 <option value="">
@@ -118,12 +138,31 @@ export function RecipeIngredientsEditor({
               className="h-9 text-right font-mono tabular-nums"
             />
 
-            <Input
-              value={line.unit}
-              placeholder={opt?.unit ?? t('line_unit')}
-              onChange={(e) => onChange(line.key, { unit: e.target.value })}
-              className="h-9"
-            />
+            {line.kind === 'ingredient' ? (
+              <select
+                value={line.unit}
+                onChange={(e) => onChange(line.key, { unit: e.target.value })}
+                aria-label={t('line_unit')}
+                className="flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+              >
+                <option value="">{t('line_unit')}</option>
+                {line.unit && !UNIT_VALUES.includes(line.unit) && (
+                  <option value={line.unit}>{line.unit}</option>
+                )}
+                {UNIT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {tUnits(o.key)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                value={line.unit}
+                placeholder={t('line_unit')}
+                onChange={(e) => onChange(line.key, { unit: e.target.value })}
+                className="h-9"
+              />
+            )}
 
             <Input
               type="number"
@@ -132,7 +171,11 @@ export function RecipeIngredientsEditor({
               min="0"
               max="100"
               value={line.yieldOverride}
-              placeholder="%"
+              placeholder={
+                line.kind === 'ingredient' && opt
+                  ? String(Math.round((opt.yield_percent ?? 1) * 100))
+                  : '%'
+              }
               disabled={line.kind === 'sub_recipe'}
               onChange={(e) =>
                 onChange(line.key, { yieldOverride: e.target.value })

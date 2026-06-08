@@ -16,20 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { FieldHint } from '@/components/ui/field-hint'
-
-// Canonical units (same set the bulk import normalises to) so the stored
-// `ingredients.unit` value stays consistent across manual add + import.
-const UNIT_OPTIONS = [
-  { value: 'kq', key: 'kq' },
-  { value: 'q', key: 'q' },
-  { value: 'l', key: 'l' },
-  { value: 'ml', key: 'ml' },
-  { value: 'ədəd', key: 'piece' },
-  { value: 'yığım', key: 'bunch' },
-  { value: 'bağlama', key: 'pack' },
-  { value: 'şüşə', key: 'bottle' },
-  { value: 'qutu', key: 'box' },
-] as const
+import { UNIT_OPTIONS } from '@/lib/constants/units'
 
 export function IngredientForm({
   locale,
