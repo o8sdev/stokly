@@ -13,24 +13,26 @@ export function Faq({ items }: { items: FaqItem[] }) {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <div className="divide-y divide-[#E2E8F0] overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white">
+    <div className="divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
       {items.map((item, i) => {
         const isOpen = open === i
         return (
-          <div key={i}>
+          <div key={i} className={cn(isOpen && 'bg-white/[0.02]')}>
             <button
               onClick={() => setOpen(isOpen ? null : i)}
               className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
             >
-              <span className="text-base font-semibold text-[#1A2332]">
+              <span className="text-base font-semibold text-white">
                 {item.q}
               </span>
-              <Plus
+              <span
                 className={cn(
-                  'h-5 w-5 shrink-0 text-brand transition-transform duration-300',
-                  isOpen && 'rotate-45'
+                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 text-brand transition-all duration-300',
+                  isOpen && 'rotate-45 border-brand/40 bg-brand/10'
                 )}
-              />
+              >
+                <Plus className="h-4 w-4" />
+              </span>
             </button>
             <div
               className={cn(
@@ -41,7 +43,7 @@ export function Faq({ items }: { items: FaqItem[] }) {
               )}
             >
               <div className="overflow-hidden">
-                <p className="px-6 pb-5 text-[15px] leading-relaxed text-[#6B7A8D]">
+                <p className="px-6 pb-5 text-[15px] leading-relaxed text-[#9fb2aa]">
                   {item.a}
                 </p>
               </div>

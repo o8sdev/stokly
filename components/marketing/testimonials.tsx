@@ -13,30 +13,28 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
   return (
     <div className="mk-marquee-pause relative overflow-hidden">
       {/* Edge fades */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-28 bg-gradient-to-l from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-[#070c0b] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-28 bg-gradient-to-l from-[#070c0b] to-transparent" />
 
       <div className="flex w-max animate-mk-marquee gap-6">
         {doubled.map((item, i) => (
           <figure
             key={i}
-            className="mk-card mk-shadow-card flex w-[380px] shrink-0 flex-col justify-between p-7"
+            className="mk-card-d flex w-[380px] shrink-0 flex-col justify-between p-7"
           >
             <div>
-              <Quote className="h-7 w-7 text-brand/30" />
-              <blockquote className="mt-4 text-[17px] font-medium leading-relaxed text-[#0d1b2a]">
+              <Quote className="h-7 w-7 text-brand/40" />
+              <blockquote className="mt-4 text-[17px] font-medium leading-relaxed text-[#e9f2ee]">
                 {item.quote}
               </blockquote>
             </div>
-            <figcaption className="mt-6 flex items-center gap-3 border-t border-[#eef2f5] pt-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0D1B2A] font-display text-sm font-semibold text-brand">
+            <figcaption className="mt-6 flex items-center gap-3 border-t border-white/10 pt-5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/15 font-display text-sm font-semibold text-brand ring-1 ring-brand/25">
                 {item.name.charAt(0)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#0d1b2a]">
-                  {item.name}
-                </p>
-                <p className="text-xs text-[#6B7A8D]">{item.role}</p>
+                <p className="text-sm font-semibold text-white">{item.name}</p>
+                <p className="text-xs text-[#9fb2aa]">{item.role}</p>
               </div>
             </figcaption>
           </figure>

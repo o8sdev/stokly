@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono, Bricolage_Grotesque } from 'next/font/google'
+import {
+  DM_Sans,
+  JetBrains_Mono,
+  Bricolage_Grotesque,
+  Spectral,
+} from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
@@ -27,6 +32,16 @@ const bricolage = Bricolage_Grotesque({
   subsets: ['latin', 'latin-ext'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-display',
+  display: 'swap',
+})
+
+// Editorial serif for italic accent words on the landing page. Includes
+// Cyrillic + latin-ext so both Russian and Azerbaijani render correctly.
+const spectral = Spectral({
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-editorial',
   display: 'swap',
 })
 
@@ -59,7 +74,8 @@ export default async function LocaleLayout({
       className={cn(
         dmSans.variable,
         jetbrainsMono.variable,
-        bricolage.variable
+        bricolage.variable,
+        spectral.variable
       )}
     >
       <body className="min-h-screen bg-background font-sans antialiased">

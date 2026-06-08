@@ -353,3 +353,301 @@
 .animate-mk-rise {
   animation: mk-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   MARKETING — CINEMATIC DARK "CONTROL ROOM" v2
+   Warm-dark canvas · phosphor-teal data glow · amber heat accent · editorial
+   serif italics · drifting aurora + grain + blueprint grid · scroll motion.
+   All opt-in .mk-* classes; the app's themed surfaces are untouched.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --mk2-bg: #070c0b;
+  --mk2-bg-2: #050908;
+  --mk2-ink: #e9f2ee;
+  --mk2-ink-2: #9fb2aa;
+  --mk2-ink-3: #6c7e77;
+  --mk2-line: rgba(255, 255, 255, 0.08);
+  --mk2-line-2: rgba(255, 255, 255, 0.14);
+  --mk2-teal: #00c896;
+  --mk2-teal-bright: #5ff5cb;
+  --mk2-amber: #f0a35e;
+}
+
+.mk-page {
+  background: var(--mk2-bg);
+  color: var(--mk2-ink);
+}
+.font-editorial {
+  font-family: var(--font-editorial), Georgia, 'Times New Roman', serif;
+}
+
+/* ── Atmosphere (fixed, behind everything) ─────────────────────────────── */
+.mk-atmos {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 75% at 50% -12%, rgba(0, 200, 150, 0.13), transparent 56%),
+    radial-gradient(90% 60% at 85% 8%, rgba(64, 196, 255, 0.06), transparent 60%),
+    linear-gradient(180deg, var(--mk2-bg) 0%, var(--mk2-bg-2) 100%);
+}
+.mk-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.mk-aurora--teal {
+  background: radial-gradient(closest-side, rgba(0, 200, 150, 0.55), transparent 70%);
+}
+.mk-aurora--cyan {
+  background: radial-gradient(closest-side, rgba(56, 178, 255, 0.34), transparent 70%);
+}
+.mk-aurora--amber {
+  background: radial-gradient(closest-side, rgba(240, 163, 94, 0.26), transparent 70%);
+}
+@keyframes mk-drift-a {
+  0%, 100% { transform: translate(-8%, -6%) scale(1); }
+  50% { transform: translate(9%, 7%) scale(1.22); }
+}
+@keyframes mk-drift-b {
+  0%, 100% { transform: translate(7%, 5%) scale(1.12); }
+  50% { transform: translate(-9%, -7%) scale(0.92); }
+}
+@keyframes mk-drift-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-7%, 9%) scale(1.18); }
+}
+.mk-drift-a { animation: mk-drift-a 22s ease-in-out infinite; }
+.mk-drift-b { animation: mk-drift-b 28s ease-in-out infinite; }
+.mk-drift-c { animation: mk-drift-c 34s ease-in-out infinite; }
+
+/* Blueprint grid + grain layered into atmosphere. */
+.mk-blueprint {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, #000 30%, transparent 80%);
+}
+.mk-noise::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: mk-noise 0.6s steps(3) infinite;
+}
+@keyframes mk-noise {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-3%, 2%); }
+  66% { transform: translate(2%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ── Scroll progress bar (top) ─────────────────────────────────────────── */
+.mk-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--mk2-teal), var(--mk2-teal-bright));
+  box-shadow: 0 0 12px rgba(0, 200, 150, 0.7);
+}
+
+/* ── Dark glass nav ────────────────────────────────────────────────────── */
+.mk-glass-dark {
+  background: rgba(7, 12, 11, 0.72);
+  backdrop-filter: saturate(160%) blur(18px);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  border-bottom: 1px solid var(--mk2-line);
+}
+
+/* ── Rotating conic border glow (hero frame / feature cards) ───────────── */
+.mk-ring {
+  position: relative;
+  isolation: isolate;
+}
+/* Animate only the gradient ANGLE (via @property) so the border shape stays put
+   — rotating the pseudo-element itself would sweep its corners out of frame.
+   Degrades to a static conic border where @property is unsupported. */
+@property --mk-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.mk-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--mk-angle),
+    transparent 0 58%,
+    rgba(0, 200, 150, 0.65) 72%,
+    rgba(95, 245, 203, 0.95) 80%,
+    rgba(0, 200, 150, 0.4) 86%,
+    transparent 94%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: mk-ring-spin 7s linear infinite;
+  z-index: -1;
+}
+@keyframes mk-ring-spin {
+  to { --mk-angle: 360deg; }
+}
+
+/* ── Dark card + hover glow ────────────────────────────────────────────── */
+.mk-card-d {
+  position: relative;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--mk2-line);
+  border-radius: 20px;
+  transition:
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease,
+    box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mk-card-d:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 200, 150, 0.4);
+  box-shadow:
+    0 30px 60px -34px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 200, 150, 0.12),
+    0 -1px 30px -10px rgba(0, 200, 150, 0.25) inset;
+}
+
+/* Floating glass data chip around the hero. */
+.mk-chip {
+  background: rgba(10, 18, 16, 0.78);
+  border: 1px solid var(--mk2-line-2);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 24px 48px -22px rgba(0, 0, 0, 0.8);
+}
+
+/* ── Editorial shimmer accent (animated gradient sweep on text) ────────── */
+.mk-shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--mk2-teal) 0%,
+    var(--mk2-teal-bright) 28%,
+    #ffffff 46%,
+    var(--mk2-teal-bright) 64%,
+    var(--mk2-teal) 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: mk-shimmer 6s linear infinite;
+}
+@keyframes mk-shimmer {
+  to { background-position: 220% center; }
+}
+
+/* ── Scroll cue (mouse + bouncing dot) ─────────────────────────────────── */
+.mk-scrollcue {
+  width: 22px;
+  height: 36px;
+  border: 1.5px solid var(--mk2-line-2);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  padding-top: 7px;
+}
+.mk-scrollcue span {
+  width: 3px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--mk2-teal);
+  animation: mk-scrolldot 1.7s ease-in-out infinite;
+}
+@keyframes mk-scrolldot {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(9px); opacity: 0.15; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+/* ── How-it-works progress rail ────────────────────────────────────────── */
+.mk-rail {
+  position: absolute;
+  left: 15px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--mk2-line);
+  overflow: hidden;
+}
+.mk-rail-fill {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 100%;
+  background: linear-gradient(180deg, var(--mk2-teal), var(--mk2-teal-bright));
+  box-shadow: 0 0 10px rgba(0, 200, 150, 0.6);
+  transition: height 0.2s linear;
+}
+
+/* ── Reveal variants (extend base .mk-reveal) ──────────────────────────── */
+.mk-reveal[data-variant='blur'] {
+  transform: translateY(16px);
+  filter: blur(14px);
+  transition:
+    opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--mk-delay, 0ms);
+}
+.mk-reveal[data-variant='blur'][data-shown='true'] {
+  transform: translateY(0);
+  filter: blur(0);
+}
+.mk-reveal[data-variant='scale'] {
+  transform: translateY(18px) scale(0.94);
+}
+.mk-reveal[data-variant='scale'][data-shown='true'] {
+  transform: translateY(0) scale(1);
+}
+.mk-reveal[data-variant='left'] {
+  transform: translateX(-34px);
+}
+.mk-reveal[data-variant='left'][data-shown='true'] {
+  transform: translateX(0);
+}
+.mk-reveal[data-variant='right'] {
+  transform: translateX(34px);
+}
+.mk-reveal[data-variant='right'][data-shown='true'] {
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk-reveal {
+    filter: none !important;
+  }
+  .mk-aurora,
+  .mk-noise::after,
+  .mk-ring::before,
+  .mk-scrollcue span {
+    animation: none !important;
+  }
+}

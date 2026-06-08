@@ -37,15 +37,13 @@ export function MarketingNav({ locale }: { locale: string }) {
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-50 transition-all duration-300',
-        scrolled
-          ? 'mk-glass-nav border-b border-[#e7edf1] shadow-[0_1px_20px_-8px_rgba(13,27,42,0.12)]'
-          : 'border-b border-transparent'
+        scrolled ? 'mk-glass-dark' : 'border-b border-transparent'
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-brand shadow-[0_0_10px_1px_rgba(0,200,150,0.5)]" />
-          <span className="font-display text-xl font-bold tracking-tight text-[#0d1b2a]">
+          <span className="animate-mk-pulse h-2.5 w-2.5 rounded-full bg-brand" />
+          <span className="font-display text-xl font-bold tracking-tight text-white">
             Stokly
           </span>
         </Link>
@@ -55,7 +53,7 @@ export function MarketingNav({ locale }: { locale: string }) {
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="text-sm font-medium text-[#46586b] transition-colors hover:text-[#0d1b2a]"
+              className="text-sm font-medium text-[#9fb2aa] transition-colors hover:text-white"
             >
               {t(s.key)}
             </a>
@@ -66,20 +64,20 @@ export function MarketingNav({ locale }: { locale: string }) {
           <button
             onClick={switchLocale}
             disabled={pending}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold uppercase text-[#46586b] transition-colors hover:bg-[#f1f5f7] hover:text-[#0d1b2a]"
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold uppercase text-[#9fb2aa] transition-colors hover:bg-white/5 hover:text-white"
           >
             <Globe className="h-3.5 w-3.5" />
             {locale === 'az' ? 'RU' : 'AZ'}
           </button>
           <Link
             href="/app/login"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0d1b2a] transition-colors hover:bg-[#f1f5f7]"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-[#cdd9d3] transition-colors hover:bg-white/5 hover:text-white"
           >
             {t('login')}
           </Link>
           <a
             href="#demo"
-            className="group inline-flex items-center gap-1.5 rounded-lg bg-[#0d1b2a] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#16283c]"
+            className="group inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-[#04231A] shadow-[0_10px_30px_-10px_rgba(0,200,150,0.6)] transition-colors hover:bg-brand-hover"
           >
             {t('demo')}
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -88,7 +86,7 @@ export function MarketingNav({ locale }: { locale: string }) {
 
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex h-9 w-9 items-center justify-center rounded-md text-[#0d1b2a] md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-white md:hidden"
           aria-label="Menu"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -96,22 +94,22 @@ export function MarketingNav({ locale }: { locale: string }) {
       </nav>
 
       {open && (
-        <div className="mk-glass-nav border-t border-[#e7edf1] px-5 py-4 md:hidden">
+        <div className="mk-glass-dark border-t border-white/10 px-5 py-4 md:hidden">
           <div className="flex flex-col gap-1">
             {SECTIONS.map((s) => (
               <a
                 key={s.id}
                 href={`#${s.id}`}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-[#0d1b2a] hover:bg-[#f1f5f7]"
+                className="rounded-md px-3 py-2.5 text-sm font-medium text-[#cdd9d3] hover:bg-white/5 hover:text-white"
               >
                 {t(s.key)}
               </a>
             ))}
-            <div className="mt-2 flex items-center gap-2 border-t border-[#e7edf1] pt-3">
+            <div className="mt-2 flex items-center gap-2 border-t border-white/10 pt-3">
               <button
                 onClick={switchLocale}
-                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold uppercase text-[#46586b] hover:bg-[#f1f5f7]"
+                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold uppercase text-[#9fb2aa] hover:bg-white/5 hover:text-white"
               >
                 <Globe className="h-3.5 w-3.5" />
                 {locale === 'az' ? 'RU' : 'AZ'}
@@ -119,14 +117,14 @@ export function MarketingNav({ locale }: { locale: string }) {
               <Link
                 href="/app/login"
                 onClick={() => setOpen(false)}
-                className="rounded-lg border border-[#e7edf1] px-3 py-2 text-sm font-semibold text-[#0d1b2a]"
+                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white"
               >
                 {t('login')}
               </Link>
               <a
                 href="#demo"
                 onClick={() => setOpen(false)}
-                className="flex-1 rounded-lg bg-[#0d1b2a] px-3 py-2 text-center text-sm font-semibold text-white"
+                className="flex-1 rounded-lg bg-brand px-3 py-2 text-center text-sm font-semibold text-[#04231A]"
               >
                 {t('demo')}
               </a>
