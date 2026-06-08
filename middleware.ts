@@ -4,7 +4,6 @@ import { locales, defaultLocale } from '@/i18n'
 import {
   updateSession,
   getLocaleFromPath,
-  isLandingRoute,
 } from '@/lib/supabase/middleware'
 
 const intlMiddleware = createIntlMiddleware({
@@ -21,24 +20,25 @@ export async function middleware(request: NextRequest) {
 
   const locale = getLocaleFromPath(pathname)
 
-  // 2. Public routes: the marketing landing (locale root) + the two hidden
-  //    portal logins. Everything else under /app/* or /admin/* is protected.
-  const onLanding = isLandingRoute(pathname, locale)
+  // 2. Only the business (/app) and admin (/admin) areas are gated; their auth
+  //    pages stay public. Everything else — the marketing landing, /blog, and
+  //    any other public page — needs no session.
   const onBusinessLogin = pathname === `/${locale}/app/login`
   const onAdminLogin = pathname === `/${locale}/admin/login`
-  // Password-recovery pages must be reachable without a prior session.
   const onForgotPassword = pathname === `/${locale}/app/forgot-password`
   const onResetPassword = pathname === `/${locale}/app/reset-password`
-  const inAdminArea = pathname.startsWith(`/${locale}/admin`)
-  const isPublic =
-    onLanding ||
-    onBusinessLogin ||
-    onAdminLogin ||
-    onForgotPassword ||
-    onResetPassword
 
-  // 3. Unauthenticated → the portal-appropriate login.
-  if (!user && !isPublic) {
+  const inAppArea =
+    pathname === `/${locale}/app` || pathname.startsWith(`/${locale}/app/`)
+  const inAdminArea =
+    pathname === `/${locale}/admin` || pathname.startsWith(`/${locale}/admin/`)
+
+  const isAuthException =
+    onBusinessLogin || onAdminLogin || onForgotPassword || onResetPassword
+  const isProtected = (inAppArea || inAdminArea) && !isAuthException
+
+  // 3. Unauthenticated on a protected route → the portal-appropriate login.
+  if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = inAdminArea
       ? `/${locale}/admin/login`
