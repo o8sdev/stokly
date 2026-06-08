@@ -20,6 +20,12 @@ export interface PeriodReportLine {
   closing_qty: number
   usage_qty: number
   usage_value: number
+  // Expected usage from itemized sales (recipe explosion). variance = actual −
+  // theoretical: positive ⇒ used more than the recipes predict (over-portion /
+  // waste / theft), negative ⇒ used less. Zero when sales aren't itemized.
+  theoretical_qty: number
+  variance_qty: number
+  variance_value: number
 }
 
 export type DiscrepancyType = 'missing_sales' | 'negative_usage'
@@ -43,6 +49,11 @@ export interface PeriodReportData {
   closing_value: number
   deliveries_value: number
   waste_value: number
+  // Theoretical (book) figures from itemized sales. Null/false/0 when no menu
+  // items were recorded for the period.
+  has_itemized_sales: boolean
+  theoretical_cogs: number
+  theoretical_food_cost_percent: number | null
   lines: PeriodReportLine[]
   discrepancies: Discrepancy[]
 }
@@ -57,6 +68,9 @@ export interface PeriodReportInput {
   periodMovements: StockMovement[]
   salesTotal: number
   missingSalesDates: string[]
+  // ingredient_id → expected base-unit usage from sold menu items.
+  theoreticalUsage: Map<string, number>
+  hasItemizedSales: boolean
 }
 
 const EPS = 1e-9
@@ -70,6 +84,8 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     periodMovements,
     salesTotal,
     missingSalesDates,
+    theoreticalUsage,
+    hasItemizedSales,
     periodStart,
     periodEnd,
     daysInPeriod,
@@ -99,19 +115,22 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
   let deliveriesValue = 0
   let wasteValue = 0
   let cogs = 0
+  let theoreticalCogs = 0
 
   for (const ing of ingredients) {
     const opening_qty = openingLevels.get(ing.id) ?? 0
     const closing_qty = closingLevels.get(ing.id) ?? 0
     const delivered_qty = delivered.get(ing.id) ?? 0
     const waste_qty = wasted.get(ing.id) ?? 0
+    const theoretical_qty = theoreticalUsage.get(ing.id) ?? 0
 
-    // Skip lines with no inventory presence or activity this period.
+    // Skip lines with no inventory presence/activity AND no expected usage.
     if (
       Math.abs(opening_qty) < EPS &&
       Math.abs(closing_qty) < EPS &&
       Math.abs(delivered_qty) < EPS &&
-      Math.abs(waste_qty) < EPS
+      Math.abs(waste_qty) < EPS &&
+      Math.abs(theoretical_qty) < EPS
     ) {
       continue
     }
@@ -119,12 +138,15 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     const cost = ing.cost_per_unit ?? 0
     const usage_qty = opening_qty + delivered_qty - closing_qty
     const usage_value = usage_qty * cost
+    const variance_qty = usage_qty - theoretical_qty
+    const variance_value = variance_qty * cost
 
     openingValue += opening_qty * cost
     closingValue += closing_qty * cost
     deliveriesValue += delivered_qty * cost
     wasteValue += waste_qty * cost
     cogs += usage_value
+    theoreticalCogs += theoretical_qty * cost
 
     lines.push({
       ingredient_id: ing.id,
@@ -137,6 +159,9 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
       closing_qty: round2(closing_qty),
       usage_qty: round2(usage_qty),
       usage_value: round2(usage_value),
+      theoretical_qty: round2(theoretical_qty),
+      variance_qty: round2(variance_qty),
+      variance_value: round2(variance_value),
     })
 
     // Negative usage ⇒ closing exceeds opening + deliveries: likely an
@@ -165,6 +190,12 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
   const food_cost_percent =
     salesTotal > EPS ? round2((cogsR / salesTotal) * 100) : null
 
+  const theoreticalCogsR = round2(theoreticalCogs)
+  const theoretical_food_cost_percent =
+    hasItemizedSales && salesTotal > EPS
+      ? round2((theoreticalCogsR / salesTotal) * 100)
+      : null
+
   return {
     period_start: periodStart,
     period_end: periodEnd,
@@ -176,6 +207,9 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     closing_value: round2(closingValue),
     deliveries_value: round2(deliveriesValue),
     waste_value: round2(wasteValue),
+    has_itemized_sales: hasItemizedSales,
+    theoretical_cogs: theoreticalCogsR,
+    theoretical_food_cost_percent,
     lines,
     discrepancies,
   }

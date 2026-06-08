@@ -1,10 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
-import { getIngredients, getStockMovements, getTenant } from '@/lib/data/queries'
+import {
+  getIngredients,
+  getStockMovements,
+  getTenant,
+  getRecipes,
+  getRecipeIngredients,
+} from '@/lib/data/queries'
 import { deriveStockLevelsAsOf } from '@/lib/calculations/stock-level'
 import {
   computePeriodReport,
   type PeriodReportData,
 } from '@/lib/calculations/period-report'
+import { computeTheoreticalUsage } from '@/lib/calculations/theoretical-usage'
 import type { CountPeriod, Json } from '@/types/database'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
@@ -125,6 +132,33 @@ async function salesTotalInRange(
     .gte('sale_date', start)
     .lte('sale_date', end)
   return (data ?? []).reduce((sum, r) => sum + Number(r.total_amount ?? 0), 0)
+}
+
+// Menu items sold across a window, summed per recipe — drives theoretical usage.
+async function soldItemsInRange(
+  supabase: DB,
+  tenantId: string,
+  start: string,
+  end: string
+): Promise<Map<string, number>> {
+  const acc = new Map<string, number>()
+  const { data: sales } = await supabase
+    .from('daily_sales')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', start)
+    .lte('sale_date', end)
+  const ids = (sales ?? []).map((r) => r.id)
+  if (ids.length === 0) return acc
+
+  const { data: items } = await supabase
+    .from('daily_sales_items')
+    .select('recipe_id, quantity')
+    .in('daily_sales_id', ids)
+  for (const it of items ?? []) {
+    acc.set(it.recipe_id, (acc.get(it.recipe_id) ?? 0) + Number(it.quantity))
+  }
+  return acc
 }
 
 // What the next count will cover + which sales days are missing. Drives the
@@ -257,10 +291,32 @@ export async function generatePeriodReport(
   const win = salesWindow(period.period_start, period.period_end, !!prevRow)
   let missingSalesDates: string[] = []
   let salesTotal = 0
+  let theoreticalUsage = new Map<string, number>()
+  let hasItemizedSales = false
   if (win) {
     const have = await salesDatesInRange(supabase, tenantId, win.start, win.end)
     missingSalesDates = enumerateDates(win.start, win.end).filter((d) => !have.has(d))
     salesTotal = await salesTotalInRange(supabase, tenantId, win.start, win.end)
+
+    // Explode the period's sold menu items into expected ingredient usage.
+    const soldMap = await soldItemsInRange(supabase, tenantId, win.start, win.end)
+    if (soldMap.size > 0) {
+      hasItemizedSales = true
+      const [recipes, recipeIngredients] = await Promise.all([
+        getRecipes(tenantId),
+        getRecipeIngredients(tenantId),
+      ])
+      const soldItems = [...soldMap.entries()].map(([recipe_id, quantity]) => ({
+        recipe_id,
+        quantity,
+      }))
+      theoreticalUsage = computeTheoreticalUsage(
+        soldItems,
+        ingredients,
+        recipes,
+        recipeIngredients
+      ).usageByIngredient
+    }
   }
 
   const report = computePeriodReport({
@@ -273,6 +329,8 @@ export async function generatePeriodReport(
     periodMovements,
     salesTotal,
     missingSalesDates,
+    theoreticalUsage,
+    hasItemizedSales,
   })
 
   await supabase

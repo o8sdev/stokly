@@ -71,6 +71,23 @@ export function PeriodReportView({
   const fc =
     data.food_cost_percent === null ? '—' : `${data.food_cost_percent}%`
 
+  // Theoretical figures only exist on reports built after itemized sales
+  // shipped; older stored reports simply omit them.
+  const itemized = data.has_itemized_sales === true
+  const theoFc =
+    data.theoretical_food_cost_percent == null
+      ? '—'
+      : `${data.theoretical_food_cost_percent}%`
+  const varianceTotal =
+    Math.round((data.cogs - (data.theoretical_cogs ?? 0)) * 100) / 100
+  const varianceTone =
+    varianceTotal > 0.005
+      ? 'text-red-600'
+      : varianceTotal < -0.005
+        ? 'text-emerald-600'
+        : 'text-muted-foreground'
+  const signed = (n: number): string => (n > 0 ? `+${formatMoney(n)}` : formatMoney(n))
+
   return (
     <div className="space-y-5">
       {/* Header actions */}
@@ -175,6 +192,49 @@ export function PeriodReportView({
         </div>
       )}
 
+      {/* Theoretical vs actual (only when sales were itemized) */}
+      {itemized && (
+        <div className="rounded-xl border border-border bg-secondary/30 p-4">
+          <h3 className="text-sm font-semibold">
+            {t('report_period.variance_title')}
+          </h3>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">
+                {t('report_period.theoretical_food_cost')}
+              </p>
+              <p className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                {theoFc}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">
+                {t('report_period.actual_food_cost')}
+              </p>
+              <p className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                {fc}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">
+                {t('report_period.variance')}
+              </p>
+              <p
+                className={
+                  'mt-0.5 font-mono text-lg font-semibold tabular-nums ' +
+                  varianceTone
+                }
+              >
+                {signed(varianceTotal)}
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t('report_period.variance_hint')}
+          </p>
+        </div>
+      )}
+
       {/* Usage lines */}
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full text-sm">
@@ -198,38 +258,71 @@ export function PeriodReportView({
               <th className="px-3 py-3 text-right font-semibold">
                 {t('report_period.usage')}
               </th>
+              {itemized && (
+                <>
+                  <th className="px-3 py-3 text-right font-semibold">
+                    {t('report_period.theoretical')}
+                  </th>
+                  <th className="px-3 py-3 text-right font-semibold">
+                    {t('report_period.variance')}
+                  </th>
+                </>
+              )}
               <th className="px-4 py-3 text-right font-semibold">
                 {t('report_period.value')}
               </th>
             </tr>
           </thead>
           <tbody>
-            {data.lines.map((l) => (
-              <tr
-                key={l.ingredient_id}
-                className="border-b border-border/60 last:border-0"
-              >
-                <td className="px-4 py-2 font-medium">{l.name}</td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">
-                  {l.opening_qty}
-                </td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">
-                  {l.delivered_qty}
-                </td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">
-                  {l.waste_qty}
-                </td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">
-                  {l.closing_qty}
-                </td>
-                <td className="px-3 py-2 text-right font-mono tabular-nums">
-                  {l.usage_qty}
-                </td>
-                <td className="px-4 py-2 text-right font-mono tabular-nums">
-                  {formatMoney(l.usage_value)}
-                </td>
-              </tr>
-            ))}
+            {data.lines.map((l) => {
+              const vQty = l.variance_qty ?? 0
+              const vTone =
+                vQty > 0.005
+                  ? 'text-red-600'
+                  : vQty < -0.005
+                    ? 'text-emerald-600'
+                    : 'text-muted-foreground'
+              return (
+                <tr
+                  key={l.ingredient_id}
+                  className="border-b border-border/60 last:border-0"
+                >
+                  <td className="px-4 py-2 font-medium">{l.name}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {l.opening_qty}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {l.delivered_qty}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {l.waste_qty}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {l.closing_qty}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {l.usage_qty}
+                  </td>
+                  {itemized && (
+                    <>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted-foreground">
+                        {l.theoretical_qty ?? 0}
+                      </td>
+                      <td
+                        className={
+                          'px-3 py-2 text-right font-mono tabular-nums ' + vTone
+                        }
+                      >
+                        {vQty > 0 ? `+${vQty}` : vQty}
+                      </td>
+                    </>
+                  )}
+                  <td className="px-4 py-2 text-right font-mono tabular-nums">
+                    {formatMoney(l.usage_value)}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

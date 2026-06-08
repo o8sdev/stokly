@@ -678,7 +678,18 @@
     "note": "Qeyd",
     "add_for_day": "Gün üçün satış əlavə et",
     "recent": "Son satışlar",
-    "empty": "Hələ satış daxil edilməyib"
+    "empty": "Hələ satış daxil edilməyib",
+    "add_item": "Menyu məhsulu əlavə et",
+    "select_item": "Məhsul seçin…",
+    "all_added": "Bütün məhsullar əlavə olunub",
+    "no_items_yet": "Hələ məhsul əlavə edilməyib",
+    "item": "Məhsul",
+    "qty": "Say",
+    "line_total": "Cəmi",
+    "revenue": "Gəlir",
+    "no_price": "qiymət yoxdur",
+    "no_menu_items": "Əvvəlcə resept/menyu məhsulları əlavə edin — sonra satışları məhsul və say üzrə qeyd edə bilərsiniz.",
+    "itemized": "detallı"
   },
   "precount": {
     "title": "Sayıma başlamazdan əvvəl",
@@ -720,6 +731,12 @@
     "delivered": "Daxil olan",
     "usage": "İstifadə",
     "value": "Dəyər",
+    "theoretical": "Gözlənilən",
+    "variance": "Fərq",
+    "variance_title": "Gözlənilən və faktiki istifadə",
+    "theoretical_food_cost": "Gözlənilən maya dəyəri",
+    "actual_food_cost": "Faktiki maya dəyəri",
+    "variance_hint": "Gözlənilən istifadə satılan menyu məhsullarından hesablanır. Müsbət fərq resept normasından artıq istifadə deməkdir (artıq porsiya, itki və ya oğurluq).",
     "version": "Versiya: {version}",
     "disc_missing_sales": "Bu dövrdə {count} gün üçün satış məlumatı daxil edilməyib: {dates}. COGS hesablaması bu günlər üçün natamam ola bilər.",
     "disc_negative_usage": "{name}: bağlanış miqdarı açılış + tədarükdən çoxdur — ehtimal ki qeydə alınmamış tədarük və ya sayım xətası."

@@ -111,6 +111,7 @@ export interface Database {
           tenant_id: string
           sale_date: string
           total_amount: number
+          revenue_source: 'manual' | 'items'
           note: string | null
           recorded_by: string | null
           created_at: string
@@ -121,12 +122,37 @@ export interface Database {
           tenant_id: string
           sale_date: string
           total_amount?: number
+          revenue_source?: 'manual' | 'items'
           note?: string | null
           recorded_by?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['daily_sales']['Insert']>
+        Relationships: []
+      }
+      daily_sales_items: {
+        Row: {
+          id: string
+          tenant_id: string
+          daily_sales_id: string
+          recipe_id: string
+          quantity: number
+          unit_price: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          daily_sales_id: string
+          recipe_id: string
+          quantity: number
+          unit_price?: number
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['daily_sales_items']['Insert']
+        >
         Relationships: []
       }
       count_periods: {
@@ -913,6 +939,8 @@ export type DemoRequestStatus = DemoRequest['status']
 export type GlobalIngredient =
   Database['public']['Tables']['global_ingredient_library']['Row']
 export type DailySale = Database['public']['Tables']['daily_sales']['Row']
+export type DailySaleItem =
+  Database['public']['Tables']['daily_sales_items']['Row']
 export type CountPeriod = Database['public']['Tables']['count_periods']['Row']
 export type BlogPost = Database['public']['Tables']['blog_posts']['Row']
 export type Plan = Database['public']['Tables']['plans']['Row']

@@ -2,7 +2,12 @@ import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { createClient } from '@/lib/supabase/server'
+import { getRecipes } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
+import {
+  SalesItemEditor,
+  type MenuItem,
+} from '@/components/sales/sales-item-editor'
 import { DailySalesForm } from '@/components/sales/daily-sales-form'
 import { Link } from '@/lib/i18n/navigation'
 import { formatDate } from '@/lib/utils'
@@ -19,13 +24,34 @@ export default async function SalesDatePage({
   const ctx = await requireTenant(locale)
 
   const supabase = createClient()
-  const { data } = await supabase
+  const recipes = await getRecipes(ctx.tenantId)
+  const menuItems: MenuItem[] = recipes
+    .filter((r) => !r.is_sub_recipe)
+    .map((r) => ({
+      id: r.id,
+      name: (locale === 'ru' ? r.name_ru : r.name_az) || r.name,
+      price: Number(r.sale_price ?? 0),
+    }))
+
+  const { data: sale } = await supabase
     .from('daily_sales')
     .select('*')
     .eq('tenant_id', ctx.tenantId)
     .eq('sale_date', date)
     .maybeSingle()
-  const existing = data as DailySale | null
+  const existing = sale as DailySale | null
+
+  let initialItems: { recipe_id: string; quantity: number }[] = []
+  if (existing) {
+    const { data: items } = await supabase
+      .from('daily_sales_items')
+      .select('recipe_id, quantity')
+      .eq('daily_sales_id', existing.id)
+    initialItems = (items ?? []).map((i) => ({
+      recipe_id: i.recipe_id,
+      quantity: Number(i.quantity),
+    }))
+  }
 
   return (
     <div>
@@ -36,14 +62,29 @@ export default async function SalesDatePage({
       >
         ← {t('sales.title')}
       </Link>
-      <div className="max-w-lg">
-        <DailySalesForm
-          locale={locale}
-          date={date}
-          amount={existing?.total_amount}
-          note={existing?.note}
-          lockDate
-        />
+      <div className="max-w-2xl">
+        {menuItems.length > 0 ? (
+          <SalesItemEditor
+            locale={locale}
+            date={date}
+            menuItems={menuItems}
+            initialItems={initialItems}
+            note={existing?.note}
+          />
+        ) : (
+          <>
+            <p className="mb-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+              {t('sales.no_menu_items')}
+            </p>
+            <DailySalesForm
+              locale={locale}
+              date={date}
+              amount={existing?.total_amount}
+              note={existing?.note}
+              lockDate
+            />
+          </>
+        )}
       </div>
     </div>
   )

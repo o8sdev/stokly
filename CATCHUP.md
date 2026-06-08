@@ -81,7 +81,10 @@ tenant-scoped RLS + admin override) ·
 020 blog (`blog_posts`: slug/bilingual title+excerpt+body/cover/status/
 published_at; public read of `published` only, platform-admin full write) ·
 021 library common (`global_ingredient_library.is_common` flag + 13 new common
-items; 38 common of 72).
+items; 38 common of 72) ·
+022 sales items (`daily_sales_items`: recipe_id × quantity × price snapshot per
+day; `daily_sales.revenue_source` manual|items; tenant RLS owner/manager +
+admin).
 
 ### Flexible stock counts (counts are reminders, never locks)
 
@@ -192,6 +195,33 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — itemized sales (menu items × qty) + theoretical-vs-actual usage
+- Sales were a single money total per day, which can't relate to stock. Now a
+  day's sales are entered as **receipt-style line items** — menu item (recipe) ×
+  quantity — and revenue is derived from a per-item **price snapshot**
+  (`recipes.sale_price` at entry). Migration **022** adds `daily_sales_items` +
+  `daily_sales.revenue_source` (manual|items).
+- **`lib/calculations/theoretical-usage.ts`**: explodes sold recipes into
+  expected base-unit ingredient consumption (qty × line.quantity / yield,
+  recursing sub-recipes by serving_size; reuses recipe-cost's context builder).
+- **Period report** now computes theoretical usage for the period's sold items
+  and shows, per ingredient, `theoretical_qty` + `variance` (actual − expected),
+  plus a **theoretical vs actual food-cost** callout. `computePeriodReport` /
+  `generatePeriodReport` extended; gated by `has_itemized_sales` so older stored
+  reports degrade gracefully (regenerate to populate).
+- **UI**: `components/sales/sales-item-editor.tsx` (menu-item dropdown + qty
+  rows, live revenue, price-snapshot, note); `saveDailySalesItems` action
+  (snapshots prices server-side, validates tenant ownership, replaces the day's
+  items). `/sales` + `/sales/[date]` use it; **fallback to the money form when a
+  tenant has no recipes yet**. Recent list shows an "itemized" badge.
+- Chosen behavior (confirmed with operator): per-day item totals (not
+  per-receipt) + theoretical-vs-actual variance (counts still set real stock,
+  no live auto-deduction). Bilingual az/ru. typecheck + lint + build green;
+  migration applied + advisors clean.
+- **Prereq for the operator:** itemized entry + theoretical usage need recipes
+  (menu items) with sale prices; without a menu the day falls back to a money
+  total.
 
 ### Done — landing mockups reframed as control-room instrument panels
 - The product mockups read as macOS/iOS app screenshots (traffic-light window
