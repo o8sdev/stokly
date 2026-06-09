@@ -238,6 +238,7 @@ export async function getActiveBatches(
 }
 
 // The global quick-start catalog (not tenant-scoped; public read).
+// Full library, unfiltered — for the system-admin catalog page.
 export async function getGlobalLibrary(): Promise<GlobalIngredient[]> {
   const supabase = createClient()
   const { data } = await supabase
@@ -248,13 +249,37 @@ export async function getGlobalLibrary(): Promise<GlobalIngredient[]> {
   return data ?? []
 }
 
-// Just the everyday basics (is_common), for the one-click quick-add chips.
-export async function getCommonLibrary(): Promise<GlobalIngredient[]> {
+// Library shown to a tenant: untagged items (universal basics) + items tagged
+// with the tenant's business type. When the tenant has no type yet, only the
+// untagged universals show.
+export async function getLibraryForTenant(
+  businessType: string | null
+): Promise<GlobalIngredient[]> {
   const supabase = createClient()
-  const { data } = await supabase
+  let q = supabase.from('global_ingredient_library').select('*')
+  q = businessType
+    ? q.or(`business_types.is.null,business_types.cs.{${businessType}}`)
+    : q.is('business_types', null)
+  const { data } = await q
+    .order('category', { ascending: true })
+    .order('name_az', { ascending: true })
+  return data ?? []
+}
+
+// Everyday basics (is_common), for the one-click quick-add chips — also filtered
+// to the tenant's business type (untagged universals always included).
+export async function getCommonLibrary(
+  businessType?: string | null
+): Promise<GlobalIngredient[]> {
+  const supabase = createClient()
+  let q = supabase
     .from('global_ingredient_library')
     .select('*')
     .eq('is_common', true)
+  q = businessType
+    ? q.or(`business_types.is.null,business_types.cs.{${businessType}}`)
+    : q.is('business_types', null)
+  const { data } = await q
     .order('category', { ascending: true })
     .order('name_az', { ascending: true })
   return data ?? []

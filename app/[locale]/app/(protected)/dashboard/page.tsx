@@ -11,6 +11,7 @@ import {
   getRecentMovements,
   getActiveBatches,
   getCommonLibrary,
+  getTenant,
 } from '@/lib/data/queries'
 import {
   computeRecipesWithCost,
@@ -38,7 +39,7 @@ import {
   ExpiryWidget,
   type ExpiryRow,
 } from '@/components/dashboard/expiry-widget'
-import { OnboardingEmptyState } from '@/components/dashboard/onboarding'
+import { GettingStarted } from '@/components/dashboard/getting-started'
 import { CountReminder } from '@/components/dashboard/count-reminder'
 import { getLastCountInfo } from '@/lib/data/counts'
 
@@ -71,17 +72,40 @@ export default async function DashboardPage({
     getLastCountInfo(ctx.tenantId),
   ])
 
-  // First-login onboarding: until the catalog has at least one ingredient,
-  // guide the user to bulk-import / library / manual instead of empty widgets.
-  // Gated by the onboarding_screen feature flag (per-plan / per-tenant).
-  if (ingredients.length === 0) {
+  // First-run onboarding: a step-by-step checklist (choose business type → add
+  // ingredients → recipes → initial count → start logging). Shown until the four
+  // core steps are done, then the normal dashboard takes over. Gated by the
+  // onboarding_screen feature flag (per-plan / per-tenant).
+  const tenant = await getTenant(ctx.tenantId)
+  const steps = {
+    businessType: !!tenant?.business_type,
+    ingredients: ingredients.length > 0,
+    recipes: recipes.length > 0,
+    count: lastCount.lastCountDate !== null,
+  }
+  const needsOnboarding =
+    !steps.businessType || !steps.ingredients || !steps.recipes || !steps.count
+
+  if (needsOnboarding) {
     const [onboardingEnabled, libEnabled] = await Promise.all([
       tenantHasFeature(ctx.tenantId, 'onboarding_screen'),
       tenantHasFeature(ctx.tenantId, 'ingredient_library'),
     ])
     if (onboardingEnabled) {
-      const common = libEnabled ? await getCommonLibrary() : []
-      return <OnboardingEmptyState locale={locale} commonItems={common} />
+      const common =
+        libEnabled && !steps.ingredients
+          ? await getCommonLibrary(tenant?.business_type ?? null)
+          : []
+      return (
+        <div className="mx-auto max-w-3xl py-2">
+          <GettingStarted
+            locale={locale}
+            steps={steps}
+            businessType={tenant?.business_type ?? null}
+            commonItems={common}
+          />
+        </div>
+      )
     }
   }
 

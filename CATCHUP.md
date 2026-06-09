@@ -87,7 +87,9 @@ day; `daily_sales.revenue_source` manual|items; tenant RLS owner/manager +
 admin) ·
 023 waste log (`stock_movements.waste_category_id` FK +
 `reverses_movement_id` self-FK + partial waste index; backfilled the category id
-that was crammed into `reason`).
+that was crammed into `reason`) ·
+024 business type (`tenants.business_type` + `global_ingredient_library
+.business_types text[]`, null = universal).
 
 ### Flexible stock counts (counts are reminders, never locks)
 
@@ -198,6 +200,29 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — first-run onboarding + business type + type-filtered library
+- **Business type** on the tenant (migration 024 `tenants.business_type`): a
+  curated list (restaurant/cafe/coffee/fast_food/pizzeria/bakery/pastry/bar/
+  kebab/teahouse/other — `lib/constants/business-types.ts`, bilingual). Chosen on
+  first run and editable in Settings (`setBusinessType` + select in updateTenant).
+- **First-run GettingStarted checklist** (`components/dashboard/getting-started
+  .tsx` + `business-type-chooser.tsx`): replaces the old empty-state. Five steps
+  with done-state + explanations + actions — choose type → add ingredients
+  (type-filtered quick-add) → recipes → initial count → daily sales/waste.
+  Dashboard shows it until the 4 core steps are done (gated by `onboarding_screen`).
+  Old `OnboardingEmptyState` removed.
+- **Type-filtered library**: `global_ingredient_library.business_types text[]`
+  (null = universal, shown to all). `getLibraryForTenant` / `getCommonLibrary`
+  filter to `business_types is null OR contains the tenant's type` (PostgREST
+  `.or(is.null,cs.{type})`). Wired into ingredients page, library page, onboarding
+  quick-add. Admin library: business_types checkboxes on the add form + tag chips
+  in the table (`getGlobalLibrary` stays unfiltered for admin). Operator confirmed
+  untagged = shown to all; existing 72 items are untagged (universal) — tag
+  type-specific ones going forward.
+- Bilingual az/ru; typecheck + lint + build green; migration applied. TODO:
+  per-row editing of an existing item's business_types in admin (set at add-time
+  for now).
 
 ### Done — business users can change their password in Settings
 - Accounts are admin-provisioned with a temporary password; the tenant owner can

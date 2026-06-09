@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
+import { BUSINESS_TYPE_KEYS } from '@/lib/constants/business-types'
 
 export interface SettingsResult {
   error?: string
@@ -15,6 +16,7 @@ const tenantSchema = z.object({
   currency: z.string().min(1).max(10),
   locale: z.enum(['az', 'ru']),
   count_cycle_days: z.coerce.number().int().min(1).max(365),
+  business_type: z.string().optional(),
 })
 
 export async function updateTenant(
@@ -30,17 +32,47 @@ export async function updateTenant(
     currency: formData.get('currency'),
     locale: formData.get('locale'),
     count_cycle_days: formData.get('count_cycle_days'),
+    business_type: formData.get('business_type'),
   })
   if (!parsed.success) return { error: 'validation' }
 
+  const bt = parsed.data.business_type
   const supabase = createClient()
   const { error } = await supabase
     .from('tenants')
-    .update(parsed.data)
+    .update({
+      name: parsed.data.name,
+      currency: parsed.data.currency,
+      locale: parsed.data.locale,
+      count_cycle_days: parsed.data.count_cycle_days,
+      business_type: bt && BUSINESS_TYPE_KEYS.includes(bt) ? bt : null,
+    })
     .eq('id', ctx.tenantId)
 
   if (error) return { error: 'generic' }
 
+  revalidatePath(`/${locale}/app/settings`)
+  revalidatePath(`/${locale}/app/dashboard`)
+  return { success: true }
+}
+
+// Set the tenant's business type from the first-run onboarding (one click).
+export async function setBusinessType(
+  locale: string,
+  type: string
+): Promise<SettingsResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  if (!BUSINESS_TYPE_KEYS.includes(type)) return { error: 'validation' }
+
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('tenants')
+    .update({ business_type: type })
+    .eq('id', ctx.tenantId)
+  if (error) return { error: 'generic' }
+
+  revalidatePath(`/${locale}/app/dashboard`)
   revalidatePath(`/${locale}/app/settings`)
   return { success: true }
 }

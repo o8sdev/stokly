@@ -4,6 +4,7 @@ import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import type { Tenant } from '@/types/database'
 import { updateTenant, type SettingsResult } from './actions'
+import { BUSINESS_TYPES } from '@/lib/constants/business-types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -27,6 +28,26 @@ export function SettingsForm({
       <div className="space-y-2">
         <Label htmlFor="name">{t('settings.restaurant_name')}</Label>
         <Input id="name" name="name" defaultValue={tenant.name} required />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="business_type">{t('settings.business_type')}</Label>
+        <select
+          id="business_type"
+          name="business_type"
+          defaultValue={tenant.business_type ?? ''}
+          className="flex h-[38px] w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+        >
+          <option value="">{t('settings.business_type_none')}</option>
+          {BUSINESS_TYPES.map((b) => (
+            <option key={b.key} value={b.key}>
+              {t(`business_type.${b.key}`)}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          {t('settings.business_type_hint')}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

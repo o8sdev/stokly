@@ -407,7 +407,8 @@
       "col_name": "Ad",
       "col_category": "Kateqoriya",
       "col_unit": "Vahid",
-      "common": "Ümumi"
+      "common": "Ümumi",
+      "business_types": "Biznes növləri"
     },
     "blog": {
       "title": "Bloq",
@@ -786,6 +787,9 @@
     "confirm_password": "Yeni şifrəni təsdiqlə",
     "password_changed": "Şifrə dəyişdirildi",
     "password_weak": "Şifrə ən azı 8 simvol olmalıdır",
+    "business_type": "Biznes növü",
+    "business_type_none": "— Seçin —",
+    "business_type_hint": "Növünüzə uyğun inqrediyent kitabxanası göstərilir.",
     "restaurant_name": "Restoranın adı",
     "currency": "Valyuta",
     "locale": "Dil",
@@ -854,6 +858,19 @@
     "empty": "Kitabxana boşdur",
     "success": "{count} inqrediyent əlavə edildi. İndi qiymətləri daxil edin."
   },
+  "business_type": {
+    "restaurant": "Restoran",
+    "cafe": "Kafe",
+    "coffee": "Qəhvəxana",
+    "fast_food": "Fast food",
+    "pizzeria": "Pizzeriya",
+    "bakery": "Çörək evi",
+    "pastry": "Qənnadı",
+    "bar": "Bar",
+    "kebab": "Kababxana",
+    "teahouse": "Çayxana",
+    "other": "Digər"
+  },
   "onboarding": {
     "title": "Stokly-yə xoş gəlmisiniz 👋",
     "subtitle": "Başlamaq üçün inqrediyent kataloğunuzu qurun.",
@@ -866,7 +883,24 @@
     "manual_title": "Əl ilə əlavə edin",
     "manual_desc": "Hər birini ayrıca əlavə edin",
     "manual_btn": "Əlavə et",
-    "prices_banner": "Qiymətləri daxil etmək üçün inqrediyentə klikləyin"
+    "prices_banner": "Qiymətləri daxil etmək üçün inqrediyentə klikləyin",
+    "gs_title": "Stokly-yə xoş gəlmisiniz",
+    "gs_subtitle": "Başlamaq üçün bu addımları izləyin.",
+    "gs_progress": "{done}/{total} addım tamamlandı",
+    "step1_title": "Biznes növünü seçin",
+    "step1_desc": "Növünüzə uyğun inqrediyent kitabxanası təklif edirik.",
+    "step2_title": "İnqrediyentləri əlavə edin",
+    "step2_desc": "İdxal edin, kitabxanadan seçin və ya əl ilə əlavə edin.",
+    "step3_title": "Reseptləri (menyu) yaradın",
+    "step3_desc": "Hər menyu məhsulu üçün resept — maya dəyəri avtomatik hesablanır.",
+    "step3_btn": "Resept əlavə et",
+    "step4_title": "İlkin stok sayımını edin",
+    "step4_desc": "Açılış qalıqlarını müəyyən edin — satış yalnız bundan sonra qeyd olunur.",
+    "step4_btn": "Sayıma başla",
+    "step5_title": "Gündəlik satış və tullantını qeyd edin",
+    "step5_desc": "Hər gün satış və tullantını qeyd edin — hesabatlar avtomatik qurulur.",
+    "step5_sales": "Satışlar",
+    "step5_waste": "Tullantı"
   },
   "role": {
     "owner": "Sahib",

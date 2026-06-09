@@ -8,6 +8,7 @@ import {
   getSuppliers,
   getStockMovements,
   getCommonLibrary,
+  getTenant,
 } from '@/lib/data/queries'
 import {
   deriveAllStockLevels,
@@ -28,11 +29,12 @@ export default async function IngredientsPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
+  const tenant = await getTenant(ctx.tenantId)
   const [ingredients, suppliers, movements, common] = await Promise.all([
     getIngredients(ctx.tenantId),
     getSuppliers(ctx.tenantId),
     getStockMovements(ctx.tenantId),
-    getCommonLibrary(),
+    getCommonLibrary(tenant?.business_type ?? null),
   ])
 
   const [canImport, canLibrary] = await Promise.all([
