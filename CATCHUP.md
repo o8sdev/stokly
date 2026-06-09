@@ -201,6 +201,30 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### In progress — confirm/lock daily sales → atomic FIFO inventory deduction
+- **DB engine done + live-tested** (migration **026**). A day's sales are a
+  `draft` until **confirmed**; confirming deducts inventory and **locks** the day.
+  Two SECURITY DEFINER, single-transaction RPCs:
+  - `confirm_daily_sales(day, usage jsonb)` — writes a `sale` stock_movement per
+    ingredient (deducts derived stock) + **FIFO-consumes `ingredient_batches`**
+    (oldest `LOT-` first, records each cut in `sale_batch_consumption`, marks
+    depleted), then sets `status='confirmed'`. Row-locked + status-guarded →
+    idempotent (no double-deduct).
+  - `void_daily_sales(day)` — restores the consumed batches, writes append-only
+    reversing `adjustment` movements, re-opens the day to `draft`. (Audited
+    void & re-enter — chosen correction model.)
+  - Immutability is **DB-enforced**: trigger `guard_confirmed_sale_items` blocks
+    insert/update/delete of items on a confirmed day.
+  - Verified live (BEGIN/ROLLBACK, no pollution): sell 8 from batches [5,10] →
+    LOT-260601-01 depleted (5), LOT-260605-01 →7; double-confirm rejected; void
+    restored [5,10] + `sale 8 / adjustment 8` pair; status round-tripped.
+  - New cols: `daily_sales.status/confirmed_at/confirmed_by`,
+    `stock_movements.daily_sales_id`, table `sale_batch_consumption`. Types added.
+- **Next (not yet built):** the TS actions (`confirmDailySales` explodes recipes
+  → usage → RPC; `voidDailySales`), block edits on confirmed days in
+  `saveDailySalesItems`, and the UI (status badge, "Confirm day" review screen
+  showing the inventory impact, "Void" button). Then reconcile the period report.
+
 ### Done — batch identifiers (LOT-YYMMDD-NN) + supplier lot
 - Every received batch now gets a human-readable, trackable code **`LOT-YYMMDD-NN`**
   (received date + per-tenant per-day sequence) plus an optional **supplier lot

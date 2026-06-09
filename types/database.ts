@@ -114,6 +114,9 @@ export interface Database {
           sale_date: string
           total_amount: number
           revenue_source: 'manual' | 'items'
+          status: 'draft' | 'confirmed'
+          confirmed_at: string | null
+          confirmed_by: string | null
           note: string | null
           recorded_by: string | null
           created_at: string
@@ -125,6 +128,9 @@ export interface Database {
           sale_date: string
           total_amount?: number
           revenue_source?: 'manual' | 'items'
+          status?: 'draft' | 'confirmed'
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           note?: string | null
           recorded_by?: string | null
           created_at?: string
@@ -384,6 +390,7 @@ export interface Database {
           expiry_date: string | null
           waste_category_id: string | null
           reverses_movement_id: string | null
+          daily_sales_id: string | null
           created_at: string
         }
         Insert: {
@@ -402,6 +409,7 @@ export interface Database {
           expiry_date?: string | null
           waste_category_id?: string | null
           reverses_movement_id?: string | null
+          daily_sales_id?: string | null
           created_at?: string
         }
         // Append-only by domain rule (enforced via RLS — no update policy).
