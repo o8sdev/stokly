@@ -11,7 +11,6 @@ export default async function AdminLibraryPage({
 }) {
   setRequestLocale(locale)
   const t = await getTranslations('admin.library')
-  const tb = await getTranslations('business_type')
   const items = await getGlobalLibrary()
 
   return (
@@ -61,18 +60,6 @@ export default async function AdminLibraryPage({
                     {g.name_ru && (
                       <span className="ml-2 text-xs text-slate-500">
                         {g.name_ru}
-                      </span>
-                    )}
-                    {g.business_types && g.business_types.length > 0 && (
-                      <span className="mt-1 flex flex-wrap gap-1">
-                        {g.business_types.map((bt) => (
-                          <span
-                            key={bt}
-                            className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] font-medium text-brand"
-                          >
-                            {tb(bt)}
-                          </span>
-                        ))}
                       </span>
                     )}
                   </td>

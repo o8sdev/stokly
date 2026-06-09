@@ -201,6 +201,18 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — removed business-type → library filtering (every tenant sees the full library)
+Reverted the "show only ingredients matching the tenant's business type" logic.
+Businesses still **choose and display** their type (`tenants.business_type`, the
+chooser, the type chips on settings/onboarding) — it's now purely informational.
+- `getCommonLibrary()` and the tenant library page no longer filter; deleted
+  `getLibraryForTenant` (the library page uses the unfiltered `getGlobalLibrary`).
+- Dropped the per-item association: admin library add-form lost the business-type
+  checkboxes, the table lost the type chips, `addLibraryItem` no longer reads/writes
+  it, and migration **028** drops `global_ingredient_library.business_types`
+  (types + the `admin.library.business_types` i18n key removed too).
+- typecheck + lint + build (86 pages) green.
+
 ### Done — onboarding card now reliably disappears once setup is complete (code-review fixes)
 Review target: "once a business completes onboarding, İdarə paneli must stop showing
 the welcome/onboarding messages." Root cause + 12 findings fixed:

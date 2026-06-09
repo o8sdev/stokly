@@ -1,6 +1,6 @@
 // Curated business types a tenant can choose on first run. `key` is stored on
-// tenants.business_type and tagged on global_ingredient_library.business_types;
-// the label comes from the `business_type.<key>` i18n namespace.
+// tenants.business_type; the label comes from the `business_type.<key>` i18n
+// namespace. (The choice is informational — it does not filter the library.)
 export const BUSINESS_TYPES = [
   { key: 'restaurant' },
   { key: 'cafe' },

@@ -588,7 +588,6 @@ export interface Database {
           default_yield_percent: number | null
           sort_order: number | null
           is_common: boolean
-          business_types: string[] | null
         }
         Insert: {
           id?: string
@@ -599,7 +598,6 @@ export interface Database {
           default_yield_percent?: number | null
           sort_order?: number | null
           is_common?: boolean
-          business_types?: string[] | null
         }
         Update: Partial<
           Database['public']['Tables']['global_ingredient_library']['Insert']

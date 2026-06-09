@@ -407,8 +407,7 @@
       "col_name": "Название",
       "col_category": "Категория",
       "col_unit": "Единица",
-      "common": "Общий",
-      "business_types": "Типы бизнеса"
+      "common": "Общий"
     },
     "blog": {
       "title": "Блог",

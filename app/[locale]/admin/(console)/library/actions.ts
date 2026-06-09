@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requirePlatformAdmin } from '@/lib/auth/admin'
-import { BUSINESS_TYPE_KEYS } from '@/lib/constants/business-types'
 
 export interface LibraryResult {
   ok?: boolean
@@ -23,10 +22,6 @@ export async function addLibraryItem(
   const default_unit = String(formData.get('default_unit') ?? '').trim()
   const yieldDisplay = Number(formData.get('yield') ?? 100)
   const is_common = formData.get('is_common') === 'on'
-  const businessTypes = formData
-    .getAll('business_types')
-    .map((v) => String(v))
-    .filter((v) => BUSINESS_TYPE_KEYS.includes(v))
 
   if (!name_az || !category || !default_unit) return { error: 'validation' }
 
@@ -41,7 +36,6 @@ export async function addLibraryItem(
         ? Math.min(1, yieldDisplay / 100)
         : 1,
     is_common,
-    business_types: businessTypes.length > 0 ? businessTypes : null,
   })
   if (error) return { error: 'generic' }
 

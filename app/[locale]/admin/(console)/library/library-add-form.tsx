@@ -6,11 +6,9 @@ import { useTranslations } from 'next-intl'
 import { Plus } from 'lucide-react'
 import { addLibraryItem, type LibraryResult } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { BUSINESS_TYPES } from '@/lib/constants/business-types'
 
 export function LibraryAddForm({ locale }: { locale: string }) {
   const t = useTranslations('admin.library')
-  const tb = useTranslations('business_type')
   const formRef = useRef<HTMLFormElement>(null)
   const action = addLibraryItem.bind(null, locale)
   const [state, formAction] = useFormState<LibraryResult, FormData>(action, {})
@@ -46,27 +44,6 @@ export function LibraryAddForm({ locale }: { locale: string }) {
           <input type="checkbox" name="is_common" className="h-4 w-4 accent-brand" />
           {t('common')}
         </label>
-      </div>
-
-      {/* Business types this item suits — none ticked = shown to all tenants. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <span className="text-xs font-medium text-slate-400">
-          {t('business_types')}:
-        </span>
-        {BUSINESS_TYPES.map((b) => (
-          <label
-            key={b.key}
-            className="flex items-center gap-1.5 text-xs text-slate-300"
-          >
-            <input
-              type="checkbox"
-              name="business_types"
-              value={b.key}
-              className="h-3.5 w-3.5 accent-brand"
-            />
-            {tb(b.key)}
-          </label>
-        ))}
       </div>
 
       <div className="flex justify-end">

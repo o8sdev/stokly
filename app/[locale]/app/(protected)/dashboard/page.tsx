@@ -84,9 +84,7 @@ export default async function DashboardPage({
     ])
     if (onboardingEnabled) {
       const common =
-        libEnabled && !steps.ingredients
-          ? await getCommonLibrary(tenant?.business_type ?? null)
-          : []
+        libEnabled && !steps.ingredients ? await getCommonLibrary() : []
       return (
         <div className="mx-auto max-w-3xl py-2">
           <GettingStarted

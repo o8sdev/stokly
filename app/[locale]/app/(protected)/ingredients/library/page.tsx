@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getLibraryForTenant, getTenant } from '@/lib/data/queries'
+import { getGlobalLibrary } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { LibrarySelector } from '@/components/import/library-selector'
@@ -14,9 +14,8 @@ export default async function LibraryPage({
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
-  const ctx = await requireTenant(locale)
-  const tenant = await getTenant(ctx.tenantId)
-  const library = await getLibraryForTenant(tenant?.business_type ?? null)
+  await requireTenant(locale)
+  const library = await getGlobalLibrary()
 
   return (
     <div>
