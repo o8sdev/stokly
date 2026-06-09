@@ -11,19 +11,17 @@ import {
   MoreHorizontal,
   type LucideIcon,
 } from 'lucide-react'
-import { Link } from '@/lib/i18n/navigation'
 import { submitWaste } from '@/app/[locale]/app/(protected)/inventory/actions'
 import type { InventoryActionResult } from '@/app/[locale]/app/(protected)/inventory/actions'
 import type { IngredientOption } from '@/types/app'
 import type { WasteCategory } from '@/types/database'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { formatMoney } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
-// Map the seeded English category names to an icon + i18n key.
 const CATEGORY_META: Record<string, { icon: LucideIcon; key: string }> = {
   Spoilage: { icon: AlertTriangle, key: 'spoilage' },
   'Over-prep': { icon: ChefHat, key: 'over_prep' },
@@ -37,17 +35,20 @@ export function WasteForm({
   defaultDate,
   ingredients,
   categories,
+  stockLevels,
 }: {
   locale: string
   defaultDate: string
   ingredients: IngredientOption[]
   categories: WasteCategory[]
+  stockLevels: Record<string, number>
 }) {
   const t = useTranslations()
   const [ingredientId, setIngredientId] = useState('')
   const [quantity, setQuantity] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [date, setDate] = useState(defaultDate)
+  const [reason, setReason] = useState('')
   const [notes, setNotes] = useState('')
 
   const action = submitWaste.bind(null, locale)
@@ -57,21 +58,26 @@ export function WasteForm({
   )
 
   const selected = ingredients.find((i) => i.id === ingredientId)
+  const qtyNum = quantity === '' ? 0 : Number(quantity)
+  const onHand = ingredientId ? (stockLevels[ingredientId] ?? 0) : 0
+  const value = qtyNum * (selected?.cost_per_unit ?? 0)
+  const overStock = !!selected && qtyNum > onHand
 
   const payload = useMemo(
     () =>
       JSON.stringify({
         ingredient_id: ingredientId,
-        quantity: quantity === '' ? 0 : Number(quantity),
+        quantity: qtyNum,
         waste_category_id: categoryId,
         occurred_at: date,
+        reason,
         notes,
       }),
-    [ingredientId, quantity, categoryId, date, notes]
+    [ingredientId, qtyNum, categoryId, date, reason, notes]
   )
 
   return (
-    <form action={formAction} className="max-w-lg space-y-5 stokly-card p-6">
+    <form action={formAction} className="space-y-5 stokly-card p-5">
       <input type="hidden" name="payload" value={payload} />
 
       <div className="space-y-2">
@@ -99,6 +105,14 @@ export function WasteForm({
             </option>
           ))}
         </select>
+        {selected && (
+          <p className="text-xs text-muted-foreground">
+            {t('inventory.on_hand')}:{' '}
+            <span className="font-mono tabular-nums text-foreground">
+              {onHand} {selected.unit}
+            </span>
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -118,6 +132,20 @@ export function WasteForm({
             {selected?.unit ?? ''}
           </span>
         </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className={cn('flex items-center gap-1', overStock ? 'text-amber-600' : 'text-transparent')}>
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {overStock ? t('inventory.over_stock_warning') : ' '}
+          </span>
+          {value > 0 && (
+            <span className="text-muted-foreground">
+              {t('inventory.waste_value')}:{' '}
+              <span className="font-mono tabular-nums text-foreground">
+                {formatMoney(value)}
+              </span>
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -126,10 +154,8 @@ export function WasteForm({
           {categories.map((c) => {
             const meta = CATEGORY_META[c.name]
             const Icon = meta?.icon ?? MoreHorizontal
-            const label = meta
-              ? t(`waste_category.${meta.key}`)
-              : c.name
-            const selected = categoryId === c.id
+            const label = meta ? t(`waste_category.${meta.key}`) : c.name
+            const isSel = categoryId === c.id
             return (
               <button
                 key={c.id}
@@ -137,7 +163,7 @@ export function WasteForm({
                 onClick={() => setCategoryId(c.id)}
                 className={cn(
                   'inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
-                  selected
+                  isSel
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-border bg-card text-foreground hover:bg-secondary'
                 )}
@@ -148,6 +174,16 @@ export function WasteForm({
             )
           })}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="reason">{t('inventory.waste_reason')}</Label>
+        <Input
+          id="reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder={t('inventory.waste_reason_ph')}
+        />
       </div>
 
       <div className="space-y-2">
@@ -163,17 +199,12 @@ export function WasteForm({
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}
 
-      <div className="flex gap-2">
-        <SubmitButton
-          pendingText={t('common.saving')}
-          disabled={!ingredientId || !categoryId}
-        >
-          {t('common.save')}
-        </SubmitButton>
-        <Button asChild variant="outline" type="button">
-          <Link href="/app/inventory">{t('common.cancel')}</Link>
-        </Button>
-      </div>
+      <SubmitButton
+        pendingText={t('common.saving')}
+        disabled={!ingredientId || !categoryId || qtyNum <= 0}
+      >
+        {t('inventory.log_waste')}
+      </SubmitButton>
     </form>
   )
 }

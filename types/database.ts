@@ -380,6 +380,8 @@ export interface Database {
           recorded_by: string | null
           batch_id: string | null
           expiry_date: string | null
+          waste_category_id: string | null
+          reverses_movement_id: string | null
           created_at: string
         }
         Insert: {
@@ -396,6 +398,8 @@ export interface Database {
           recorded_by?: string | null
           batch_id?: string | null
           expiry_date?: string | null
+          waste_category_id?: string | null
+          reverses_movement_id?: string | null
           created_at?: string
         }
         // Append-only by domain rule (enforced via RLS — no update policy).

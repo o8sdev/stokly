@@ -39,6 +39,7 @@ export const wasteSchema = z.object({
     .positive('positive'),
   waste_category_id: z.string().uuid('required'),
   occurred_at: z.string().optional(),
+  reason: z.string().max(300).optional().or(z.literal('')),
   notes: z.string().max(2000).optional().or(z.literal('')),
 })
 

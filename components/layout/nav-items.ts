@@ -10,6 +10,7 @@ import {
   Settings,
   Receipt,
   ClipboardList,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -35,6 +36,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/app/ingredients', labelKey: 'ingredients', icon: Carrot },
       { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
       { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
+      { href: '/app/inventory/waste', labelKey: 'waste_log', icon: Trash2 },
       { href: '/app/sales', labelKey: 'sales', icon: Receipt },
       { href: '/app/production', labelKey: 'production', icon: Factory },
     ],

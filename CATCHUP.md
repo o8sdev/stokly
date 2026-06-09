@@ -84,7 +84,10 @@ published_at; public read of `published` only, platform-admin full write) ·
 items; 38 common of 72) ·
 022 sales items (`daily_sales_items`: recipe_id × quantity × price snapshot per
 day; `daily_sales.revenue_source` manual|items; tenant RLS owner/manager +
-admin).
+admin) ·
+023 waste log (`stock_movements.waste_category_id` FK +
+`reverses_movement_id` self-FK + partial waste index; backfilled the category id
+that was crammed into `reason`).
 
 ### Flexible stock counts (counts are reminders, never locks)
 
@@ -195,6 +198,28 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — waste log (browsable, valued, append-only with reversal)
+- Waste was already a `waste` stock_movement (auto-deducts from stock); made it a
+  first-class **log**. Migration **023**: proper `waste_category_id` FK (was
+  crammed into `reason`), `reverses_movement_id` self-FK for append-only
+  corrections, partial waste index.
+- `submitWaste` now snapshots the ingredient cost into `unit_cost` (so waste
+  **value** = qty×cost is stable), sets the category FK + an optional short
+  `reason`, and redirects to the log. `reverseWaste` inserts an `adjustment` that
+  adds the wasted qty back and points at the original (owner/manager only, no
+  double-reversal) — the original is never edited/deleted.
+- **`/app/inventory/waste`** is now a hub: entry form (shows on-hand + a
+  live value preview + over-stock warning + reason) on the left; a **period
+  filter (from/to)** + summary cards (total waste value, entry count) + the
+  browsable **log table** (date, ingredient, qty, value, category, note, Reverse
+  / "Reversed" badge) on the right. New **"Waste log"** sidebar item.
+- `getWasteLog(tenant, from, to)` joins ingredient + category, computes value,
+  flags reversed entries. Decision (confirmed): waste log only now;
+  **multi-location stock is a separate future phase** (today there's one stock
+  level per ingredient; `ingredients.storage_location` is just a label — no
+  per-location balances or transfers yet). Bilingual az/ru; typecheck + lint +
+  build green; migration applied + advisors clean.
 
 ### Done — sales require an initial (zero) stock count
 - Fixed a domain flaw: sales could be recorded before any stock existed. Now the

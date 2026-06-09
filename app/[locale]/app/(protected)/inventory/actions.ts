@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { requireTenant } from '@/lib/auth/tenant'
+import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { createPeriodForCount } from '@/lib/data/counts'
 import {
   stockCountSchema,
@@ -167,8 +167,30 @@ export async function submitWaste(
   formData: FormData
 ): Promise<InventoryActionResult> {
   const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
   const parsed = wasteSchema.safeParse(parseJson(formData))
   if (!parsed.success) return { error: 'validation' }
+
+  const supabase = createClient()
+
+  // Confirm the ingredient is this tenant's, and snapshot its cost so the
+  // logged waste value stays accurate even if the price changes later.
+  const { data: ing } = await supabase
+    .from('ingredients')
+    .select('id, cost_per_unit')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('id', parsed.data.ingredient_id)
+    .maybeSingle()
+  if (!ing) return { error: 'validation' }
+
+  // Confirm the category is this tenant's.
+  const { data: cat } = await supabase
+    .from('waste_categories')
+    .select('id')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('id', parsed.data.waste_category_id)
+    .maybeSingle()
+  if (!cat) return { error: 'validation' }
 
   const createdAt = parsed.data.occurred_at
     ? new Date(parsed.data.occurred_at).toISOString()
@@ -180,16 +202,66 @@ export async function submitWaste(
     movement_type: 'waste',
     quantity: parsed.data.quantity,
     is_absolute: false,
-    reason: parsed.data.waste_category_id,
-    notes: parsed.data.notes || null,
+    unit_cost: ing.cost_per_unit ?? 0,
+    waste_category_id: parsed.data.waste_category_id,
+    reason: parsed.data.reason?.trim() || null,
+    notes: parsed.data.notes?.trim() || null,
     recorded_by: ctx.userId,
     ...(createdAt ? { created_at: createdAt } : {}),
   }
 
-  const supabase = createClient()
   const { error } = await supabase.from('stock_movements').insert(row)
   if (error) return { error: 'generic' }
 
+  revalidatePath(`/${locale}/app/inventory/waste`)
   revalidatePath(`/${locale}/app/inventory`)
-  redirect(`/${locale}/app/inventory`)
+  revalidatePath(`/${locale}/app/dashboard`)
+  redirect(`/${locale}/app/inventory/waste`)
+}
+
+// Append-only correction of a mistaken waste entry. We never edit/delete the
+// original waste movement; instead we insert an `adjustment` that adds the
+// wasted quantity back to stock and points at the original via
+// reverses_movement_id. The log then renders the original as reversed.
+export async function reverseWaste(
+  locale: string,
+  movementId: string
+): Promise<InventoryActionResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+
+  const supabase = createClient()
+  const { data: orig } = await supabase
+    .from('stock_movements')
+    .select('id, ingredient_id, quantity, movement_type')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('id', movementId)
+    .maybeSingle()
+  if (!orig || orig.movement_type !== 'waste') return { error: 'validation' }
+
+  // Don't allow reversing twice.
+  const { data: already } = await supabase
+    .from('stock_movements')
+    .select('id')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('reverses_movement_id', movementId)
+    .maybeSingle()
+  if (already) return { error: 'already_reversed' }
+
+  const { error } = await supabase.from('stock_movements').insert({
+    tenant_id: ctx.tenantId,
+    ingredient_id: orig.ingredient_id,
+    movement_type: 'adjustment',
+    quantity: Math.abs(orig.quantity),
+    is_absolute: false,
+    reverses_movement_id: movementId,
+    reason: 'waste_reversal',
+    recorded_by: ctx.userId,
+  })
+  if (error) return { error: 'generic' }
+
+  revalidatePath(`/${locale}/app/inventory/waste`)
+  revalidatePath(`/${locale}/app/inventory`)
+  revalidatePath(`/${locale}/app/dashboard`)
+  return {}
 }

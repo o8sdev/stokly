@@ -142,6 +142,85 @@ export async function getWasteCategories(
   return data ?? []
 }
 
+export interface WasteLogEntry {
+  id: string
+  ingredient_id: string
+  ingredient_name: string
+  unit: string
+  quantity: number
+  unit_cost: number
+  value: number
+  category_name: string | null
+  reason: string | null
+  notes: string | null
+  recorded_by: string | null
+  created_at: string
+  reversed: boolean
+}
+
+// Browsable waste log for a date range (inclusive). Each entry carries the
+// ingredient + category name, the snapshotted value (qty × unit_cost), and
+// whether it was later reversed (an `adjustment` points back at it).
+export async function getWasteLog(
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<WasteLogEntry[]> {
+  const supabase = createClient()
+  const fromStart = `${from}T00:00:00.000Z`
+  const toEnd = `${to}T23:59:59.999Z`
+
+  const [wasteRes, revRes, ings, cats] = await Promise.all([
+    supabase
+      .from('stock_movements')
+      .select(
+        'id, ingredient_id, quantity, unit_cost, reason, notes, waste_category_id, recorded_by, created_at'
+      )
+      .eq('tenant_id', tenantId)
+      .eq('movement_type', 'waste')
+      .gte('created_at', fromStart)
+      .lte('created_at', toEnd)
+      .order('created_at', { ascending: false })
+      .limit(1000),
+    supabase
+      .from('stock_movements')
+      .select('reverses_movement_id')
+      .eq('tenant_id', tenantId)
+      .not('reverses_movement_id', 'is', null),
+    getIngredients(tenantId),
+    getWasteCategories(tenantId),
+  ])
+
+  const ingMap = new Map(ings.map((i) => [i.id, i]))
+  const catMap = new Map(cats.map((c) => [c.id, c]))
+  const reversed = new Set(
+    (revRes.data ?? []).map((r) => r.reverses_movement_id as string)
+  )
+
+  return (wasteRes.data ?? []).map((w) => {
+    const ing = ingMap.get(w.ingredient_id)
+    const qty = Number(w.quantity)
+    const cost = Number(w.unit_cost ?? 0)
+    return {
+      id: w.id,
+      ingredient_id: w.ingredient_id,
+      ingredient_name: ing?.name ?? '—',
+      unit: ing?.unit ?? '',
+      quantity: qty,
+      unit_cost: cost,
+      value: qty * cost,
+      category_name: w.waste_category_id
+        ? (catMap.get(w.waste_category_id)?.name ?? null)
+        : null,
+      reason: w.reason,
+      notes: w.notes,
+      recorded_by: w.recorded_by,
+      created_at: w.created_at,
+      reversed: reversed.has(w.id),
+    }
+  })
+}
+
 // All active batches for the tenant, ordered FIFO (oldest received first).
 // SUM(quantity_remaining) per ingredient must equal deriveStockLevel() — see
 // the invariant note in lib/calculations/stock-level.ts.
