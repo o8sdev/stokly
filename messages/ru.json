@@ -677,6 +677,9 @@
     "batch_remaining": "Остаток",
     "batch_expiry": "Срок",
     "batch_cost": "Цена за ед.",
+    "batch_code": "Код партии",
+    "supplier_lot": "Партия поставщика",
+    "supplier_lot_ph": "Номер партии с упаковки (если есть)",
     "no_batches": "Нет активных партий"
   },
   "reports": {

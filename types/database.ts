@@ -446,6 +446,8 @@ export interface Database {
           expiry_date: string | null
           status: BatchStatus
           created_from_movement_id: string | null
+          batch_code: string | null
+          supplier_lot_no: string | null
           created_at: string
         }
         Insert: {
@@ -461,6 +463,8 @@ export interface Database {
           expiry_date?: string | null
           status?: BatchStatus
           created_from_movement_id?: string | null
+          batch_code?: string | null
+          supplier_lot_no?: string | null
           created_at?: string
         }
         Update: Partial<

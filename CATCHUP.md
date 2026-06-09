@@ -201,6 +201,21 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — batch identifiers (LOT-YYMMDD-NN) + supplier lot
+- Every received batch now gets a human-readable, trackable code **`LOT-YYMMDD-NN`**
+  (received date + per-tenant per-day sequence) plus an optional **supplier lot
+  number** (manufacturer's printed lot, for recall traceability). Migration
+  **025**: `ingredient_batches.batch_code` + `supplier_lot_no`, a `set_batch_code`
+  BEFORE-INSERT trigger (so any insert path gets a code), backfill of existing
+  batches, and a unique index `(tenant_id, batch_code)`.
+- Delivery form: a supplier-lot input per line; `submitDelivery` stores it
+  (batch_code is trigger-generated). Inventory table's batch sub-rows now show
+  the batch code + supplier lot alongside received/remaining/expiry/cost.
+  Bilingual az/ru; typecheck + lint + build green.
+- **Next (planned):** live sales → stock FIFO deduction consuming these batches
+  (per the code-review finding that sales don't currently deduct from live
+  inventory). The internal UUID stays the PK; LOT- is the display/tracking id.
+
 ### Done — onboarding is now an explanatory guided tour (driver.js)
 - Replaced the manual "complete each step" checklist on the dashboard with an
   **explanatory walkthrough** (`components/dashboard/welcome-tour.tsx`, driver.js

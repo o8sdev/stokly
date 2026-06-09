@@ -59,6 +59,8 @@ export default async function InventoryPage({
       lastCount: lastCountDate(movements, i.id),
       batches: (batchesByIngredient.get(i.id) ?? []).map((b) => ({
         id: b.id,
+        batch_code: b.batch_code,
+        supplier_lot_no: b.supplier_lot_no,
         received_date: b.received_date,
         quantity_remaining: b.quantity_remaining,
         expiry_date: b.expiry_date,

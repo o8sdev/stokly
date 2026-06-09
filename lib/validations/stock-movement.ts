@@ -23,6 +23,8 @@ export const deliveryLineSchema = z.object({
     .nonnegative('positive'),
   // yyyy-mm-dd or empty. Optional in Phase 1, required in Phase 2.
   expiry_date: z.string().optional().or(z.literal('')),
+  // Manufacturer's printed lot number, for recall traceability (optional).
+  supplier_lot: z.string().max(120).optional().or(z.literal('')),
 })
 
 export const deliverySchema = z.object({

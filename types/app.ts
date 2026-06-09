@@ -74,6 +74,8 @@ export type IngredientBatch = {
   expiry_date: string | null
   status: 'active' | 'depleted' | 'expired' | 'written_off'
   created_from_movement_id: string | null
+  batch_code: string | null
+  supplier_lot_no: string | null
   created_at: string
 }
 

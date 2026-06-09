@@ -14,6 +14,8 @@ import { cn, formatQuantity, formatMoney, formatDate } from '@/lib/utils'
 
 export interface InventoryBatch {
   id: string
+  batch_code: string | null
+  supplier_lot_no: string | null
   received_date: string
   quantity_remaining: number
   expiry_date: string | null
@@ -105,6 +107,9 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                         <thead>
                           <tr className="border-b border-border text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
                             <th className="px-3 py-2 text-left font-semibold">
+                              {t('inventory.batch_code')}
+                            </th>
+                            <th className="px-3 py-2 text-left font-semibold">
                               {t('inventory.batch_received')}
                             </th>
                             <th className="px-3 py-2 text-right font-semibold">
@@ -112,6 +117,9 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                             </th>
                             <th className="px-3 py-2 text-left font-semibold">
                               {t('inventory.batch_expiry')}
+                            </th>
+                            <th className="px-3 py-2 text-left font-semibold">
+                              {t('inventory.supplier_lot')}
                             </th>
                             <th className="px-3 py-2 text-right font-semibold">
                               {t('inventory.batch_cost')}
@@ -124,6 +132,9 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                               key={b.id}
                               className="border-b border-[#F0F4F8] last:border-0"
                             >
+                              <td className="px-3 py-2 font-mono text-xs font-medium">
+                                {b.batch_code ?? '—'}
+                              </td>
                               <td className="px-3 py-2">
                                 {formatDate(b.received_date)}
                               </td>
@@ -137,6 +148,9 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                                 {b.expiry_date
                                   ? formatDate(b.expiry_date)
                                   : '—'}
+                              </td>
+                              <td className="px-3 py-2 text-muted-foreground">
+                                {b.supplier_lot_no ?? '—'}
                               </td>
                               <td className="px-3 py-2 text-right">
                                 <MonoValue value={formatMoney(b.unit_cost)} />

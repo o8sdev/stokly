@@ -21,6 +21,7 @@ interface Line {
   quantity: string
   unit_cost: string
   expiry_date: string
+  supplier_lot: string
 }
 
 let counter = 0
@@ -39,7 +40,7 @@ export function DeliveryForm({
   const [supplierId, setSupplierId] = useState('')
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<Line[]>([
-    { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '' },
+    { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '', supplier_lot: '' },
   ])
 
   const action = submitDelivery.bind(null, locale)
@@ -55,7 +56,7 @@ export function DeliveryForm({
   function addLine() {
     setLines((prev) => [
       ...prev,
-      { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '' },
+      { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '', supplier_lot: '' },
     ])
   }
 
@@ -94,6 +95,7 @@ export function DeliveryForm({
             quantity: Number(l.quantity),
             unit_cost: l.unit_cost === '' ? 0 : Number(l.unit_cost),
             expiry_date: l.expiry_date,
+            supplier_lot: l.supplier_lot,
           })),
       }),
     [supplierId, notes, lines]
@@ -126,8 +128,9 @@ export function DeliveryForm({
           return (
             <div
               key={line.key}
-              className="grid grid-cols-2 items-end gap-2 rounded-lg border border-border p-3 md:grid-cols-[1fr_104px_104px_150px_40px]"
+              className="space-y-2 rounded-lg border border-border p-3"
             >
+              <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-[1fr_104px_104px_150px_40px]">
               <div className="col-span-2 space-y-1 md:col-span-1">
                 <Label className="text-xs">
                   {t('inventory.delivery')} — {t('recipes.line_ingredient')}
@@ -198,6 +201,21 @@ export function DeliveryForm({
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">
+                  {t('inventory.supplier_lot')}
+                </Label>
+                <Input
+                  value={line.supplier_lot}
+                  onChange={(e) =>
+                    patch(line.key, { supplier_lot: e.target.value })
+                  }
+                  placeholder={t('inventory.supplier_lot_ph')}
+                  className="h-9"
+                />
+              </div>
             </div>
           )
         })}

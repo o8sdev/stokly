@@ -677,6 +677,9 @@
     "batch_remaining": "Qalıq",
     "batch_expiry": "Son tarix",
     "batch_cost": "Vahid dəyəri",
+    "batch_code": "Partiya kodu",
+    "supplier_lot": "Təchizatçı partiyası",
+    "supplier_lot_ph": "Qablaşdırmadakı partiya nömrəsi (varsa)",
     "no_batches": "Aktiv partiya yoxdur"
   },
   "reports": {
