@@ -26,15 +26,22 @@ export function formatPercent(value: number | null | undefined): string {
 }
 
 // Format an ISO timestamp as a short local date, or em-dash when missing.
+// DD/MM/YYYY everywhere. Deterministic (no Intl/ICU — Node's bundled ICU has no
+// Azerbaijani month names and rendered "2026 M06 9") and timezone-safe: a
+// date-only string (YYYY-MM-DD) or the date part of an ISO timestamp is read
+// verbatim, so the day never shifts across timezones / server↔browser.
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('az-AZ', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+  if (iso) {
+    const [, y, m, d] = iso
+    return `${d}/${m}/${y}`
+  }
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return '—'
+  const dd = String(dt.getUTCDate()).padStart(2, '0')
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0')
+  return `${dd}/${mm}/${dt.getUTCFullYear()}`
 }
 
 // Relative time like "2 saat əvvəl" / "2 часа назад", localised.
