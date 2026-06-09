@@ -10,6 +10,10 @@ import type {
 } from '@/types/database'
 import type { IngredientBatch } from '@/types/app'
 import type { GlobalIngredient } from '@/types/database'
+import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
+import { computeTheoreticalUsage } from '@/lib/calculations/theoretical-usage'
+
+const round3 = (n: number): number => Math.round(n * 1000) / 1000
 
 // All loaders take an explicit tenantId (resolved via requireTenant) so the
 // tenant scope is always server-controlled. RLS provides defence in depth.
@@ -293,4 +297,75 @@ export async function getTenant(tenantId: string): Promise<Tenant | null> {
     .eq('id', tenantId)
     .maybeSingle()
   return data ?? null
+}
+
+export interface DayConfirmPreviewLine {
+  ingredient_id: string
+  ingredient_name: string
+  unit: string
+  quantity: number
+  current_stock: number
+  short: boolean
+}
+export interface DayConfirmPreview {
+  lines: DayConfirmPreviewLine[]
+  cogs: number
+  any_short: boolean
+}
+
+// The inventory impact of confirming a day's itemized sales — what the
+// confirm_daily_sales RPC will deduct. Shown on the review/confirm screen so the
+// user catches an obviously-wrong quantity BEFORE it's locked.
+export async function getDayConfirmPreview(
+  tenantId: string,
+  dayId: string
+): Promise<DayConfirmPreview> {
+  const supabase = createClient()
+  const { data: items } = await supabase
+    .from('daily_sales_items')
+    .select('recipe_id, quantity')
+    .eq('daily_sales_id', dayId)
+  const sold = (items ?? []).map((i) => ({
+    recipe_id: i.recipe_id,
+    quantity: Number(i.quantity),
+  }))
+
+  const [ingredients, recipes, recipeIngredients, movements] =
+    await Promise.all([
+      getIngredients(tenantId),
+      getRecipes(tenantId),
+      getRecipeIngredients(tenantId),
+      getStockMovements(tenantId),
+    ])
+
+  const { usageByIngredient, theoreticalCogs } = computeTheoreticalUsage(
+    sold,
+    ingredients,
+    recipes,
+    recipeIngredients
+  )
+  const levels = deriveAllStockLevels(movements)
+  const ingById = new Map(ingredients.map((i) => [i.id, i]))
+
+  const lines: DayConfirmPreviewLine[] = [...usageByIngredient.entries()]
+    .filter(([, qty]) => qty > 0)
+    .map(([id, qty]) => {
+      const ing = ingById.get(id)
+      const current = levels.get(id) ?? 0
+      return {
+        ingredient_id: id,
+        ingredient_name: ing?.name ?? '—',
+        unit: ing?.unit ?? '',
+        quantity: round3(qty),
+        current_stock: round3(current),
+        short: qty > current + 1e-9,
+      }
+    })
+    .sort((a, b) => b.quantity - a.quantity)
+
+  return {
+    lines,
+    cogs: Math.round(theoreticalCogs * 100) / 100,
+    any_short: lines.some((l) => l.short),
+  }
 }

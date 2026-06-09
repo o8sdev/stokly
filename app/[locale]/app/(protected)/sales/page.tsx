@@ -1,13 +1,14 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { createClient } from '@/lib/supabase/server'
-import { getRecipes } from '@/lib/data/queries'
+import { getRecipes, getDayConfirmPreview } from '@/lib/data/queries'
 import { hasInitialCount } from '@/lib/data/counts'
 import { PageHeader } from '@/components/layout/page-header'
 import {
   SalesItemEditor,
   type MenuItem,
 } from '@/components/sales/sales-item-editor'
+import { SalesDayActions } from '@/components/sales/sales-day-actions'
 import { NeedsInitialCount } from '@/components/sales/needs-count-guard'
 import { DailySalesForm } from '@/components/sales/daily-sales-form'
 import { EmptyState } from '@/components/ui/stokly-theme'
@@ -65,6 +66,13 @@ export default async function SalesPage({
     }))
   }
 
+  const todayStatus = todayRow?.status ?? 'draft'
+  const todayLocked = todayStatus === 'confirmed'
+  const todayPreview =
+    todayRow && todayStatus === 'draft' && todayItems.length > 0
+      ? await getDayConfirmPreview(ctx.tenantId, todayRow.id)
+      : null
+
   const { data } = await supabase
     .from('daily_sales')
     .select('*')
@@ -83,13 +91,24 @@ export default async function SalesPage({
             {t('sales.add_for_day')} — {formatDate(today)}
           </h2>
           {menuItems.length > 0 ? (
-            <SalesItemEditor
-              locale={locale}
-              date={today}
-              menuItems={menuItems}
-              initialItems={todayItems}
-              note={todayRow?.note}
-            />
+            <div className="space-y-4">
+              <SalesItemEditor
+                locale={locale}
+                date={today}
+                menuItems={menuItems}
+                initialItems={todayItems}
+                note={todayRow?.note}
+                locked={todayLocked}
+              />
+              {todayRow && (
+                <SalesDayActions
+                  locale={locale}
+                  dayId={todayRow.id}
+                  status={todayStatus}
+                  preview={todayPreview}
+                />
+              )}
+            </div>
           ) : (
             <>
               <p className="mb-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
@@ -137,6 +156,11 @@ export default async function SalesPage({
                           {r.revenue_source === 'items' && (
                             <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                               {t('sales.itemized')}
+                            </span>
+                          )}
+                          {r.status === 'confirmed' && (
+                            <span className="rounded bg-green-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+                              {t('sales.status_confirmed')}
                             </span>
                           )}
                         </span>

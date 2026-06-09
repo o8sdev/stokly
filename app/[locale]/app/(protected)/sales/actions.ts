@@ -5,6 +5,13 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { hasInitialCount } from '@/lib/data/counts'
+import {
+  getIngredients,
+  getRecipes,
+  getRecipeIngredients,
+} from '@/lib/data/queries'
+import { computeTheoreticalUsage } from '@/lib/calculations/theoretical-usage'
+import type { Json } from '@/types/database'
 
 export interface SalesResult {
   error?: string
@@ -130,6 +137,16 @@ export async function saveDailySalesItems(
 
   const supabase = createClient()
 
+  // A confirmed day is locked — its items can't be edited (the DB trigger is the
+  // hard backstop; this returns a friendly error first).
+  const { data: existing } = await supabase
+    .from('daily_sales')
+    .select('status')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('sale_date', date)
+    .maybeSingle()
+  if (existing?.status === 'confirmed') return { error: 'locked' }
+
   // Snapshot sale prices server-side — never trust client-supplied prices, and
   // confirm every recipe belongs to this tenant.
   const recipeIds = [...merged.keys()]
@@ -189,5 +206,100 @@ export async function saveDailySalesItems(
 
   revalidatePath(`/${locale}/app/sales`)
   revalidatePath(`/${locale}/app/sales/${date}`)
+  return { success: true }
+}
+
+function revalidateSales(locale: string, date?: string) {
+  revalidatePath(`/${locale}/app/sales`)
+  if (date) revalidatePath(`/${locale}/app/sales/${date}`)
+  revalidatePath(`/${locale}/app/inventory`)
+  revalidatePath(`/${locale}/app/inventory/waste`)
+  revalidatePath(`/${locale}/app/dashboard`)
+}
+
+// Confirm (lock) a day's itemized sales: explode the sold recipes into expected
+// ingredient usage and hand it to the atomic confirm_daily_sales RPC, which
+// writes the 'sale' stock movements, FIFO-consumes the LOT- batches, and locks
+// the day — all in one transaction. The day is read-only afterwards.
+export async function confirmDailySales(
+  locale: string,
+  dayId: string
+): Promise<SalesResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+
+  const supabase = createClient()
+  const { data: day } = await supabase
+    .from('daily_sales')
+    .select('id, sale_date, status')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('id', dayId)
+    .maybeSingle()
+  if (!day) return { error: 'validation' }
+  if (day.status === 'confirmed') return { error: 'already_confirmed' }
+
+  const { data: items } = await supabase
+    .from('daily_sales_items')
+    .select('recipe_id, quantity')
+    .eq('daily_sales_id', dayId)
+  const sold = (items ?? []).map((i) => ({
+    recipe_id: i.recipe_id,
+    quantity: Number(i.quantity),
+  }))
+
+  const [ingredients, recipes, recipeIngredients] = await Promise.all([
+    getIngredients(ctx.tenantId),
+    getRecipes(ctx.tenantId),
+    getRecipeIngredients(ctx.tenantId),
+  ])
+  const { usageByIngredient } = computeTheoreticalUsage(
+    sold,
+    ingredients,
+    recipes,
+    recipeIngredients
+  )
+  const costById = new Map(ingredients.map((i) => [i.id, i.cost_per_unit ?? 0]))
+  const usage = [...usageByIngredient.entries()]
+    .filter(([, qty]) => qty > 0)
+    .map(([ingredient_id, quantity]) => ({
+      ingredient_id,
+      quantity,
+      unit_cost: costById.get(ingredient_id) ?? 0,
+    }))
+
+  const { error } = await supabase.rpc('confirm_daily_sales', {
+    p_day_id: dayId,
+    p_usage: usage as unknown as Json,
+  })
+  if (error) return { error: 'generic' }
+
+  revalidateSales(locale, day.sale_date)
+  return { success: true }
+}
+
+// Void a confirmed day: the void_daily_sales RPC restores the consumed batches,
+// writes append-only reversing movements, and re-opens the day to draft. Audited
+// correction — history is never edited.
+export async function voidDailySales(
+  locale: string,
+  dayId: string
+): Promise<SalesResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+
+  const supabase = createClient()
+  const { data: day } = await supabase
+    .from('daily_sales')
+    .select('id, sale_date, status')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('id', dayId)
+    .maybeSingle()
+  if (!day) return { error: 'validation' }
+  if (day.status !== 'confirmed') return { error: 'not_confirmed' }
+
+  const { error } = await supabase.rpc('void_daily_sales', { p_day_id: dayId })
+  if (error) return { error: 'generic' }
+
+  revalidateSales(locale, day.sale_date)
   return { success: true }
 }

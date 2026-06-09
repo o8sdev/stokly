@@ -861,6 +861,14 @@ export interface Database {
         Args: Record<string, never>
         Returns: boolean
       }
+      confirm_daily_sales: {
+        Args: { p_day_id: string; p_usage: Json }
+        Returns: undefined
+      }
+      void_daily_sales: {
+        Args: { p_day_id: string }
+        Returns: undefined
+      }
       submit_demo_request: {
         Args: {
           p_name: string

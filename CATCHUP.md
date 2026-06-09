@@ -201,8 +201,18 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
-### In progress — confirm/lock daily sales → atomic FIFO inventory deduction
-- **DB engine done + live-tested** (migration **026**). A day's sales are a
+### Done — confirm/lock daily sales → atomic FIFO inventory deduction (full)
+- **UI + actions now built on the tested engine.** `confirmDailySales` (explodes
+  the day's recipes → per-ingredient usage → calls the `confirm_daily_sales` RPC)
+  and `voidDailySales` (calls `void_daily_sales`); `saveDailySalesItems` refuses
+  a confirmed day (`error:'locked'`, DB trigger is the backstop).
+  `getDayConfirmPreview` computes the inventory impact (per-ingredient deduction
+  + current on-hand + short/oversell flags + COGS) for the review screen.
+  `SalesDayActions` (client): draft → review panel + "Confirm & lock"; confirmed
+  → green locked badge + audited "Void" (with inline are-you-sure). `SalesItemEditor`
+  takes a `locked` prop (read-only when confirmed). Status badges on /sales list +
+  /sales/[date]. Bilingual az/ru; typecheck + lint + build green.
+- **DB engine** (migration **026**, live-tested). A day's sales are a
   `draft` until **confirmed**; confirming deducts inventory and **locks** the day.
   Two SECURITY DEFINER, single-transaction RPCs:
   - `confirm_daily_sales(day, usage jsonb)` — writes a `sale` stock_movement per
