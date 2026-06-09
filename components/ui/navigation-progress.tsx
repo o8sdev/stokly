@@ -3,15 +3,33 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 
+// A URL points to the *same route* (only the hash differs, or it's identical)
+// when its pathname + query match the current location. In-page anchor jumps
+// (e.g. the landing nav's `/az#product`) are same-route and must NOT trigger the
+// loader — there's no page load, so it would otherwise hang until the failsafe.
+function isSameRoute(href: string | URL | null | undefined): boolean {
+  if (href === null || href === undefined) return false
+  try {
+    const dest = new URL(String(href), window.location.href)
+    return (
+      dest.origin === window.location.origin &&
+      dest.pathname === window.location.pathname &&
+      dest.search === window.location.search
+    )
+  } catch {
+    return false
+  }
+}
+
 /**
  * App-wide navigation feedback for client-side route changes.
  *
  * App Router doesn't expose router events, so we detect the *start* of a
  * navigation from same-origin link clicks + programmatic history changes, and
  * detect *completion* when the resolved pathname / query string actually
- * changes. Renders a thin teal progress bar at the top plus a small corner
- * spinner so the user always gets instant, smooth feedback that something is
- * loading — the route-level skeletons (loading.tsx) fill in the page itself.
+ * changes. Renders a thin teal progress bar at the top plus a centered spinner
+ * over a blurred backdrop, so the user always gets instant, smooth feedback —
+ * the route-level skeletons (loading.tsx) fill in the page itself.
  *
  * Must be mounted inside a <Suspense> boundary because it reads
  * useSearchParams().
@@ -31,6 +49,9 @@ export function NavigationProgress() {
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const failsafe = useRef<ReturnType<typeof setTimeout> | null>(null)
   const overlayTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // The last committed route (pathname + query), to tell real back/forward
+  // navigations apart from in-page hash changes on popstate.
+  const lastRoute = useRef('')
 
   const stopTimers = useCallback(() => {
     if (trickle.current) clearInterval(trickle.current)
@@ -83,6 +104,8 @@ export function NavigationProgress() {
   // Navigation committed → the URL changed → finish the bar.
   useEffect(() => {
     finish()
+    lastRoute.current =
+      window.location.pathname + window.location.search
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams])
 
@@ -131,11 +154,14 @@ export function NavigationProgress() {
       this: History,
       ...args: Parameters<History['pushState']>
     ): void {
-      start()
+      // Skip same-route pushes (hash jumps, or push to the current URL) — no
+      // page load happens, so the loader would otherwise never complete.
+      if (!isSameRoute(args[2])) start()
       return origPush.apply(this, args)
     }
     function onPop() {
-      start()
+      const here = window.location.pathname + window.location.search
+      if (here !== lastRoute.current) start()
     }
     window.addEventListener('popstate', onPop)
 
