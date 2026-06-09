@@ -89,7 +89,6 @@ export default async function DashboardPage({
         <div className="mx-auto max-w-3xl py-2">
           <GettingStarted
             locale={locale}
-            tenantId={ctx.tenantId}
             businessType={tenant?.business_type ?? null}
             commonItems={common}
           />

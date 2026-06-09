@@ -14,12 +14,10 @@ import type { GlobalIngredient } from '@/types/database'
 // the business explicitly dismisses it.
 export async function GettingStarted({
   locale,
-  tenantId,
   businessType,
   commonItems = [],
 }: {
   locale: string
-  tenantId: string
   businessType: string | null
   commonItems?: GlobalIngredient[]
 }) {
@@ -56,7 +54,7 @@ export async function GettingStarted({
           <p className="text-sm font-semibold">{t('tour.cta_title')}</p>
           <p className="text-xs text-muted-foreground">{t('tour.cta_desc')}</p>
         </div>
-        <WelcomeTour autoStart tenantId={tenantId} />
+        <WelcomeTour />
       </div>
 
       {/* Business type — a real choice that tailors the ingredient library */}
