@@ -735,3 +735,28 @@
     animation: none !important;
   }
 }
+
+/* ── Onboarding tour (driver.js) — brand accents ─────────────────────────── */
+.driver-popover.stokly-tour {
+  border-radius: 14px;
+  max-width: 340px;
+}
+.driver-popover.stokly-tour .driver-popover-title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.driver-popover.stokly-tour .driver-popover-description {
+  line-height: 1.5;
+}
+.driver-popover.stokly-tour .driver-popover-next-btn {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--primary));
+  border-radius: 8px;
+  text-shadow: none;
+  font-weight: 600;
+}
+.driver-popover.stokly-tour .driver-popover-prev-btn {
+  border-radius: 8px;
+  text-shadow: none;
+}

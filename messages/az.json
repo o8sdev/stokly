@@ -900,7 +900,31 @@
     "step5_title": "Gündəlik satış və tullantını qeyd edin",
     "step5_desc": "Hər gün satış və tullantını qeyd edin — hesabatlar avtomatik qurulur.",
     "step5_sales": "Satışlar",
-    "step5_waste": "Tullantı"
+    "step5_waste": "Tullantı",
+    "gs_kicker": "Başlanğıc",
+    "gs_shortcuts": "Tez keçidlər",
+    "tour": {
+      "cta_title": "Necə işləyir?",
+      "cta_desc": "Tətbiqlə tanışlıq üçün qısa, izahlı təlimat — 5 addım.",
+      "start": "Təlimatı başlat",
+      "next": "İrəli",
+      "prev": "Geri",
+      "done": "Bitir",
+      "welcome_title": "Stokly-yə xoş gəlmisiniz 👋",
+      "welcome_desc": "Mətbəxinizi 5 sadə addımda qurun. Gəlin hər birini qısaca izah edək.",
+      "ingredients_title": "1. İnqrediyentləri əlavə edin",
+      "ingredients_desc": "İnqrediyentlər aldığınız xammaldır — qiymət və ölçü vahidi ilə. Excel idxal edin, biznes növünüzə uyğun kitabxanadan seçin və ya əl ilə əlavə edin.",
+      "recipes_title": "2. Menyunu (reseptləri) qurun",
+      "recipes_desc": "Hər yemək inqrediyentlərdən ibarət bir reseptdir. Beləcə Stokly yeməyin maya dəyərini və maya faizini hesablayır.",
+      "count_title": "3. İlkin stok sayımı",
+      "count_desc": "Başlanğıc (sıfır) sayım — hazırda anbarda nəyiniz olduğunu bildirir. Bu sizin başlanğıc nöqtənizdir; satışlar bundan sonra qeyd olunur.",
+      "sales_title": "4. Gündəlik satışlar",
+      "sales_desc": "Hər gün nə satıldığını (menyu məhsulları üzrə) qeyd edin. Stokly gözlənilən inqrediyent sərfini hesablayır.",
+      "waste_title": "5. Tullantını qeyd edin",
+      "waste_desc": "Korlanma, artıq hazırlıq və s. — tullantını qeyd edin ki, stok dəqiq qalsın və itkinin dəyərini görəsiniz.",
+      "done_title": "Hazırsınız! 🎉",
+      "done_desc": "Növbəti sayım dövrü bağlayır və real maya dəyərini gözlənilənlə müqayisə edir. İstənilən vaxt bu təlimatı yenidən aça bilərsiniz."
+    }
   },
   "role": {
     "owner": "Sahib",

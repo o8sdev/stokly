@@ -201,6 +201,19 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — onboarding is now an explanatory guided tour (driver.js)
+- Replaced the manual "complete each step" checklist on the dashboard with an
+  **explanatory walkthrough** (`components/dashboard/welcome-tour.tsx`, driver.js
+  ^1.4): centered step-by-step popovers explaining the 5-step workflow
+  (ingredients → recipes → initial count → sales → waste), bilingual, brand-styled
+  (`.stokly-tour`). Auto-runs once per browser (localStorage
+  `stokly_onboarding_tour_v1`) and replayable via a "Start tour" button.
+- `GettingStarted` slimmed to a welcome card: the tour + the **functional**
+  business-type chooser + quick-start shortcuts + type-filtered quick-add.
+  Dropped the done/not-done badges + `OnboardingSteps` prop (dashboard still
+  computes step state for the show/hide gate). driver.css imported in the client
+  component (fine in App Router). typecheck + lint + build green.
+
 ### Done — first-run onboarding + business type + type-filtered library
 - **Business type** on the tenant (migration 024 `tenants.business_type`): a
   curated list (restaurant/cafe/coffee/fast_food/pizzeria/bakery/pastry/bar/
