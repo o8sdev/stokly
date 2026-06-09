@@ -46,17 +46,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 4. Authenticated user on a login page → that portal's home.
-  if (user && onAdminLogin) {
-    const url = request.nextUrl.clone()
-    url.pathname = `/${locale}/admin`
-    return NextResponse.redirect(url)
-  }
-  if (user && onBusinessLogin) {
-    const url = request.nextUrl.clone()
-    url.pathname = `/${locale}/app/dashboard`
-    return NextResponse.redirect(url)
-  }
+  // 4. "Already signed in → skip the login" is handled by the login PAGES
+  //    themselves (server-side), where the portal-specific role can be checked.
+  //    Doing it blindly here (any session) caused a redirect loop: an
+  //    authenticated non-admin bounced /admin → /admin/login → /admin → … , and
+  //    likewise a member-less account looped on /app.
 
   // 5. Run next-intl, then merge in any refreshed auth cookies.
   const intlResponse = intlMiddleware(request)

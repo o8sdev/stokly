@@ -1,4 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { BusinessLoginForm } from './login-form'
 import {
   Card,
@@ -16,6 +18,25 @@ export default async function BusinessLoginPage({
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
+
+  // Already signed in and authorized? Skip to the right home. An account with
+  // no membership (e.g. its tenant was deleted) falls through to the form,
+  // rather than looping /app/dashboard → /app/login → …
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user) {
+    const { data: isAdmin } = await supabase.rpc('is_platform_admin')
+    if (isAdmin === true) redirect(`/${locale}/admin`)
+    const { data: member } = await supabase
+      .from('tenant_members')
+      .select('tenant_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+    if (member) redirect(`/${locale}/app/dashboard`)
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted/30 p-4">

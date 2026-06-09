@@ -199,6 +199,19 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Fixed — auth redirect loop on /admin and /app (member-less / non-admin)
+- The middleware blindly redirected **any** authenticated user off a login page
+  to that portal's home (rule #4). Combined with the layout guards
+  (`requirePlatformAdmin` → /admin/login, `requireTenant` → /app/login), a
+  signed-in user lacking the portal's role looped forever
+  (`/admin → /admin/login → /admin → …`). Showed up after deleting a tenant left
+  its owner auth account orphaned (no membership, not an admin).
+- Fix: removed the blind middleware redirects; the **login pages** now do the
+  "already signed in → go home" check themselves, role-aware — admin login
+  redirects only actual `platform_admins`; business login redirects admins → /admin
+  and members → /app/dashboard, and lets a member-less account reach the form.
+  typecheck + lint + build green. (Platform admin is `rhlhabibli@gmail.com`.)
+
 ### Done — waste log (browsable, valued, append-only with reversal)
 - Waste was already a `waste` stock_movement (auto-deducts from stock); made it a
   first-class **log**. Migration **023**: proper `waste_category_id` FK (was

@@ -1,4 +1,6 @@
 import { setRequestLocale } from 'next-intl/server'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { AdminLoginForm } from './login-form'
 
 // Hidden system-admin portal login. Only platform_admins may enter.
@@ -8,6 +10,22 @@ export default async function AdminLoginPage({
   params: { locale: string }
 }) {
   setRequestLocale(locale)
+
+  // Already a platform admin? Skip straight to the console. A signed-in
+  // non-admin must fall through to the form (NOT be redirected to /admin, which
+  // would bounce back here — a loop).
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user) {
+    const { data: row } = await supabase
+      .from('platform_admins')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (row) redirect(`/${locale}/admin`)
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0d1b2a] p-4">
