@@ -256,8 +256,10 @@ npm run lint        # next lint
 
 ### Done — navigation loading UX (progress bar + spinner + skeletons)
 - **`components/ui/navigation-progress.tsx`** (client, mounted once in the locale
-  layout inside `<Suspense>`): a thin teal top progress bar + a small corner
-  spinner shown during client-side route changes. App Router has no router
+  layout inside `<Suspense>`): a thin teal top progress bar (instant) + a
+  **centered spinner over a blurred backdrop** that appears only after a ~180 ms
+  beat, so quick client transitions stay clean (bar only) and slower loads get
+  the frosted overlay. App Router has no router
   events, so it detects nav *start* from same-origin link clicks + a patched
   `history.pushState`/`popstate`, and *completion* when `usePathname()` /
   `useSearchParams()` change. Trickles to 90% then snaps to 100% + fades; a 10s

@@ -21,22 +21,28 @@ export function NavigationProgress() {
   const searchParams = useSearchParams()
   const [progress, setProgress] = useState(0)
   const [visible, setVisible] = useState(false)
+  // The centered blur+spinner overlay only appears once a navigation has run a
+  // little long — instant client transitions just get the top bar.
+  const [overlayShown, setOverlayShown] = useState(false)
 
   const active = useRef(false)
   const trickle = useRef<ReturnType<typeof setInterval> | null>(null)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const failsafe = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const overlayTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const stopTimers = useCallback(() => {
     if (trickle.current) clearInterval(trickle.current)
     if (hideTimer.current) clearTimeout(hideTimer.current)
     if (resetTimer.current) clearTimeout(resetTimer.current)
     if (failsafe.current) clearTimeout(failsafe.current)
+    if (overlayTimer.current) clearTimeout(overlayTimer.current)
     trickle.current = null
     hideTimer.current = null
     resetTimer.current = null
     failsafe.current = null
+    overlayTimer.current = null
   }, [])
 
   const finish = useCallback(() => {
@@ -44,6 +50,7 @@ export function NavigationProgress() {
     active.current = false
     stopTimers()
     setProgress(100)
+    setOverlayShown(false)
     hideTimer.current = setTimeout(() => {
       setVisible(false)
       resetTimer.current = setTimeout(() => setProgress(0), 250)
@@ -56,6 +63,9 @@ export function NavigationProgress() {
     stopTimers()
     setVisible(true)
     setProgress(10)
+    // Reveal the centered blur+spinner only if the navigation is still running
+    // after a short beat, so quick transitions stay clean (top bar only).
+    overlayTimer.current = setTimeout(() => setOverlayShown(true), 180)
     // Trickle toward 90% — fast at first, easing as it approaches the cap so it
     // never visually "completes" before the real navigation does.
     trickle.current = setInterval(() => {
@@ -157,12 +167,17 @@ export function NavigationProgress() {
           }}
         />
       </div>
+      {/* Centered spinner over a blurred backdrop, for slower navigations. */}
       <div
         aria-hidden
-        className="pointer-events-none fixed right-4 top-3.5 z-[120]"
-        style={{ opacity: fading ? 0 : 1, transition: 'opacity 200ms ease' }}
+        className="pointer-events-none fixed inset-0 z-[110] flex items-center justify-center"
+        style={{
+          opacity: overlayShown && !fading ? 1 : 0,
+          transition: 'opacity 220ms ease',
+        }}
       >
-        <span className="block h-5 w-5 animate-spin rounded-full border-2 border-brand/25 border-t-brand" />
+        <div className="absolute inset-0 bg-black/15 backdrop-blur-[6px]" />
+        <span className="relative h-11 w-11 animate-spin rounded-full border-[3px] border-brand/25 border-t-brand [filter:drop-shadow(0_2px_10px_rgba(0,0,0,0.18))]" />
       </div>
     </>
   )
