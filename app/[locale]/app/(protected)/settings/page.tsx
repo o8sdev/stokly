@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { SettingsForm } from './settings-form'
+import { ChangePasswordForm } from './change-password-form'
 
 export default async function SettingsPage({
   params: { locale },
@@ -46,6 +47,18 @@ export default async function SettingsPage({
         </CardHeader>
         <CardContent>
           <SettingsForm locale={locale} tenant={tenant} />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6 max-w-2xl">
+        <CardHeader>
+          <CardTitle>{t('settings.security')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {t('settings.password_hint')}
+          </p>
+          <ChangePasswordForm locale={locale} />
         </CardContent>
       </Card>
     </div>

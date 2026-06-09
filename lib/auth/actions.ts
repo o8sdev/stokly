@@ -140,3 +140,32 @@ export async function updatePassword(
 
   redirect(`/${locale}/app/dashboard`)
 }
+
+// Change the signed-in user's password from the in-app settings (e.g. to
+// replace the temporary one the system admin set). Confirmed by typing it
+// twice. Unlike updatePassword (recovery flow) this stays on the page so the
+// settings form can show a success message.
+export async function changePassword(
+  _locale: string,
+  _prev: PasswordResetResult,
+  formData: FormData
+): Promise<PasswordResetResult> {
+  const password = String(formData.get('password') ?? '')
+  const confirm = String(formData.get('confirm') ?? '')
+  if (password.length < 8) return { error: 'weak' }
+  if (password !== confirm) return { error: 'mismatch' }
+
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'no_session' }
+
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) {
+    // Supabase rejects reusing the current password, among others.
+    return { error: 'generic' }
+  }
+
+  return { success: true }
+}

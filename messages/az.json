@@ -779,6 +779,13 @@
   "settings": {
     "title": "Tənzimləmələr",
     "general": "Ümumi",
+    "security": "Təhlükəsizlik",
+    "password_hint": "Sistem admininin verdiyi müvəqqəti şifrəni dəyişin. Ən azı 8 simvol.",
+    "change_password": "Şifrəni dəyiş",
+    "new_password": "Yeni şifrə",
+    "confirm_password": "Yeni şifrəni təsdiqlə",
+    "password_changed": "Şifrə dəyişdirildi",
+    "password_weak": "Şifrə ən azı 8 simvol olmalıdır",
     "restaurant_name": "Restoranın adı",
     "currency": "Valyuta",
     "locale": "Dil",

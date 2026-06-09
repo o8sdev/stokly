@@ -199,6 +199,13 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — business users can change their password in Settings
+- Accounts are admin-provisioned with a temporary password; the tenant owner can
+  now replace it in `/app/settings` → **Security** card. New `changePassword`
+  action (`supabase.auth.updateUser`, new + confirm typed twice, min 8, stays on
+  the page with a success message — unlike the recovery `updatePassword` which
+  redirects). Bilingual az/ru; typecheck + lint + build green.
+
 ### Fixed — auth redirect loop on /admin and /app (member-less / non-admin)
 - The middleware blindly redirected **any** authenticated user off a login page
   to that portal's home (rule #4). Combined with the layout guards
