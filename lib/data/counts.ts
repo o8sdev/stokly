@@ -292,10 +292,13 @@ export async function generatePeriodReport(
     .limit(1)
     .maybeSingle()
 
-  const openingAsOf =
-    (prevRow?.counted_at as string | undefined) ??
-    `${period.period_start}T00:00:00.000Z`
   const closingAsOf = period.counted_at
+  // The very first (baseline) count has no prior period — it only establishes
+  // opening inventory, so opening = closing ⇒ zero usage. Without this the
+  // counted stock looks like a full period of consumption (COGS), as if it had
+  // all been sold/used. Later counts open from the previous count's timestamp.
+  const openingAsOf =
+    (prevRow?.counted_at as string | undefined) ?? closingAsOf
 
   const [movements, ingredients] = await Promise.all([
     getStockMovements(tenantId),
