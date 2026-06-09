@@ -35,6 +35,7 @@ const TYPE_VARIANT: Record<
   production_input: 'warning',
   production_output: 'success',
   expiry_writeoff: 'danger',
+  transfer: 'secondary',
 }
 
 export async function RecentMovementsWidget({

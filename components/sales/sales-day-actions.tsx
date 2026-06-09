@@ -27,21 +27,25 @@ export function SalesDayActions({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [askVoid, setAskVoid] = useState(false)
-  const [err, setErr] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const errText = err
+    ? t(err === 'kitchen_short' ? 'confirm_kitchen_short' : 'error')
+    : null
 
   function confirmDay() {
-    setErr(false)
+    setErr(null)
     startTransition(async () => {
       const res = await confirmDailySales(locale, dayId)
-      if (res?.error) setErr(true)
+      if (res?.error) setErr(res.error)
       else router.refresh()
     })
   }
   function voidDay() {
-    setErr(false)
+    setErr(null)
     startTransition(async () => {
       const res = await voidDailySales(locale, dayId)
-      if (res?.error) setErr(true)
+      if (res?.error) setErr(res.error)
       else {
         setAskVoid(false)
         router.refresh()
@@ -93,7 +97,9 @@ export function SalesDayActions({
             {t('void')}
           </button>
         )}
-        {err && <p className="mt-2 text-sm text-destructive">{t('error')}</p>}
+        {errText && (
+          <p className="mt-2 text-sm text-destructive">{errText}</p>
+        )}
       </div>
     )
   }

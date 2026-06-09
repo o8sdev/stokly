@@ -46,6 +46,7 @@ export function WasteForm({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [status, setStatus] = useState<'idle' | 'ok' | 'error'>('idle')
+  const [errKey, setErrKey] = useState<string | null>(null)
 
   const [ingredientId, setIngredientId] = useState('')
   const [quantity, setQuantity] = useState('')
@@ -81,6 +82,7 @@ export function WasteForm({
       const res = await submitWaste(locale, {}, fd)
       if (res?.error) {
         setStatus('error')
+        setErrKey(res.error)
         return
       }
       // Reset for the next entry (keep the date) and reload the log below.
@@ -226,7 +228,13 @@ export function WasteForm({
       </div>
 
       {status === 'error' && (
-        <p className="text-sm text-destructive">{t('common.error')}</p>
+        <p className="text-sm text-destructive">
+          {t(
+            errKey === 'kitchen_short'
+              ? 'inventory.waste_kitchen_short'
+              : 'common.error'
+          )}
+        </p>
       )}
       {status === 'ok' && (
         <p className="text-sm text-green-600">{t('inventory.waste_saved')} ✓</p>

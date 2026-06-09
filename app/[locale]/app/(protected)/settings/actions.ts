@@ -146,3 +146,149 @@ export async function deleteSupplier(
     .eq('tenant_id', ctx.tenantId)
   revalidatePath(`/${locale}/app/settings/suppliers`)
 }
+
+// ── Storage locations (Warehouse, Kitchen, …) ──────────────────────────────
+const LOC_PATH = (locale: string) => `/${locale}/app/settings/locations`
+
+const locationSchema = z.object({
+  name: z.string().min(1).max(80),
+})
+
+export async function createLocation(
+  locale: string,
+  _prev: SettingsResult,
+  formData: FormData
+): Promise<SettingsResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const parsed = locationSchema.safeParse({ name: formData.get('name') })
+  if (!parsed.success) return { error: 'validation' }
+
+  const supabase = createClient()
+  // Append to the end of the list.
+  const { data: last } = await supabase
+    .from('storage_locations')
+    .select('sort_order')
+    .eq('tenant_id', ctx.tenantId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const { error } = await supabase.from('storage_locations').insert({
+    tenant_id: ctx.tenantId,
+    name: parsed.data.name,
+    is_frozen: formData.get('is_frozen') === 'on',
+    sort_order: (last?.sort_order ?? 0) + 1,
+  })
+  if (error) return { error: 'generic' }
+  revalidatePath(LOC_PATH(locale))
+  return { success: true }
+}
+
+export async function renameLocation(
+  locale: string,
+  id: string,
+  formData: FormData
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const name = String(formData.get('name') ?? '').trim()
+  if (!name) return
+  const supabase = createClient()
+  await supabase
+    .from('storage_locations')
+    .update({ name: name.slice(0, 80) })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+// Delete a location — refused if it is the kitchen / default-receiving point or
+// still holds active stock (guarded in the UI too, this is the hard backstop).
+export async function deleteLocation(
+  locale: string,
+  id: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  const { data: loc } = await supabase
+    .from('storage_locations')
+    .select('is_kitchen, is_default_receiving')
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle()
+  if (!loc || loc.is_kitchen || loc.is_default_receiving) return
+  const { count } = await supabase
+    .from('ingredient_batches')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', ctx.tenantId)
+    .eq('location_id', id)
+    .eq('status', 'active')
+    .gt('quantity_remaining', 0)
+  if ((count ?? 0) > 0) return
+  await supabase
+    .from('storage_locations')
+    .delete()
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+// Promote a location to THE kitchen (consumption point) — only one per tenant,
+// so clear the flag elsewhere first.
+export async function setKitchenLocation(
+  locale: string,
+  id: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('storage_locations')
+    .update({ is_kitchen: false })
+    .eq('tenant_id', ctx.tenantId)
+    .neq('id', id)
+  await supabase
+    .from('storage_locations')
+    .update({ is_kitchen: true })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+// Promote a location to THE default receiving dock — only one per tenant.
+export async function setDefaultReceivingLocation(
+  locale: string,
+  id: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('storage_locations')
+    .update({ is_default_receiving: false })
+    .eq('tenant_id', ctx.tenantId)
+    .neq('id', id)
+  await supabase
+    .from('storage_locations')
+    .update({ is_default_receiving: true })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+export async function setLocationFrozen(
+  locale: string,
+  id: string,
+  value: boolean
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('storage_locations')
+    .update({ is_frozen: value })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}

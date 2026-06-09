@@ -201,6 +201,33 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — storage locations + stock movement (warehouse → kitchen), per-line supplier
+Stock now physically lives in a per-tenant **location** and can be **moved** between
+them; sales/waste consume the **kitchen**.
+- **029** `storage_locations` (is_kitchen / is_default_receiving / is_frozen),
+  seeded Anbar + Mətbəx per tenant (+ in `handle_new_tenant`); `ingredient_batches.location_id`
+  (existing stock backfilled into the Kitchen); `stock_movements.from/to_location_id` +
+  `'transfer'` type; batch_code is now a non-unique human reference. Settings → **Locations**
+  CRUD (rename / add / delete-guard / set kitchen / default-receiving / frozen).
+- **Per-line supplier** on deliveries (the same ingredient can come from different
+  suppliers; "no supplier" always valid); a per-delivery **"received into [location]"**
+  (defaults to Warehouse).
+- **030** `transfer_stock(ingredient, from, to, qty, expiry?)` — atomic FIFO **batch split**
+  (source loses qty, destination gains a child batch keeping the **same LOT code**, cost,
+  supplier-lot). The optional new use-by lets a move into a **frozen** location extend
+  shelf life. New `/app/inventory/transfer` page + "Move stock" on the hub.
+- **031 kitchen-only** — `confirm_daily_sales` + new `record_waste` / `reverse_waste`
+  RPCs consume **kitchen** batches FIFO and **refuse** (raise) when the kitchen can't
+  cover it; the confirm preview + waste form show a "move to kitchen first" message.
+  *No-batch fallback:* ingredients never batch-tracked (count-only) aren't location-restricted.
+  This also fixes a pre-existing drift (waste never used to decrement batches).
+- Inventory hub shows each ingredient's **per-location breakdown** + a Location column on
+  batches; movements render the `transfer` type.
+- **Verified** end-to-end via BEGIN/ROLLBACK (impersonating the tenant): deliver 15 into
+  Anbar → move 4 to Mətbəx (split, 2 LOT codes kept) → waste 1 + sell 2 from the kitchen
+  → Anbar 11 / Mətbəx 1; overdrawing the kitchen / source **raises**. typecheck + lint +
+  build (90 pages) green; advisors clean.
+
 ### Done — removed business-type → library filtering (every tenant sees the full library)
 Reverted the "show only ingredients matching the tenant's business type" logic.
 Businesses still **choose and display** their type (`tenants.business_type`, the

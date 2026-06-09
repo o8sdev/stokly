@@ -47,7 +47,7 @@ export interface EditorLine {
 
 export type IngredientOption = Pick<
   Ingredient,
-  'id' | 'name' | 'unit' | 'cost_per_unit' | 'yield_percent'
+  'id' | 'name' | 'unit' | 'cost_per_unit' | 'yield_percent' | 'supplier_id'
 >
 
 export type SubRecipeOption = {
@@ -76,6 +76,9 @@ export type IngredientBatch = {
   created_from_movement_id: string | null
   batch_code: string | null
   supplier_lot_no: string | null
+  location_id: string | null
+  // Joined for display (the location's name); not a column on the batch row.
+  location_name?: string | null
   created_at: string
 }
 

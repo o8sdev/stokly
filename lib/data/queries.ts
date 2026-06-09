@@ -5,6 +5,7 @@ import type {
   RecipeIngredient,
   StockMovement,
   Supplier,
+  StorageLocation,
   WasteCategory,
   Tenant,
 } from '@/types/database'
@@ -52,6 +53,67 @@ export async function getSuppliers(tenantId: string): Promise<Supplier[]> {
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true })
   return data ?? []
+}
+
+// Per-tenant storage locations (Warehouse, Kitchen, …), ordered for display.
+export async function getStorageLocations(
+  tenantId: string
+): Promise<StorageLocation[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('storage_locations')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
+  return data ?? []
+}
+
+export interface LocationStock {
+  ingredient_id: string
+  location_id: string | null
+  qty: number
+}
+
+// Active stock per (ingredient, location), summed across batches. Powers the
+// move-stock "available here" hint and the inventory per-location breakdown.
+export async function getStockByLocation(
+  tenantId: string
+): Promise<LocationStock[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('ingredient_batches')
+    .select('ingredient_id, location_id, quantity_remaining')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'active')
+    .gt('quantity_remaining', 0)
+  const map = new Map<string, LocationStock>()
+  for (const r of data ?? []) {
+    const key = `${r.ingredient_id}:${r.location_id ?? ''}`
+    const qty = Number(r.quantity_remaining)
+    const cur = map.get(key)
+    if (cur) cur.qty += qty
+    else map.set(key, { ingredient_id: r.ingredient_id, location_id: r.location_id, qty })
+  }
+  return [...map.values()]
+}
+
+// Set of location ids that still hold active stock — used to block deletion.
+export async function getLocationsInUse(
+  tenantId: string
+): Promise<Set<string>> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('ingredient_batches')
+    .select('location_id')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'active')
+    .gt('quantity_remaining', 0)
+  const used = new Set<string>()
+  for (const r of data ?? []) {
+    if (r.location_id) used.add(r.location_id)
+  }
+  return used
 }
 
 export async function getRecipes(tenantId: string): Promise<Recipe[]> {
@@ -307,12 +369,14 @@ export async function getDayConfirmPreview(
     quantity: Number(i.quantity),
   }))
 
-  const [ingredients, recipes, recipeIngredients, movements] =
+  const [ingredients, recipes, recipeIngredients, movements, locations, byLoc] =
     await Promise.all([
       getIngredients(tenantId),
       getRecipes(tenantId),
       getRecipeIngredients(tenantId),
       getStockMovements(tenantId),
+      getStorageLocations(tenantId),
+      getStockByLocation(tenantId),
     ])
 
   const { usageByIngredient, theoreticalCogs } = computeTheoreticalUsage(
@@ -324,18 +388,37 @@ export async function getDayConfirmPreview(
   const levels = deriveAllStockLevels(movements)
   const ingById = new Map(ingredients.map((i) => [i.id, i]))
 
+  // Sales consume the KITCHEN, so "available" here means kitchen stock — except
+  // for ingredients that have never been batch-tracked (count-only), which fall
+  // back to the derived total, matching confirm_daily_sales. "Ever batched" keys
+  // on any batch row (any status), exactly like the RPC's no-batch decision.
+  const kitchenId = locations.find((l) => l.is_kitchen)?.id ?? null
+  const kitchenQty = new Map<string, number>()
+  for (const s of byLoc) {
+    if (s.location_id === kitchenId) {
+      kitchenQty.set(s.ingredient_id, (kitchenQty.get(s.ingredient_id) ?? 0) + s.qty)
+    }
+  }
+  const { data: batchRows } = await supabase
+    .from('ingredient_batches')
+    .select('ingredient_id')
+    .eq('tenant_id', tenantId)
+  const everBatched = new Set((batchRows ?? []).map((r) => r.ingredient_id))
+
   const lines: DayConfirmPreviewLine[] = [...usageByIngredient.entries()]
     .filter(([, qty]) => qty > 0)
     .map(([id, qty]) => {
       const ing = ingById.get(id)
-      const current = levels.get(id) ?? 0
+      const available = everBatched.has(id)
+        ? kitchenQty.get(id) ?? 0
+        : levels.get(id) ?? 0
       return {
         ingredient_id: id,
         ingredient_name: ing?.name ?? '—',
         unit: ing?.unit ?? '',
         quantity: round3(qty),
-        current_stock: round3(current),
-        short: qty > current + 1e-9,
+        current_stock: round3(available),
+        short: qty > available + 1e-9,
       }
     })
     .sort((a, b) => b.quantity - a.quantity)

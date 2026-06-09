@@ -271,7 +271,12 @@ export async function confirmDailySales(
     p_day_id: dayId,
     p_usage: usage as unknown as Json,
   })
-  if (error) return { error: 'generic' }
+  if (error) {
+    // The RPC refuses confirmation when the kitchen can't cover a sale — the
+    // user must move stock to the kitchen first.
+    if (error.message?.includes('kitchen_short')) return { error: 'kitchen_short' }
+    return { error: 'generic' }
+  }
 
   revalidateSales(locale, day.sale_date)
   return { success: true }

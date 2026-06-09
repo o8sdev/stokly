@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Users } from 'lucide-react'
+import { Users, Warehouse } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
 import { getTenant } from '@/lib/data/queries'
@@ -32,12 +32,20 @@ export default async function SettingsPage({
       <PageHeader
         title={t('settings.title')}
         action={
-          <Button asChild variant="outline" className="gap-2">
-            <Link href="/app/settings/suppliers">
-              <Users className="h-4 w-4" />
-              {t('settings.suppliers_title')}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/app/settings/locations">
+                <Warehouse className="h-4 w-4" />
+                {t('locations.title')}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/app/settings/suppliers">
+                <Users className="h-4 w-4" />
+                {t('settings.suppliers_title')}
+              </Link>
+            </Button>
+          </div>
         }
       />
 

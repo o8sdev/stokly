@@ -23,6 +23,7 @@ export type MovementType =
   | 'production_input'
   | 'production_output'
   | 'expiry_writeoff'
+  | 'transfer'
 
 export type BatchStatus = 'active' | 'depleted' | 'expired' | 'written_off'
 
@@ -393,6 +394,8 @@ export interface Database {
           waste_category_id: string | null
           reverses_movement_id: string | null
           daily_sales_id: string | null
+          from_location_id: string | null
+          to_location_id: string | null
           created_at: string
         }
         Insert: {
@@ -412,6 +415,8 @@ export interface Database {
           waste_category_id?: string | null
           reverses_movement_id?: string | null
           daily_sales_id?: string | null
+          from_location_id?: string | null
+          to_location_id?: string | null
           created_at?: string
         }
         // Append-only by domain rule (enforced via RLS — no update policy).
@@ -442,6 +447,32 @@ export interface Database {
         >
         Relationships: []
       }
+      storage_locations: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          is_kitchen: boolean
+          is_default_receiving: boolean
+          is_frozen: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          is_kitchen?: boolean
+          is_default_receiving?: boolean
+          is_frozen?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['storage_locations']['Insert']
+        >
+        Relationships: []
+      }
       ingredient_batches: {
         Row: {
           id: string
@@ -458,6 +489,7 @@ export interface Database {
           created_from_movement_id: string | null
           batch_code: string | null
           supplier_lot_no: string | null
+          location_id: string | null
           created_at: string
         }
         Insert: {
@@ -475,6 +507,7 @@ export interface Database {
           created_from_movement_id?: string | null
           batch_code?: string | null
           supplier_lot_no?: string | null
+          location_id?: string | null
           created_at?: string
         }
         Update: Partial<
@@ -869,6 +902,32 @@ export interface Database {
         Args: { p_day_id: string }
         Returns: undefined
       }
+      transfer_stock: {
+        Args: {
+          p_ingredient_id: string
+          p_from_location_id: string
+          p_to_location_id: string
+          p_quantity: number
+          p_expiry_date?: string | null
+        }
+        Returns: undefined
+      }
+      record_waste: {
+        Args: {
+          p_ingredient_id: string
+          p_quantity: number
+          p_category_id: string
+          p_unit_cost: number
+          p_reason: string | null
+          p_notes: string | null
+          p_occurred_at?: string | null
+        }
+        Returns: undefined
+      }
+      reverse_waste: {
+        Args: { p_movement_id: string }
+        Returns: undefined
+      }
       submit_demo_request: {
         Args: {
           p_name: string
@@ -947,6 +1006,8 @@ export type Tenant = Database['public']['Tables']['tenants']['Row']
 export type TenantMember =
   Database['public']['Tables']['tenant_members']['Row']
 export type Supplier = Database['public']['Tables']['suppliers']['Row']
+export type StorageLocation =
+  Database['public']['Tables']['storage_locations']['Row']
 export type Ingredient = Database['public']['Tables']['ingredients']['Row']
 export type Recipe = Database['public']['Tables']['recipes']['Row']
 export type RecipeIngredient =

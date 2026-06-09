@@ -15,6 +15,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { formatMoney } from '@/lib/utils'
 
+interface LocationOption {
+  id: string
+  name: string
+  is_default_receiving: boolean
+}
+
 interface Line {
   key: string
   ingredient_id: string
@@ -22,26 +28,38 @@ interface Line {
   unit_cost: string
   expiry_date: string
   supplier_lot: string
+  supplier_id: string
 }
 
 let counter = 0
 const newKey = () => `d-${(counter += 1)}`
+const blankLine = (): Line => ({
+  key: newKey(),
+  ingredient_id: '',
+  quantity: '',
+  unit_cost: '',
+  expiry_date: '',
+  supplier_lot: '',
+  supplier_id: '',
+})
 
 export function DeliveryForm({
   locale,
   ingredients,
   suppliers,
+  locations,
 }: {
   locale: string
   ingredients: IngredientOption[]
   suppliers: SupplierOption[]
+  locations: LocationOption[]
 }) {
   const t = useTranslations()
-  const [supplierId, setSupplierId] = useState('')
+  const defaultLocation =
+    locations.find((l) => l.is_default_receiving)?.id ?? locations[0]?.id ?? ''
+  const [locationId, setLocationId] = useState(defaultLocation)
   const [notes, setNotes] = useState('')
-  const [lines, setLines] = useState<Line[]>([
-    { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '', supplier_lot: '' },
-  ])
+  const [lines, setLines] = useState<Line[]>([blankLine()])
 
   const action = submitDelivery.bind(null, locale)
   const [state, formAction] = useFormState<InventoryActionResult, FormData>(
@@ -54,22 +72,21 @@ export function DeliveryForm({
   }
 
   function addLine() {
-    setLines((prev) => [
-      ...prev,
-      { key: newKey(), ingredient_id: '', quantity: '', unit_cost: '', expiry_date: '', supplier_lot: '' },
-    ])
+    setLines((prev) => [...prev, blankLine()])
   }
 
   function removeLine(key: string) {
     setLines((prev) => prev.filter((l) => l.key !== key))
   }
 
-  // Default the unit cost to the ingredient's current price when selected.
+  // Selecting an ingredient defaults the unit cost AND the supplier to that
+  // ingredient's own values (still editable per line).
   function selectIngredient(key: string, id: string) {
     const opt = ingredients.find((i) => i.id === id)
     patch(key, {
       ingredient_id: id,
       unit_cost: opt ? String(opt.cost_per_unit) : '',
+      supplier_id: opt?.supplier_id ?? '',
     })
   }
 
@@ -86,7 +103,7 @@ export function DeliveryForm({
   const payload = useMemo(
     () =>
       JSON.stringify({
-        supplier_id: supplierId,
+        location_id: locationId,
         notes,
         lines: lines
           .filter((l) => l.ingredient_id && l.quantity !== '')
@@ -96,41 +113,47 @@ export function DeliveryForm({
             unit_cost: l.unit_cost === '' ? 0 : Number(l.unit_cost),
             expiry_date: l.expiry_date,
             supplier_lot: l.supplier_lot,
+            supplier_id: l.supplier_id,
           })),
       }),
-    [supplierId, notes, lines]
+    [locationId, notes, lines]
   )
+
+  const selectCls =
+    'flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15'
 
   return (
     <form action={formAction} className="max-w-3xl space-y-5">
       <input type="hidden" name="payload" value={payload} />
 
-      <div className="space-y-2">
-        <Label htmlFor="supplier">{t('inventory.delivery_supplier')}</Label>
-        <select
-          id="supplier"
-          value={supplierId}
-          onChange={(e) => setSupplierId(e.target.value)}
-          className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-        >
-          <option value="">{t('ingredients.no_supplier')}</option>
-          {suppliers.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {locations.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="location">{t('inventory.received_into')}</Label>
+          <select
+            id="location"
+            value={locationId}
+            onChange={(e) => setLocationId(e.target.value)}
+            className={selectCls.replace('h-9', 'h-[38px]')}
+          >
+            {locations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            {t('inventory.received_into_hint')}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
-        {lines.map((line) => {
-          const opt = ingredients.find((i) => i.id === line.ingredient_id)
-          return (
-            <div
-              key={line.key}
-              className="space-y-2 rounded-lg border border-border p-3"
-            >
-              <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-[1fr_104px_104px_150px_40px]">
+        {lines.map((line) => (
+          <div
+            key={line.key}
+            className="space-y-2 rounded-lg border border-border p-3"
+          >
+            <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-[1fr_104px_104px_150px_40px]">
               <div className="col-span-2 space-y-1 md:col-span-1">
                 <Label className="text-xs">
                   {t('inventory.delivery')} — {t('recipes.line_ingredient')}
@@ -138,7 +161,7 @@ export function DeliveryForm({
                 <select
                   value={line.ingredient_id}
                   onChange={(e) => selectIngredient(line.key, e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                  className={selectCls}
                 >
                   <option value="">{t('recipes.select_ingredient')}</option>
                   {ingredients.map((i) => (
@@ -177,12 +200,9 @@ export function DeliveryForm({
                   }
                   className="text-right font-mono tabular-nums"
                 />
-                {opt && <span className="sr-only">{opt.unit}</span>}
               </div>
               <div className="col-span-2 space-y-1 md:col-span-1">
-                <Label className="text-xs">
-                  {t('inventory.expiry_date')}
-                </Label>
+                <Label className="text-xs">{t('inventory.expiry_date')}</Label>
                 <Input
                   type="date"
                   value={line.expiry_date}
@@ -201,12 +221,30 @@ export function DeliveryForm({
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
-              </div>
+            </div>
 
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               <div className="space-y-1">
                 <Label className="text-xs">
-                  {t('inventory.supplier_lot')}
+                  {t('inventory.delivery_supplier')}
                 </Label>
+                <select
+                  value={line.supplier_id}
+                  onChange={(e) =>
+                    patch(line.key, { supplier_id: e.target.value })
+                  }
+                  className={selectCls}
+                >
+                  <option value="">{t('ingredients.no_supplier')}</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t('inventory.supplier_lot')}</Label>
                 <Input
                   value={line.supplier_lot}
                   onChange={(e) =>
@@ -217,8 +255,8 @@ export function DeliveryForm({
                 />
               </div>
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center justify-between">

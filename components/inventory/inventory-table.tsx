@@ -20,6 +20,7 @@ export interface InventoryBatch {
   quantity_remaining: number
   expiry_date: string | null
   unit_cost: number
+  location_name: string | null
 }
 
 export interface InventoryRow {
@@ -30,6 +31,8 @@ export interface InventoryRow {
   status: StockStatus
   lastCount: string | null
   batches: InventoryBatch[]
+  // Active stock split by location, e.g. [{ name: 'Anbar', qty: 5 }].
+  locations: { name: string; qty: number }[]
 }
 
 export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
@@ -81,7 +84,18 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                   ) : (
                     <span className="inline-block w-4" />
                   )}
-                  {row.name}
+                  <span className="flex flex-col">
+                    {row.name}
+                    {row.locations.length > 0 && (
+                      <span className="text-[11px] font-normal text-muted-foreground">
+                        {row.locations
+                          .map(
+                            (l) => `${l.name} ${formatQuantity(l.qty)}`
+                          )
+                          .join(' · ')}
+                      </span>
+                    )}
+                  </span>
                 </span>
               </TableCell>
               <TableCell className="text-right">
@@ -110,6 +124,9 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                               {t('inventory.batch_code')}
                             </th>
                             <th className="px-3 py-2 text-left font-semibold">
+                              {t('inventory.location')}
+                            </th>
+                            <th className="px-3 py-2 text-left font-semibold">
                               {t('inventory.batch_received')}
                             </th>
                             <th className="px-3 py-2 text-right font-semibold">
@@ -134,6 +151,9 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                             >
                               <td className="px-3 py-2 font-mono text-xs font-medium">
                                 {b.batch_code ?? '—'}
+                              </td>
+                              <td className="px-3 py-2 text-muted-foreground">
+                                {b.location_name ?? '—'}
                               </td>
                               <td className="px-3 py-2">
                                 {formatDate(b.received_date)}
