@@ -87,6 +87,9 @@ export async function createRecipe(
   await persistLines(recipe.id, data.lines)
 
   revalidatePath(`/${locale}/app/recipes`)
+  // First recipe satisfies an onboarding step — invalidate the dashboard so the
+  // Getting-Started card recomputes and disappears on next visit.
+  revalidatePath(`/${locale}/app/dashboard`)
   redirect(`/${locale}/app/recipes`)
 }
 

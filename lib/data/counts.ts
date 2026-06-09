@@ -229,6 +229,10 @@ export async function getLastCountInfo(tenantId: string): Promise<LastCountInfo>
 // (zero) stock count? Sales can't be recorded before this: you can't sell stock
 // that was never counted in. True if any count period OR any 'count' movement
 // exists (the latter covers tenants from before count_periods).
+//
+// This is the same "a count exists" signal the dashboard onboarding gate derives
+// from getLastCountInfo().lastCountDate !== null. Keep the two period-OR-movement
+// derivations in sync if either fallback changes.
 export async function hasInitialCount(tenantId: string): Promise<boolean> {
   const supabase = createClient()
   const { count: periods } = await supabase

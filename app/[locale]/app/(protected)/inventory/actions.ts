@@ -159,6 +159,9 @@ export async function submitDelivery(
   }
 
   revalidatePath(`/${locale}/app/inventory`)
+  // A delivery changes inventory value / low-stock / expiry widgets on the
+  // dashboard — invalidate it so those don't read stale from the router cache.
+  revalidatePath(`/${locale}/app/dashboard`)
   redirect(`/${locale}/app/inventory`)
 }
 

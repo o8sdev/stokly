@@ -56,6 +56,28 @@ export async function updateTenant(
   return { success: true }
 }
 
+// Explicitly hide the first-run onboarding card. Completion is otherwise derived
+// from real data, which can trap a business that doesn't use every step (e.g.
+// inventory-only, no recipes). Used as a <form> action — the bound formData arg
+// is unused.
+export async function dismissOnboarding(
+  locale: string,
+  _formData?: FormData
+): Promise<SettingsResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('tenants')
+    .update({ onboarding_dismissed_at: new Date().toISOString() })
+    .eq('id', ctx.tenantId)
+  if (error) return { error: 'generic' }
+
+  revalidatePath(`/${locale}/app/dashboard`)
+  return { success: true }
+}
+
 // Set the tenant's business type from the first-run onboarding (one click).
 export async function setBusinessType(
   locale: string,

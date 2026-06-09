@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Compass } from 'lucide-react'
 import { driver } from 'driver.js'
@@ -8,8 +8,8 @@ import 'driver.js/dist/driver.css'
 
 // Explanatory first-run walkthrough (driver.js). Centered, step-by-step popovers
 // that explain how Stokly works — no "complete each step" checklist. Auto-runs
-// once per browser (localStorage) and can be replayed from the button.
-const STORAGE_KEY = 'stokly_onboarding_tour_v1'
+// once per business+browser (localStorage) and can be replayed from the button.
+const STORAGE_PREFIX = 'stokly_onboarding_tour_v1'
 const STEPS = [
   'welcome',
   'ingredients',
@@ -20,9 +20,19 @@ const STEPS = [
   'done',
 ] as const
 
-export function WelcomeTour({ autoStart = false }: { autoStart?: boolean }) {
+export function WelcomeTour({
+  autoStart = false,
+  tenantId,
+}: {
+  autoStart?: boolean
+  tenantId?: string
+}) {
   const t = useTranslations('onboarding.tour')
-  const startedRef = useRef(false)
+  // Per-tenant key so the "already seen" flag doesn't leak between different
+  // businesses that share a browser — each one gets its own first-run tour.
+  const storageKey = tenantId
+    ? `${STORAGE_PREFIX}_${tenantId}`
+    : STORAGE_PREFIX
 
   const start = useCallback(() => {
     const d = driver({
@@ -46,14 +56,19 @@ export function WelcomeTour({ autoStart = false }: { autoStart?: boolean }) {
   }, [t])
 
   useEffect(() => {
-    if (!autoStart || startedRef.current || typeof window === 'undefined') return
-    if (localStorage.getItem(STORAGE_KEY)) return
-    startedRef.current = true
-    localStorage.setItem(STORAGE_KEY, '1')
-    // Let the page paint before the overlay drops.
-    const id = window.setTimeout(start, 500)
+    if (!autoStart || typeof window === 'undefined') return
+    if (localStorage.getItem(storageKey)) return
+    // Defer so the page paints before the overlay drops. Mark "seen" only when
+    // the tour actually fires — not before — so navigating away within the delay
+    // doesn't permanently suppress a tour that never showed. StrictMode-safe:
+    // the cleanup cancels the timer and the remount reschedules it, so it still
+    // runs exactly once.
+    const id = window.setTimeout(() => {
+      localStorage.setItem(storageKey, '1')
+      start()
+    }, 500)
     return () => window.clearTimeout(id)
-  }, [autoStart, start])
+  }, [autoStart, start, storageKey])
 
   return (
     <button

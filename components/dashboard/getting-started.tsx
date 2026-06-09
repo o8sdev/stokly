@@ -4,18 +4,22 @@ import { Link } from '@/lib/i18n/navigation'
 import { BusinessTypeChooser } from './business-type-chooser'
 import { WelcomeTour } from './welcome-tour'
 import { QuickAdd } from '@/components/ingredients/quick-add'
+import { dismissOnboarding } from '@/app/[locale]/app/(protected)/settings/actions'
 import type { GlobalIngredient } from '@/types/database'
 
 // First-run welcome card. The how-it-works is an explanatory guided tour
 // (WelcomeTour / driver.js) rather than a manual "complete each step" checklist.
 // The business-type chooser stays (it's a real choice that drives the library),
-// plus quick-start shortcuts. Disappears once the core setup is done.
+// plus quick-start shortcuts. Disappears once the core setup is done, or when
+// the business explicitly dismisses it.
 export async function GettingStarted({
   locale,
+  tenantId,
   businessType,
   commonItems = [],
 }: {
   locale: string
+  tenantId: string
   businessType: string | null
   commonItems?: GlobalIngredient[]
 }) {
@@ -52,7 +56,7 @@ export async function GettingStarted({
           <p className="text-sm font-semibold">{t('tour.cta_title')}</p>
           <p className="text-xs text-muted-foreground">{t('tour.cta_desc')}</p>
         </div>
-        <WelcomeTour autoStart />
+        <WelcomeTour autoStart tenantId={tenantId} />
       </div>
 
       {/* Business type — a real choice that tailors the ingredient library */}
@@ -80,6 +84,23 @@ export async function GettingStarted({
           <QuickAdd locale={locale} items={commonItems} />
         </div>
       )}
+
+      {/* Escape hatch — businesses that don't use every step (e.g. no recipes)
+          can hide this card for good. */}
+      <form
+        action={async () => {
+          'use server'
+          await dismissOnboarding(locale)
+        }}
+        className="mt-6 border-t border-border pt-4"
+      >
+        <button
+          type="submit"
+          className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline"
+        >
+          {t('dismiss')}
+        </button>
+      </form>
     </div>
   )
 }

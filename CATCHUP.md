@@ -201,6 +201,33 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — onboarding card now reliably disappears once setup is complete (code-review fixes)
+Review target: "once a business completes onboarding, İdarə paneli must stop showing
+the welcome/onboarding messages." Root cause + 12 findings fixed:
+- **Cache gap (the actual symptom).** `createRecipe`, `createIngredient`,
+  `importIngredients`, `addFromLibrary` revalidated only their own route, **not the
+  dashboard** — so finishing the ingredients/recipes step left the Getting-Started
+  card in the client Router Cache until it expired. Added `revalidatePath(.../dashboard)`
+  to all four (matching `submitStockCount` / `setBusinessType`, which already did it);
+  also added it to `submitDelivery` so dashboard widgets don't read stale.
+- **Stuck-forever path.** Completion is derived from 4 steps incl. ≥1 recipe; a
+  recipe-less business could never clear the card. Added an explicit dismissal:
+  migration `027_onboarding_dismissed.sql` (`tenants.onboarding_dismissed_at`),
+  `dismissOnboarding` action + a "Bu kartı gizlət / Скрыть" link on the card; the gate
+  now also honours the dismissal.
+- **Silent business-type failure.** `BusinessTypeChooser` ignored `setBusinessType`'s
+  error and `optimistic ?? current` masked the server truth → chip looked selected but
+  the step never saved. Now rolls the highlight back + shows `business_type.save_error`.
+- **Welcome tour.** localStorage key is now **per-tenant** (no leak between businesses
+  sharing a browser); the "seen" flag is written **only when the tour actually fires**
+  (navigating within the 500 ms delay no longer suppresses an unseen tour); removed the
+  `startedRef` so StrictMode reschedules cleanly.
+- **Efficiency.** Dashboard now loads the 4 cheap onboarding signals first and
+  early-returns, so onboarding-stage tenants no longer pay for movements / recent /
+  batches / recipe-ingredients queries they never render.
+- Cross-referenced `hasInitialCount` ↔ `getLastCountInfo` to prevent drift.
+- typecheck + lint + build (86 pages) green; security advisors unchanged (no new RLS gaps).
+
 ### Done — confirm/lock daily sales → atomic FIFO inventory deduction (full)
 - **UI + actions now built on the tested engine.** `confirmDailySales` (explodes
   the day's recipes → per-ingredient usage → calls the `confirm_daily_sales` RPC)

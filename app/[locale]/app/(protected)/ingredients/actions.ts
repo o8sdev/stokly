@@ -65,6 +65,9 @@ export async function createIngredient(
   if (error) return { error: 'generic' }
 
   revalidatePath(`/${locale}/app/ingredients`)
+  // First ingredient satisfies an onboarding step — invalidate the dashboard so
+  // the Getting-Started card recomputes and disappears on next visit.
+  revalidatePath(`/${locale}/app/dashboard`)
   redirect(`/${locale}/app/ingredients`)
 }
 

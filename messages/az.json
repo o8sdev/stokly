@@ -892,7 +892,8 @@
     "bar": "Bar",
     "kebab": "Kababxana",
     "teahouse": "Çayxana",
-    "other": "Digər"
+    "other": "Digər",
+    "save_error": "Saxlanmadı. Yenidən cəhd edin."
   },
   "onboarding": {
     "title": "Stokly-yə xoş gəlmisiniz 👋",
@@ -926,6 +927,7 @@
     "step5_waste": "Tullantı",
     "gs_kicker": "Başlanğıc",
     "gs_shortcuts": "Tez keçidlər",
+    "dismiss": "Bu kartı gizlət",
     "tour": {
       "cta_title": "Necə işləyir?",
       "cta_desc": "Tətbiqlə tanışlıq üçün qısa, izahlı təlimat — 5 addım.",

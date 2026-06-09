@@ -93,6 +93,8 @@ export async function importIngredients(
   if (error) return { error: 'generic' }
 
   revalidatePath(`/${locale}/app/ingredients`)
+  // Completes the onboarding "ingredients" step — refresh the dashboard card.
+  revalidatePath(`/${locale}/app/dashboard`)
   return { ok: true, inserted: inserts.length, skipped }
 }
 
@@ -134,5 +136,7 @@ export async function addFromLibrary(
   if (error) return { error: 'generic' }
 
   revalidatePath(`/${locale}/app/ingredients`)
+  // Completes the onboarding "ingredients" step — refresh the dashboard card.
+  revalidatePath(`/${locale}/app/dashboard`)
   return { ok: true, inserted: inserts.length }
 }

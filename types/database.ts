@@ -84,6 +84,7 @@ export interface Database {
           deleted_at: string | null
           count_cycle_days: number
           business_type: string | null
+          onboarding_dismissed_at: string | null
           created_at: string
         }
         Insert: {
@@ -102,6 +103,7 @@ export interface Database {
           deleted_at?: string | null
           count_cycle_days?: number
           business_type?: string | null
+          onboarding_dismissed_at?: string | null
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['tenants']['Insert']>

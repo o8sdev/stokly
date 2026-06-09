@@ -54,37 +54,28 @@ export default async function DashboardPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [
-    ingredients,
-    recipes,
-    recipeIngredients,
-    movements,
-    recent,
-    batches,
-    lastCount,
-  ] = await Promise.all([
+  // First-run onboarding gate, derived from real data (choose business type →
+  // add ingredients → recipes → initial count), or an explicit dismissal. Load
+  // only the cheap signals first so an onboarding-stage tenant doesn't pay for
+  // the heavy dashboard widgets it will never render. Gated by the
+  // onboarding_screen feature flag (per-plan / per-tenant).
+  const [tenant, ingredients, recipes, lastCount] = await Promise.all([
+    getTenant(ctx.tenantId),
     getIngredients(ctx.tenantId),
     getRecipes(ctx.tenantId),
-    getRecipeIngredients(ctx.tenantId),
-    getStockMovements(ctx.tenantId),
-    getRecentMovements(ctx.tenantId, 8),
-    getActiveBatches(ctx.tenantId),
     getLastCountInfo(ctx.tenantId),
   ])
-
-  // First-run onboarding: a step-by-step checklist (choose business type → add
-  // ingredients → recipes → initial count → start logging). Shown until the four
-  // core steps are done, then the normal dashboard takes over. Gated by the
-  // onboarding_screen feature flag (per-plan / per-tenant).
-  const tenant = await getTenant(ctx.tenantId)
   const steps = {
     businessType: !!tenant?.business_type,
     ingredients: ingredients.length > 0,
     recipes: recipes.length > 0,
     count: lastCount.lastCountDate !== null,
   }
+  // A business that, say, tracks raw inventory without recipes could never
+  // satisfy every step — so an explicit dismissal also clears the card.
   const needsOnboarding =
-    !steps.businessType || !steps.ingredients || !steps.recipes || !steps.count
+    !tenant?.onboarding_dismissed_at &&
+    (!steps.businessType || !steps.ingredients || !steps.recipes || !steps.count)
 
   if (needsOnboarding) {
     const [onboardingEnabled, libEnabled] = await Promise.all([
@@ -100,6 +91,7 @@ export default async function DashboardPage({
         <div className="mx-auto max-w-3xl py-2">
           <GettingStarted
             locale={locale}
+            tenantId={ctx.tenantId}
             businessType={tenant?.business_type ?? null}
             commonItems={common}
           />
@@ -107,6 +99,14 @@ export default async function DashboardPage({
       )
     }
   }
+
+  // Normal dashboard — now load the heavier widget data.
+  const [recipeIngredients, movements, recent, batches] = await Promise.all([
+    getRecipeIngredients(ctx.tenantId),
+    getStockMovements(ctx.tenantId),
+    getRecentMovements(ctx.tenantId, 8),
+    getActiveBatches(ctx.tenantId),
+  ])
 
   const recipesWithCost = computeRecipesWithCost(
     ingredients,

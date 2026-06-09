@@ -21,19 +21,30 @@ export function BusinessTypeChooser({
   // Optimistic selection so the highlight appears the instant you click,
   // without waiting for the server round-trip + refresh.
   const [optimistic, setOptimistic] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
   const chosen = optimistic ?? current
 
   function choose(key: string) {
     if (key === chosen) return
+    setFailed(false)
     setOptimistic(key)
     startTransition(async () => {
-      await setBusinessType(locale, key)
+      const res = await setBusinessType(locale, key)
+      // On failure, roll the highlight back to the real server value — otherwise
+      // the chip reads "selected" while business_type stays unset, leaving the
+      // onboarding card stuck (the step never actually completed).
+      if (res && 'error' in res) {
+        setOptimistic(null)
+        setFailed(true)
+        return
+      }
       router.refresh()
     })
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
       {BUSINESS_TYPES.map((b) => {
         const selected = chosen === b.key
         return (
@@ -57,6 +68,10 @@ export function BusinessTypeChooser({
           </button>
         )
       })}
+      </div>
+      {failed && (
+        <p className="text-xs font-medium text-destructive">{t('save_error')}</p>
+      )}
     </div>
   )
 }
