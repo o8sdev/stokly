@@ -1,48 +1,48 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { Undo2 } from 'lucide-react'
-import { reverseWaste } from '@/app/[locale]/app/(protected)/inventory/actions'
-import type { WasteLogEntry } from '@/lib/data/queries'
-import { WASTE_CATEGORY_KEY } from '@/lib/constants/waste'
-import { formatMoney, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Undo2 } from "lucide-react";
+import { reverseWaste } from "@/app/[locale]/app/(protected)/inventory/actions";
+import type { WasteLogEntry } from "@/lib/data/queries";
+import { WASTE_CATEGORY_KEY } from "@/lib/constants/waste";
+import { formatMoney, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export function WasteLogTable({
   locale,
   entries,
 }: {
-  locale: string
-  entries: WasteLogEntry[]
+  locale: string;
+  entries: WasteLogEntry[];
 }) {
-  const t = useTranslations()
-  const router = useRouter()
-  const [pending, startTransition] = useTransition()
-  const [busyId, setBusyId] = useState<string | null>(null)
+  const t = useTranslations();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   function catLabel(name: string | null): string {
-    if (!name) return '—'
-    const key = WASTE_CATEGORY_KEY[name]
-    return key ? t(`waste_category.${key}`) : name
+    if (!name) return "—";
+    const key = WASTE_CATEGORY_KEY[name];
+    return key ? t(`waste_category.${key}`) : name;
   }
 
   function reverse(id: string) {
-    setBusyId(id)
+    setBusyId(id);
     startTransition(async () => {
-      await reverseWaste(locale, id)
-      setBusyId(null)
-      router.refresh()
-    })
+      await reverseWaste(locale, id);
+      setBusyId(null);
+      router.refresh();
+    });
   }
 
   if (entries.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-        {t('inventory.waste_log_empty')}
+        {t("inventory.waste_log_empty")}
       </p>
-    )
+    );
   }
 
   return (
@@ -50,20 +50,20 @@ export function WasteLogTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-secondary/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-            <th className="px-4 py-3 font-semibold">{t('sales.date')}</th>
+            <th className="px-4 py-3 font-semibold">{t("sales.date")}</th>
             <th className="px-4 py-3 font-semibold">
-              {t('recipes.line_ingredient')}
+              {t("recipes.line_ingredient")}
             </th>
             <th className="px-3 py-3 text-right font-semibold">
-              {t('inventory.waste_quantity')}
+              {t("inventory.waste_quantity")}
             </th>
             <th className="px-3 py-3 text-right font-semibold">
-              {t('inventory.waste_value')}
+              {t("inventory.waste_value")}
             </th>
             <th className="px-4 py-3 font-semibold">
-              {t('inventory.waste_category')}
+              {t("inventory.waste_category")}
             </th>
-            <th className="px-4 py-3 font-semibold">{t('inventory.notes')}</th>
+            <th className="px-4 py-3 font-semibold">{t("inventory.notes")}</th>
             <th className="w-24 px-4 py-3" />
           </tr>
         </thead>
@@ -72,15 +72,17 @@ export function WasteLogTable({
             <tr
               key={e.id}
               className={cn(
-                'border-b border-border/60 last:border-0',
-                e.reversed && 'opacity-55'
+                "border-b border-border/60 last:border-0",
+                e.reversed && "opacity-55",
               )}
             >
               <td className="whitespace-nowrap px-4 py-2.5 text-muted-foreground">
                 {formatDate(e.created_at)}
               </td>
               <td className="px-4 py-2.5">
-                <span className={cn('font-medium', e.reversed && 'line-through')}>
+                <span
+                  className={cn("font-medium", e.reversed && "line-through")}
+                >
                   {e.ingredient_name}
                 </span>
               </td>
@@ -94,12 +96,12 @@ export function WasteLogTable({
                 {catLabel(e.category_name)}
               </td>
               <td className="px-4 py-2.5 text-muted-foreground">
-                {e.reason || e.notes || '—'}
+                {e.reason || e.notes || "—"}
               </td>
               <td className="px-4 py-2.5 text-right">
                 {e.reversed ? (
                   <span className="rounded bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t('inventory.reversed')}
+                    {t("inventory.reversed")}
                   </span>
                 ) : (
                   <button
@@ -109,7 +111,7 @@ export function WasteLogTable({
                     className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
                   >
                     <Undo2 className="h-3.5 w-3.5" />
-                    {t('inventory.reverse')}
+                    {t("inventory.reverse")}
                   </button>
                 )}
               </td>
@@ -118,5 +120,5 @@ export function WasteLogTable({
         </tbody>
       </table>
     </div>
-  )
+  );
 }

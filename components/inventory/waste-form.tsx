@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { useFormState } from 'react-dom'
+import { useMemo, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
   AlertTriangle,
@@ -12,13 +12,12 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { submitWaste } from '@/app/[locale]/app/(protected)/inventory/actions'
-import type { InventoryActionResult } from '@/app/[locale]/app/(protected)/inventory/actions'
 import type { IngredientOption } from '@/types/app'
 import type { WasteCategory } from '@/types/database'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { formatMoney } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -44,18 +43,16 @@ export function WasteForm({
   stockLevels: Record<string, number>
 }) {
   const t = useTranslations()
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
+  const [status, setStatus] = useState<'idle' | 'ok' | 'error'>('idle')
+
   const [ingredientId, setIngredientId] = useState('')
   const [quantity, setQuantity] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [date, setDate] = useState(defaultDate)
   const [reason, setReason] = useState('')
   const [notes, setNotes] = useState('')
-
-  const action = submitWaste.bind(null, locale)
-  const [state, formAction] = useFormState<InventoryActionResult, FormData>(
-    action,
-    {}
-  )
 
   const selected = ingredients.find((i) => i.id === ingredientId)
   const qtyNum = quantity === '' ? 0 : Number(quantity)
@@ -76,10 +73,29 @@ export function WasteForm({
     [ingredientId, qtyNum, categoryId, date, reason, notes]
   )
 
-  return (
-    <form action={formAction} className="space-y-5 stokly-card p-5">
-      <input type="hidden" name="payload" value={payload} />
+  function save() {
+    if (!ingredientId || !categoryId || qtyNum <= 0 || pending) return
+    const fd = new FormData()
+    fd.set('payload', payload)
+    startTransition(async () => {
+      const res = await submitWaste(locale, {}, fd)
+      if (res?.error) {
+        setStatus('error')
+        return
+      }
+      // Reset for the next entry (keep the date) and reload the log below.
+      setIngredientId('')
+      setQuantity('')
+      setCategoryId('')
+      setReason('')
+      setNotes('')
+      setStatus('ok')
+      router.refresh()
+    })
+  }
 
+  return (
+    <div className="space-y-5 stokly-card p-5">
       <div className="space-y-2">
         <Label htmlFor="waste_date">{t('inventory.waste_date')}</Label>
         <Input
@@ -95,7 +111,10 @@ export function WasteForm({
         <select
           id="ingredient"
           value={ingredientId}
-          onChange={(e) => setIngredientId(e.target.value)}
+          onChange={(e) => {
+            setIngredientId(e.target.value)
+            setStatus('idle')
+          }}
           className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
         >
           <option value="">{t('recipes.select_ingredient')}</option>
@@ -125,7 +144,10 @@ export function WasteForm({
             step="0.001"
             min="0"
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={(e) => {
+              setQuantity(e.target.value)
+              setStatus('idle')
+            }}
             className="text-right font-mono tabular-nums"
           />
           <span className="w-12 text-sm text-muted-foreground">
@@ -133,9 +155,14 @@ export function WasteForm({
           </span>
         </div>
         <div className="flex items-center justify-between text-xs">
-          <span className={cn('flex items-center gap-1', overStock ? 'text-amber-600' : 'text-transparent')}>
+          <span
+            className={cn(
+              'flex items-center gap-1',
+              overStock ? 'text-amber-600' : 'text-transparent'
+            )}
+          >
             <AlertTriangle className="h-3.5 w-3.5" />
-            {overStock ? t('inventory.over_stock_warning') : ' '}
+            {overStock ? t('inventory.over_stock_warning') : ' '}
           </span>
           {value > 0 && (
             <span className="text-muted-foreground">
@@ -160,7 +187,10 @@ export function WasteForm({
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setCategoryId(c.id)}
+                onClick={() => {
+                  setCategoryId(c.id)
+                  setStatus('idle')
+                }}
                 className={cn(
                   'inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
                   isSel
@@ -195,16 +225,20 @@ export function WasteForm({
         />
       </div>
 
-      {state.error && (
+      {status === 'error' && (
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}
+      {status === 'ok' && (
+        <p className="text-sm text-green-600">{t('inventory.waste_saved')} ✓</p>
+      )}
 
-      <SubmitButton
-        pendingText={t('common.saving')}
-        disabled={!ingredientId || !categoryId || qtyNum <= 0}
+      <Button
+        type="button"
+        onClick={save}
+        disabled={!ingredientId || !categoryId || qtyNum <= 0 || pending}
       >
-        {t('inventory.log_waste')}
-      </SubmitButton>
-    </form>
+        {pending ? t('common.saving') : t('inventory.log_waste')}
+      </Button>
+    </div>
   )
 }

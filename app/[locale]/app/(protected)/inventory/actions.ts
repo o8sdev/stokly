@@ -17,6 +17,7 @@ type MovementInsert =
 
 export interface InventoryActionResult {
   error?: string
+  success?: boolean
 }
 
 function parseJson(formData: FormData): unknown {
@@ -213,10 +214,12 @@ export async function submitWaste(
   const { error } = await supabase.from('stock_movements').insert(row)
   if (error) return { error: 'generic' }
 
+  // Stay on the waste page (don't redirect to the same route — that leaves the
+  // form's useFormState undefined). The client refreshes to show the new entry.
   revalidatePath(`/${locale}/app/inventory/waste`)
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/dashboard`)
-  redirect(`/${locale}/app/inventory/waste`)
+  return { success: true }
 }
 
 // Append-only correction of a mistaken waste entry. We never edit/delete the
