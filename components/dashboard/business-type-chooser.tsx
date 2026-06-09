@@ -41,10 +41,10 @@ export function BusinessTypeChooser({
             onClick={() => choose(b.key)}
             disabled={pending}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed',
+              'inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm transition-all disabled:cursor-not-allowed',
               selected
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border bg-card text-foreground hover:bg-secondary',
+                ? 'border-primary bg-primary font-semibold text-primary-foreground shadow-sm ring-2 ring-primary/30'
+                : 'border-border bg-card font-medium text-foreground hover:border-primary/40 hover:bg-secondary',
               busy === b.key && 'opacity-60'
             )}
           >
