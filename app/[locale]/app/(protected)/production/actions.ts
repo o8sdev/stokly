@@ -18,6 +18,7 @@ const runSchema = z.object({
   expiry_date: z.string().optional().or(z.literal('')),
   recipe_id: z.string().uuid().optional().or(z.literal('')),
   notes: z.string().max(2000).optional().or(z.literal('')),
+  input_location_id: z.string().uuid().optional().or(z.literal('')),
   inputs: z
     .array(
       z.object({
@@ -56,6 +57,7 @@ export async function executeProductionRun(
     p_recipe_id: d.recipe_id || null,
     p_notes: d.notes || null,
     p_inputs: d.inputs as unknown as Json,
+    p_input_location_id: d.input_location_id || null,
   })
   if (error) {
     if (error.message?.includes('location_short')) return { error: 'kitchen_short' }

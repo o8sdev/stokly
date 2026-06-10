@@ -743,3 +743,23 @@ export async function getSalesMix(
   }
   return mix
 }
+
+// The tenant's consumption points (where sales/waste/production deduct), default
+// point first. Powers the location selectors on the waste + production forms.
+export async function getConsumptionPoints(
+  tenantId: string
+): Promise<{ points: { id: string; name: string }[]; defaultId: string | null }> {
+  const locs = await getStorageLocations(tenantId)
+  const points = locs.filter((l) => l.is_consumption_point)
+  points.sort((a, b) =>
+    a.is_default_consumption === b.is_default_consumption
+      ? a.sort_order - b.sort_order
+      : a.is_default_consumption
+        ? -1
+        : 1
+  )
+  return {
+    points: points.map((l) => ({ id: l.id, name: l.name })),
+    defaultId: locs.find((l) => l.is_default_consumption)?.id ?? null,
+  }
+}

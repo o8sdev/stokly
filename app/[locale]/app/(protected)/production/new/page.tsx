@@ -6,7 +6,9 @@ import {
   getIngredients,
   getRecipes,
   getRecipeIngredients,
+  getConsumptionPoints,
 } from '@/lib/data/queries'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { ProductionForm } from '@/components/production/production-form'
@@ -19,11 +21,14 @@ export default async function NewProductionPage({
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
-  const [ingredients, recipes, recipeIngredients] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getRecipes(ctx.tenantId),
-    getRecipeIngredients(ctx.tenantId),
-  ])
+  const [ingredients, recipes, recipeIngredients, points, multiLocation] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getRecipes(ctx.tenantId),
+      getRecipeIngredients(ctx.tenantId),
+      getConsumptionPoints(ctx.tenantId),
+      tenantHasFeature(ctx.tenantId, 'multi_location'),
+    ])
 
   // Direct ingredient lines per recipe (used to pre-fill production inputs).
   const recipeLines: Record<string, { ingredient_id: string; quantity: number }[]> = {}
@@ -70,6 +75,9 @@ export default async function NewProductionPage({
         ingredients={ingOpts}
         recipes={templates}
         recipeLines={recipeLines}
+        consumptionLocations={points.points}
+        defaultConsumptionId={points.defaultId}
+        multiLocation={multiLocation}
       />
     </div>
   )

@@ -5,7 +5,9 @@ import {
   getWasteCategories,
   getStockMovements,
   getWasteLog,
+  getConsumptionPoints,
 } from '@/lib/data/queries'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
 import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
 import type { IngredientOption } from '@/types/app'
 import { PageHeader } from '@/components/layout/page-header'
@@ -36,12 +38,15 @@ export default async function WastePage({
     ? (searchParams.to as string)
     : today
 
-  const [ingredients, categories, movements, log] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getWasteCategories(ctx.tenantId),
-    getStockMovements(ctx.tenantId),
-    getWasteLog(ctx.tenantId, from, to),
-  ])
+  const [ingredients, categories, movements, log, points, multiLocation] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getWasteCategories(ctx.tenantId),
+      getStockMovements(ctx.tenantId),
+      getWasteLog(ctx.tenantId, from, to),
+      getConsumptionPoints(ctx.tenantId),
+      tenantHasFeature(ctx.tenantId, 'multi_location'),
+    ])
 
   const ingredientOptions: IngredientOption[] = ingredients.map((i) => ({
     id: i.id,
@@ -81,6 +86,9 @@ export default async function WastePage({
             ingredients={ingredientOptions}
             categories={categories}
             stockLevels={stockLevels}
+            consumptionLocations={points.points}
+            defaultConsumptionId={points.defaultId}
+            multiLocation={multiLocation}
           />
         </div>
 

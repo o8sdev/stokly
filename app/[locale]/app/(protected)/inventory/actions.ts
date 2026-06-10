@@ -268,6 +268,7 @@ export async function submitWaste(
     p_reason: parsed.data.reason?.trim() || null,
     p_notes: parsed.data.notes?.trim() || null,
     p_occurred_at: occurredAt,
+    p_location_id: parsed.data.location_id || null,
   })
   if (error) {
     if (error.message?.includes('location_short')) return { error: 'kitchen_short' }

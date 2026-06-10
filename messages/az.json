@@ -720,6 +720,7 @@
     "no_lines": "Heç bir inqrediyent əlavə edilməyib"
   },
   "inventory": {
+    "waste_location": "İstehlak nöqtəsi",
     "title": "İnventar",
     "count": "Stok sayımı",
     "delivery": "Çatdırılma",
@@ -939,6 +940,7 @@
     "count_cycle_days_hint": "Yalnız xatırlatma üçün — sayımı istənilən vaxt apara bilərsiniz."
   },
   "production": {
+    "input_location": "Xammal nöqtəsi",
     "title": "İstehsal",
     "subtitle": "Xammaldan hazır məhsul hazırlayın — mətbəxdən xammal silinir, hazır partiya stoka əlavə olunur.",
     "new": "Yeni istehsal",

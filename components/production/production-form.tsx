@@ -41,11 +41,17 @@ export function ProductionForm({
   ingredients,
   recipes,
   recipeLines,
+  consumptionLocations,
+  defaultConsumptionId,
+  multiLocation,
 }: {
   locale: string
   ingredients: IngOpt[]
   recipes: RecipeOpt[]
   recipeLines: Record<string, { ingredient_id: string; quantity: number }[]>
+  consumptionLocations: { id: string; name: string }[]
+  defaultConsumptionId: string | null
+  multiLocation: boolean
 }) {
   const t = useTranslations()
   const [outputId, setOutputId] = useState('')
@@ -56,6 +62,9 @@ export function ProductionForm({
   const [lines, setLines] = useState<InputLine[]>([
     { key: newKey(), ingredient_id: '', quantity: '' },
   ])
+  const [inputLocationId, setInputLocationId] = useState(
+    defaultConsumptionId ?? ''
+  )
 
   const action = executeProductionRun.bind(null, locale)
   const [state, formAction] = useFormState<ProductionResult, FormData>(action, {})
@@ -118,12 +127,13 @@ export function ProductionForm({
         output_quantity: outputQty === '' ? 0 : Number(outputQty),
         expiry_date: expiry,
         recipe_id: recipeId,
+        input_location_id: inputLocationId,
         notes,
         inputs: lines
           .filter((l) => l.ingredient_id && l.quantity !== '')
           .map((l) => ({ ingredient_id: l.ingredient_id, quantity: Number(l.quantity) })),
       }),
-    [outputId, outputQty, expiry, recipeId, notes, lines]
+    [outputId, outputQty, expiry, recipeId, inputLocationId, notes, lines]
   )
 
   const selectCls =
@@ -190,6 +200,24 @@ export function ProductionForm({
           <p className="text-xs text-muted-foreground">
             {t('production.recipe_template_hint')}
           </p>
+        </div>
+      )}
+
+      {multiLocation && consumptionLocations.length > 1 && (
+        <div className="space-y-1">
+          <Label htmlFor="input_location">{t('production.input_location')}</Label>
+          <select
+            id="input_location"
+            value={inputLocationId}
+            onChange={(e) => setInputLocationId(e.target.value)}
+            className={selectCls.replace('h-9', 'h-[38px]')}
+          >
+            {consumptionLocations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

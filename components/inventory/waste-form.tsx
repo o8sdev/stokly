@@ -35,12 +35,18 @@ export function WasteForm({
   ingredients,
   categories,
   stockLevels,
+  consumptionLocations,
+  defaultConsumptionId,
+  multiLocation,
 }: {
   locale: string
   defaultDate: string
   ingredients: IngredientOption[]
   categories: WasteCategory[]
   stockLevels: Record<string, number>
+  consumptionLocations: { id: string; name: string }[]
+  defaultConsumptionId: string | null
+  multiLocation: boolean
 }) {
   const t = useTranslations()
   const router = useRouter()
@@ -54,6 +60,7 @@ export function WasteForm({
   const [date, setDate] = useState(defaultDate)
   const [reason, setReason] = useState('')
   const [notes, setNotes] = useState('')
+  const [locationId, setLocationId] = useState(defaultConsumptionId ?? '')
 
   const selected = ingredients.find((i) => i.id === ingredientId)
   const qtyNum = quantity === '' ? 0 : Number(quantity)
@@ -68,10 +75,11 @@ export function WasteForm({
         quantity: qtyNum,
         waste_category_id: categoryId,
         occurred_at: date,
+        location_id: locationId,
         reason,
         notes,
       }),
-    [ingredientId, qtyNum, categoryId, date, reason, notes]
+    [ingredientId, qtyNum, categoryId, date, locationId, reason, notes]
   )
 
   function save() {
@@ -135,6 +143,24 @@ export function WasteForm({
           </p>
         )}
       </div>
+
+      {multiLocation && consumptionLocations.length > 1 && (
+        <div className="space-y-2">
+          <Label htmlFor="waste_location">{t('inventory.waste_location')}</Label>
+          <select
+            id="waste_location"
+            value={locationId}
+            onChange={(e) => setLocationId(e.target.value)}
+            className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+          >
+            {consumptionLocations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="quantity">{t('inventory.waste_quantity')}</Label>
