@@ -5,13 +5,12 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-10 (Tier B3: sub-recipe yield % — `recipes.yield_percent`
-(migration 035 applied live); sub-recipe unit cost and theoretical usage now scale by
-yield. Tier B2: supplier price history + receiving price-variance (no migration). Tier B1:
-par levels + build-to-par shopping list (migration 034). Prior: data-integrity round —
-production/prep runs, unit conversions, expiry write-off; storage locations +
-warehouse→kitchen transfers + kitchen-only consumption; per-line-supplier purchases +
-Alışlar page; Satış/Alış nav dropdown; sales confirm/lock + FIFO)._
+_Last updated: 2026-06-10 (Tier C analytics: C5 stock aging, C6 menu engineering, and
+C1/C2/C3 period KPIs (turnover, days-on-hand, waste %) — all no-migration report work.
+Tier B done: B1 par + shopping list (mig 034), B2 price history/variance, B3 sub-recipe
+yield (mig 035). Remaining: B4 custom units + C4 prime cost (labor) — one focused pass.
+Prior: data-integrity round — production/prep runs, unit conversions, expiry write-off;
+storage locations + transfers + kitchen consumption; per-line-supplier purchases)._
 
 ---
 
@@ -59,9 +58,9 @@ audit vs restaurant best practice + the tiered roadmap). **Data-integrity tier =
   unit conversions** (piece/pack, e.g. 1 case = 24, 1 egg = 50 g — v1 only does metric
   families kg↔g, l↔ml); **B5** retire the legacy free-text `ingredients.storage_location`
   (superseded by `storage_locations`).
-- **Tier C — analytics & KPIs:** ideal-vs-actual food-cost %, **inventory turnover**,
-  days-on-hand, **waste %**, prime cost, **stock aging**, **menu engineering**
-  (stars/plowhorses/puzzles/dogs from sales-mix × margin).
+- **Tier C — analytics & KPIs:** **C1 turnover, C2 days-on-hand, C3 waste %, C5 stock
+  aging, C6 menu engineering = DONE.** Remaining: **C4 prime cost** (needs a labor input —
+  deferred with B4 as the one remaining focused pass).
 - **Standing ops items:** set `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` + a scheduler;
   change the weak admin password; optional daily cron to auto-run `write_off_expired`;
   delete orphaned auth user `rhabibli@outlook.com`; minor code-review nits (business-type
@@ -273,6 +272,29 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — Tier C6: menu engineering report
+Classify priced menu items by popularity × profitability into stars / plowhorses /
+puzzles / dogs. No migration — reuses sales mix + recipe cost.
+- Pure calc `lib/calculations/menu-engineering.ts`: popularity = units_sold ÷ total;
+  contribution margin = sale_price − plate_cost; "high" = at/above the median of each;
+  4-quadrant classification + per-class counts.
+- `getSalesMix(tenant, from, to)` in `lib/data/queries.ts` (units sold per recipe from
+  itemized daily sales); plate cost from `computeRecipesWithCost` (costPerServing).
+- `/app/reports/menu-engineering`: date-range filter + class-count cards + per-item table
+  (sold, popularity %, plate cost, price, margin, class badge) + a legend with the
+  recommended action per class. Reports-index card + nav entry (Grid2x2).
+- Bilingual az/ru (`menu_eng.*`). typecheck + lint + build green.
+
+### Done — Tier C1/C2/C3: period KPIs (turnover, days-on-hand, waste %)
+Surfaced on the period report — no migration, no report regeneration (derived purely from
+the stored `PeriodReportData`).
+- Pure `computePeriodKpis(data)` (`lib/calculations/period-report.ts`): inventory turnover
+  = COGS ÷ avg inventory value (avg = (opening+closing)/2); days-on-hand = avg ÷ COGS ×
+  days_in_period; waste % = waste_value ÷ COGS. Null-safe when COGS/inventory is zero.
+- A "KPI" card row added to `period-report-view.tsx` (turnover ×, days-on-hand, waste %).
+- Bilingual az/ru (`report_period.turnover` / `days_on_hand` / `waste_percent` /
+  `kpis_title`). typecheck + lint + build green.
 
 ### Done — Tier C5: stock aging report
 Inventory aging + value-at-risk. No migration — reads active `ingredient_batches`.
@@ -928,6 +950,9 @@ existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
 column once nothing reads it.
 
 ### Tier C — analytics & KPIs (formulas from the best-practice research)
+
+**Status: C1, C2, C3, C5, C6 = ✅ DONE. C4 (prime cost) needs a labor input — deferred
+with B4 as the remaining focused pass.**
 
 Mostly new report pages/queries under `/app/reports`, little/no schema. KPI math is pure
 (`lib/calculations/*`). Reuse `computePeriodReport` (opening/closing/COGS/waste already

@@ -239,3 +239,29 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     discrepancies,
   }
 }
+
+export interface PeriodKpis {
+  avg_inventory_value: number
+  // COGS ÷ avg inventory value — how many times stock turned over in the period.
+  inventory_turnover: number | null
+  // avg inventory ÷ COGS × days_in_period — days of stock on hand at this rate.
+  days_on_hand: number | null
+  // waste_value ÷ COGS × 100.
+  waste_percent: number | null
+}
+
+// Period KPIs (Tier C1/C2/C3), derived purely from a computed PeriodReportData —
+// no extra queries, so they work on already-stored reports too.
+export function computePeriodKpis(data: PeriodReportData): PeriodKpis {
+  const avg = round2((data.opening_value + data.closing_value) / 2)
+  return {
+    avg_inventory_value: avg,
+    inventory_turnover: avg > EPS ? round2(data.cogs / avg) : null,
+    days_on_hand:
+      data.cogs > EPS && data.days_in_period > 0
+        ? round2((avg / data.cogs) * data.days_in_period)
+        : null,
+    waste_percent:
+      data.cogs > EPS ? round2((data.waste_value / data.cogs) * 100) : null,
+  }
+}

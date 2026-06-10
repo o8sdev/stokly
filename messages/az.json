@@ -20,6 +20,7 @@
     "purchases": "Alışlar",
     "shopping_list": "Sifariş siyahısı",
     "stock_aging": "Stok yaşlanması",
+    "menu_engineering": "Menyu mühəndisliyi",
     "period_reports": "Dövr hesabatları",
     "signout": "Çıxış",
     "section": {
@@ -82,6 +83,26 @@
     "days": "gün",
     "near_expiry": "Vaxtı yaxın",
     "empty": "Aktiv partiya yoxdur."
+  },
+  "menu_eng": {
+    "subtitle": "Satış payı və marja üzrə menyu məhsullarının təsnifatı (ulduz / iş atı / tapmaca / it).",
+    "empty": "Qiyməti təyin edilmiş menyu məhsulu (resept) yoxdur.",
+    "no_sales": "Seçilmiş dövrdə satış yoxdur — populyarlıq hesablana bilməz. Tarix aralığını dəyişin.",
+    "star": "Ulduz",
+    "plowhorse": "İş atı",
+    "puzzle": "Tapmaca",
+    "dog": "İt",
+    "action_star": "Yüksək populyarlıq + yüksək marja. Saxlayın və önə çıxarın.",
+    "action_plowhorse": "Populyar, amma marjası az. Qiyməti artırın və ya maya dəyərini azaldın.",
+    "action_puzzle": "Marja yüksək, amma az satılır. Reklam edin və ya menyuda yerini dəyişin.",
+    "action_dog": "Aşağı populyarlıq + aşağı marja. Menyudan çıxarmağı düşünün.",
+    "col_item": "Menyu məhsulu",
+    "col_sold": "Satılıb",
+    "col_popularity": "Populyarlıq",
+    "col_plate_cost": "Porsiya maya dəyəri",
+    "col_price": "Satış qiyməti",
+    "col_margin": "Marja",
+    "col_class": "Təsnifat"
   },
   "auth": {
     "login_title": "Daxil ol",
@@ -763,6 +784,8 @@
     "no_batches": "Aktiv partiya yoxdur"
   },
   "reports": {
+    "menu_engineering": "Menyu mühəndisliyi",
+    "menu_engineering_desc": "Satış payı × marja: ulduzlar, iş atları, tapmacalar, itlər.",
     "stock_aging": "Stok yaşlanması",
     "stock_aging_desc": "Partiyaların yaşı və riskdə olan dəyər.",
     "title": "Hesabatlar",
@@ -852,6 +875,10 @@
     "save_all": "Bütün günləri yadda saxla"
   },
   "report_period": {
+    "turnover": "Dövriyyə",
+    "days_on_hand": "Stok gün sayı",
+    "waste_percent": "İtki %",
+    "kpis_title": "Əsas göstəricilər (KPI)",
     "title": "Dövr hesabatı",
     "list_title": "Dövr hesabatları",
     "list_subtitle": "Hər təsdiqlənmiş sayım bir dövrü bağlayır",

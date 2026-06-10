@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { formatMoney, formatDate } from '@/lib/utils'
 import { regeneratePeriodReport } from '@/app/[locale]/app/(protected)/reports/period/[id]/actions'
 import type { CountPeriod } from '@/types/database'
+import { computePeriodKpis } from '@/lib/calculations/period-report'
 import type {
   PeriodReportData,
   Discrepancy,
@@ -67,6 +68,8 @@ export function PeriodReportView({
       </p>
     )
   }
+
+  const kpis = computePeriodKpis(data)
 
   const fc =
     data.food_cost_percent === null ? '—' : `${data.food_cost_percent}%`
@@ -166,6 +169,31 @@ export function PeriodReportView({
           label={t('report_period.closing')}
           value={formatMoney(data.closing_value)}
         />
+      </div>
+
+      {/* KPIs (Tier C1–C3): inventory turnover, days-on-hand, waste % */}
+      <div>
+        <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
+          {t('report_period.kpis_title')}
+        </h3>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <MetricCard
+            label={t('report_period.turnover')}
+            value={
+              kpis.inventory_turnover != null
+                ? `${kpis.inventory_turnover}×`
+                : '—'
+            }
+          />
+          <MetricCard
+            label={t('report_period.days_on_hand')}
+            value={kpis.days_on_hand != null ? String(kpis.days_on_hand) : '—'}
+          />
+          <MetricCard
+            label={t('report_period.waste_percent')}
+            value={kpis.waste_percent != null ? `${kpis.waste_percent}%` : '—'}
+          />
+        </div>
       </div>
 
       {/* Discrepancies */}

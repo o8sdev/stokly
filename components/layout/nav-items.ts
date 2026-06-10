@@ -14,6 +14,7 @@ import {
   ListChecks,
   ClipboardList,
   Hourglass,
+  Grid2x2,
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
@@ -89,6 +90,11 @@ export const NAV_SECTIONS: NavSection[] = [
         href: '/app/reports/stock-aging',
         labelKey: 'stock_aging',
         icon: Hourglass,
+      },
+      {
+        href: '/app/reports/menu-engineering',
+        labelKey: 'menu_engineering',
+        icon: Grid2x2,
       },
     ],
   },

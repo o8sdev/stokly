@@ -1,5 +1,11 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { BarChart3, Boxes, ClipboardList, Hourglass } from 'lucide-react'
+import {
+  BarChart3,
+  Boxes,
+  ClipboardList,
+  Hourglass,
+  Grid2x2,
+} from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { PageHeader } from '@/components/layout/page-header'
 import {
@@ -42,6 +48,12 @@ export default async function ReportsPage({
       title: t('stock_aging'),
       desc: t('stock_aging_desc'),
       icon: Hourglass,
+    },
+    {
+      href: '/app/reports/menu-engineering',
+      title: t('menu_engineering'),
+      desc: t('menu_engineering_desc'),
+      icon: Grid2x2,
     },
   ]
 

@@ -694,3 +694,30 @@ export async function getIngredientPriceHistory(
   const stat = computePriceStat(entries.map((e) => e.unit_cost))
   return { entries, stat }
 }
+
+// Units sold per recipe over a date range (inclusive), from itemized daily sales.
+// Powers menu engineering (sales mix). Mirrors the period report's sold-items query.
+export async function getSalesMix(
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<Map<string, number>> {
+  const supabase = createClient()
+  const { data: sales } = await supabase
+    .from('daily_sales')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', from)
+    .lte('sale_date', to)
+  const ids = (sales ?? []).map((r) => r.id)
+  const mix = new Map<string, number>()
+  if (ids.length === 0) return mix
+  const { data: items } = await supabase
+    .from('daily_sales_items')
+    .select('recipe_id, quantity')
+    .in('daily_sales_id', ids)
+  for (const it of items ?? []) {
+    mix.set(it.recipe_id, (mix.get(it.recipe_id) ?? 0) + Number(it.quantity))
+  }
+  return mix
+}
