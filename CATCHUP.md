@@ -50,6 +50,7 @@ theoretical-vs-actual variance, food-cost %). Reports: food-cost, inventory-valu
 ### Roadmap (the plan) — what to build next
 Plan file: `C:\Users\Rhabi\.claude\plans\quizzical-scribbling-goblet.md` (research +
 audit vs restaurant best practice + the tiered roadmap). **Data-integrity tier = DONE.**
+**Detailed, buildable specs for every Tier B / Tier C item below are in §9.**
 - **Tier B — planning & control (next):** par/**build-to-par** + a suggested-order /
   shopping list (today only a `low_stock_threshold` reorder flag exists); supplier **price
   history** + receiving **price-variance** alerts (last vs avg cost); **sub-recipe yield %**;
@@ -802,15 +803,92 @@ Checklist (updated as completed):
   revoking EXECUTE would break RLS, and they only expose the caller's own
   membership. `rls_auto_enable` is Supabase-managed (not ours).
 
-## 9. Next steps (Phase 2 and beyond)
+## 9. Next steps — Tier B & Tier C build-specs
 
-- Full **Production** screen: pick output ingredient + recipe template, enter
-  inputs, preview FIFO batch consumption, confirm → run side effects.
-- Make expiry write-offs run on a schedule (cron / edge function) instead of
-  only on dashboard load.
-- Batch-level UI on inventory: per-batch list, manual write-off, FIFO preview.
-- POS integration (Phase 3) → `sale` movements + batch consumption.
-- Tests for `consumeFIFO`, production cost/yield, `deriveStockLevel` invariant.
+Production runs, expiry write-off and (metric) unit conversions shipped in the
+**data-integrity round (DONE)**. The remaining roadmap, in priority order, with
+enough detail to execute. **Next free migration number = `034`.** Reuse the
+existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
+`deriveStockLevel`, `computePeriodReport`, `computeRecipesWithCost`,
+`DeliveryForm`/`getPurchaseLog`, suppliers/locations CRUD).
+
+### Tier B — planning & control
+
+**B1 · Par levels + build-to-par suggested order / shopping list**
+- Today only `ingredients.low_stock_threshold` (reorder point) exists — no target/par.
+- DB (034): `alter table ingredients add column par_level numeric`. Keep the threshold
+  as the *trigger*, par as the *target*.
+- Calc: `suggested_qty = max(0, par_level − on_hand)` (on_hand from
+  `deriveAllStockLevels`); flag items where `on_hand ≤ low_stock_threshold`.
+- UI: a "Sifariş siyahısı / Shopping list" page (or a panel on `/app/purchases`): items
+  below par with suggested qty, last supplier (`ingredients.supplier_id`) + last paid
+  cost, grouped by supplier; "create purchase from list" pre-fills the Alışlar
+  `DeliveryForm`. Add the `par_level` input to the ingredient form.
+
+**B2 · Supplier price history + receiving price-variance**
+- Data already exists (delivery `stock_movements`: unit_cost/supplier_id/created_at +
+  `ingredient_batches`: unit_cost/received_date) — **no migration**.
+- Calc: per ingredient, last price + moving average of last N deliveries;
+  `variance% = (new_cost − avg) / avg`; flag |variance| > ~10%.
+- UI: on the purchase line show last/avg price + a warning chip when the typed
+  `unit_cost` deviates; an ingredient "price history" panel on the ingredient detail.
+  Extend `getPurchaseLog` with last/avg.
+
+**B3 · Sub-recipe yield %**
+- A batch recipe (sauce/stock) loses volume; today `subRecipeUnitCost = batchCost /
+  serving_size` (yield assumed 100%).
+- DB (034): `alter table recipes add column yield_percent numeric default 1` (0–1).
+- Calc: `subRecipeUnitCost = batchCost / (serving_size × yield_percent)`
+  (`lib/calculations/recipe-cost.ts`); in `theoretical-usage.ts` `explode`, divide the
+  sub-recipe consumption by `(serving_size × yield_percent)` so a lossy batch consumes
+  more raw. UI: a yield field on the recipe form for `is_sub_recipe` recipes.
+
+**B4 · Per-ingredient custom unit conversions (piece/pack)** — the deferred half of units
+- v1 already does metric families (kq↔q, l↔ml) via `toBaseUnit` in
+  `lib/constants/units.ts`. This adds fixed-factor units (1 case = 24 ədəd; 1 egg = 0.05 kq).
+- DB (034): `ingredient_units(id, tenant_id, ingredient_id, unit, factor_to_base numeric)`
+  + RLS mirroring `suppliers`; types.
+- Calc: extend `toBaseUnit` to take a per-ingredient `{unit→factor}` map; thread an
+  **optional** `customUnits` into `buildResolveContext` → `resolveRecipeCost`/`explode`
+  (default empty = metric-only, zero regression); also convert alternate units on the
+  purchase/count forms.
+- UI: ingredient-form "alternate units" mini-manager; recipe-line + purchase-line unit
+  dropdowns offer base + same-family + the ingredient's custom units, with a hint.
+
+**B5 · Retire legacy `ingredients.storage_location`** (free text) — superseded by
+`storage_locations`. Remove from the ingredient form; optional migration to drop the
+column once nothing reads it.
+
+### Tier C — analytics & KPIs (formulas from the best-practice research)
+
+Mostly new report pages/queries under `/app/reports`, little/no schema. KPI math is pure
+(`lib/calculations/*`). Reuse `computePeriodReport` (opening/closing/COGS/waste already
+computed), `computeRecipesWithCost` (plate cost), `daily_sales_items` (sales mix),
+`ingredient_batches` (aging).
+
+- **C1 · Inventory turnover** = `COGS ÷ avg inventory value`, avg = `(opening_value +
+  closing_value)/2` (both already in `PeriodReportData`).
+- **C2 · Days-on-hand** = `365 ÷ annualised turnover` (or `avg inventory ÷ COGS ×
+  days_in_period`), per period.
+- **C3 · Waste %** = `waste_value ÷ COGS` (`waste_value` already in `PeriodReportData`),
+  plus a by-category breakdown from `waste_categories` + `getWasteLog`.
+- **C4 · Prime cost** = `(COGS + labor) ÷ revenue`. Needs a **labor input** — add a
+  per-period labor figure (`count_periods.labor_cost` or a settings field); until entered,
+  show COGS-only with a note.
+- **C5 · Stock aging** = active `ingredient_batches` bucketed by age (`today −
+  received_date`) into bands (0–7 / 8–30 / 31+ days) with value-at-risk + near-expiry
+  highlight. Reuse `getActiveBatches` / `getExpiringBatches`.
+- **C6 · Menu engineering (stars / plowhorses / puzzles / dogs)**: per menu item,
+  **popularity** = `units_sold ÷ total_units_sold` (from `daily_sales_items` over a range)
+  and **profitability** = contribution margin = `sale_price − plate_cost` (from
+  `computeRecipesWithCost`). Classify vs median popularity & margin into the 4 quadrants;
+  a report page with the 2×2 matrix + a recommended action per item.
+
+### Standing ops (not feature work)
+- Set `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` + a scheduler; change the weak admin
+  password; optional daily cron calling `write_off_expired`; delete orphaned auth user
+  `rhabibli@outlook.com`. **Later (Phase 3):** POS integration → `sale` movements; unit
+  tests for `consumeFIFO` / production cost-yield / the `deriveStockLevel` invariant.
 
 ## 10. Git / deploy
 
