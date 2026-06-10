@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   ListChecks,
   ClipboardList,
+  Hourglass,
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
@@ -83,6 +84,11 @@ export const NAV_SECTIONS: NavSection[] = [
         href: '/app/reports/period',
         labelKey: 'period_reports',
         icon: ClipboardList,
+      },
+      {
+        href: '/app/reports/stock-aging',
+        labelKey: 'stock_aging',
+        icon: Hourglass,
       },
     ],
   },

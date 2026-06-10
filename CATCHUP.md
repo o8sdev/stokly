@@ -274,6 +274,17 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Tier C5: stock aging report
+Inventory aging + value-at-risk. No migration — reads active `ingredient_batches`.
+- Pure calc `lib/calculations/stock-aging.ts`: active batches bucketed by age
+  (`today − received_date`) into 0–7 / 8–30 / 31+ day bands, value per band, and an
+  at-risk total (31+ band OR near-expiry ≤7d). Deterministic (`nowMs` arg).
+- `/app/reports/stock-aging`: band value/count cards + at-risk card, then grouped tables
+  (oldest band first) with per-batch age, value, and a near-expiry highlight. Reports-index
+  card + nav entry (Hourglass).
+- Bilingual az/ru (`stock_aging.*`). typecheck + lint + build green. No entitlement gate yet
+  (no feature key — available to all, like the period report).
+
 ### Done — Tier B3: sub-recipe yield %
 A batch sauce/stock loses volume in prep, so usable output < raw input. `recipes.yield_percent`
 (migration **035**, applied live; 0–1 fraction, default 1 = no change).
@@ -932,7 +943,7 @@ computed), `computeRecipesWithCost` (plate cost), `daily_sales_items` (sales mix
 - **C4 · Prime cost** = `(COGS + labor) ÷ revenue`. Needs a **labor input** — add a
   per-period labor figure (`count_periods.labor_cost` or a settings field); until entered,
   show COGS-only with a note.
-- **C5 · Stock aging** = active `ingredient_batches` bucketed by age (`today −
+- **C5 · Stock aging — ✅ DONE.** Active `ingredient_batches` bucketed by age (`today −
   received_date`) into bands (0–7 / 8–30 / 31+ days) with value-at-risk + near-expiry
   highlight. Reuse `getActiveBatches` / `getExpiringBatches`.
 - **C6 · Menu engineering (stars / plowhorses / puzzles / dogs)**: per menu item,

@@ -19,6 +19,7 @@
     "trade": "Satış / Alış",
     "purchases": "Alışlar",
     "shopping_list": "Sifariş siyahısı",
+    "stock_aging": "Stok yaşlanması",
     "period_reports": "Dövr hesabatları",
     "signout": "Çıxış",
     "section": {
@@ -66,6 +67,21 @@
     "below_avg": "ortadan aşağı",
     "last_label": "Son",
     "avg_label": "Orta"
+  },
+  "stock_aging": {
+    "subtitle": "Aktiv partiyaların yaşı və riskdə olan dəyər (köhnə stok + vaxtı yaxın).",
+    "band_0_7": "0–7 gün",
+    "band_8_30": "8–30 gün",
+    "band_31": "31+ gün",
+    "at_risk": "Riskdə olan dəyər",
+    "at_risk_hint": "31+ gün və ya vaxtı yaxın",
+    "batches_count": "{count} partiya",
+    "col_batch": "Partiya",
+    "col_qty": "Qalıq",
+    "col_age": "Yaş",
+    "days": "gün",
+    "near_expiry": "Vaxtı yaxın",
+    "empty": "Aktiv partiya yoxdur."
   },
   "auth": {
     "login_title": "Daxil ol",
@@ -747,6 +763,8 @@
     "no_batches": "Aktiv partiya yoxdur"
   },
   "reports": {
+    "stock_aging": "Stok yaşlanması",
+    "stock_aging_desc": "Partiyaların yaşı və riskdə olan dəyər.",
     "title": "Hesabatlar",
     "food_cost": "Yemək dəyəri hesabatı",
     "food_cost_desc": "Yeməklər üzrə dəyər və marja",
