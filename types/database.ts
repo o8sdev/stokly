@@ -334,6 +334,7 @@ export interface Database {
           serving_unit: string | null
           sale_price: number | null
           yield_percent: number | null
+          consumption_location_id: string | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -349,6 +350,7 @@ export interface Database {
           serving_unit?: string | null
           sale_price?: number | null
           yield_percent?: number | null
+          consumption_location_id?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string
@@ -461,6 +463,9 @@ export interface Database {
           is_kitchen: boolean
           is_default_receiving: boolean
           is_frozen: boolean
+          kind: string | null
+          is_consumption_point: boolean
+          is_default_consumption: boolean
           sort_order: number
           created_at: string
         }
@@ -471,6 +476,9 @@ export interface Database {
           is_kitchen?: boolean
           is_default_receiving?: boolean
           is_frozen?: boolean
+          kind?: string | null
+          is_consumption_point?: boolean
+          is_default_consumption?: boolean
           sort_order?: number
           created_at?: string
         }
