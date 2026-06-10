@@ -16,6 +16,8 @@
     "inventory_value": "Anbar dəyəri",
     "production": "İstehsal",
     "sales": "Satışlar",
+    "trade": "Satış / Alış",
+    "purchases": "Alışlar",
     "period_reports": "Dövr hesabatları",
     "signout": "Çıxış",
     "section": {
@@ -23,6 +25,16 @@
       "reports": "HESABATLAR",
       "settings": "TƏNZİMLƏMƏLƏR"
     }
+  },
+  "purchases": {
+    "title": "Alışlar",
+    "subtitle": "Aldığınız inqrediyentləri daxil edin — birbaşa stoka əlavə olunur.",
+    "new_purchase": "Yeni alış",
+    "history": "Alış tarixçəsi",
+    "total_value": "Ümumi xərc",
+    "count": "Alış sayı",
+    "total": "Cəmi",
+    "empty": "Bu dövrdə alış yoxdur"
   },
   "auth": {
     "login_title": "Daxil ol",

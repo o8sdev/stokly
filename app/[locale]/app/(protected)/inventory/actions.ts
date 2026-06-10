@@ -178,10 +178,12 @@ export async function submitDelivery(
   }
 
   revalidatePath(`/${locale}/app/inventory`)
+  revalidatePath(`/${locale}/app/purchases`)
   // A delivery changes inventory value / low-stock / expiry widgets on the
   // dashboard — invalidate it so those don't read stale from the router cache.
   revalidatePath(`/${locale}/app/dashboard`)
-  redirect(`/${locale}/app/inventory`)
+  // Land back on the Purchases (Alışlar) page so the new buy shows in history.
+  redirect(`/${locale}/app/purchases`)
 }
 
 // TRANSFER — move stock between locations (e.g. warehouse → kitchen). The DB

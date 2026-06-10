@@ -4,12 +4,15 @@ import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { Bell, LogOut } from 'lucide-react'
 import { usePathname, useRouter } from '@/lib/i18n/navigation'
-import { NAV_SECTIONS } from './nav-items'
+import { NAV_SECTIONS, isNavGroup } from './nav-items'
 import { cn } from '@/lib/utils'
 
 // Resolve the current page's nav label key from the longest matching href.
+// Groups are expanded into their child links so /app/purchases resolves too.
 function activeLabelKey(pathname: string): string {
-  const items = NAV_SECTIONS.flatMap((s) => s.items)
+  const items = NAV_SECTIONS.flatMap((s) =>
+    s.items.flatMap((i) => (isNavGroup(i) ? i.children : [i]))
+  )
   let best = items[0]
   let bestLen = -1
   for (const item of items) {

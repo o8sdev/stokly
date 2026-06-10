@@ -191,9 +191,9 @@ export default async function DashboardPage({
               </Link>
             </Button>
             <Button asChild variant="secondary" size="sm" className="gap-2">
-              <Link href="/app/inventory/delivery">
+              <Link href="/app/purchases">
                 <Truck className="h-4 w-4" />
-                {t('inventory.delivery')}
+                {t('purchases.title')}
               </Link>
             </Button>
             <Button asChild variant="secondary" size="sm" className="gap-2">

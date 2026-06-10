@@ -287,6 +287,70 @@ export async function getWasteLog(
   })
 }
 
+export interface PurchaseLogEntry {
+  id: string
+  ingredient_id: string
+  ingredient_name: string
+  unit: string
+  quantity: number
+  unit_cost: number
+  value: number
+  supplier_name: string | null
+  notes: string | null
+  created_at: string
+}
+
+// Browsable purchase (delivery) log for a date range (inclusive). Each entry is
+// one bought line: ingredient + supplier name + the spend (qty × unit_cost).
+export async function getPurchaseLog(
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<PurchaseLogEntry[]> {
+  const supabase = createClient()
+  const fromStart = `${from}T00:00:00.000Z`
+  const toEnd = `${to}T23:59:59.999Z`
+
+  const [delRes, ings, suppliers] = await Promise.all([
+    supabase
+      .from('stock_movements')
+      .select(
+        'id, ingredient_id, quantity, unit_cost, supplier_id, notes, created_at'
+      )
+      .eq('tenant_id', tenantId)
+      .eq('movement_type', 'delivery')
+      .gte('created_at', fromStart)
+      .lte('created_at', toEnd)
+      .order('created_at', { ascending: false })
+      .limit(1000),
+    getIngredients(tenantId),
+    getSuppliers(tenantId),
+  ])
+
+  const ingMap = new Map(ings.map((i) => [i.id, i]))
+  const supMap = new Map(suppliers.map((s) => [s.id, s]))
+
+  return (delRes.data ?? []).map((d) => {
+    const ing = ingMap.get(d.ingredient_id)
+    const qty = Number(d.quantity)
+    const cost = Number(d.unit_cost ?? 0)
+    return {
+      id: d.id,
+      ingredient_id: d.ingredient_id,
+      ingredient_name: ing?.name ?? '—',
+      unit: ing?.unit ?? '',
+      quantity: qty,
+      unit_cost: cost,
+      value: qty * cost,
+      supplier_name: d.supplier_id
+        ? (supMap.get(d.supplier_id)?.name ?? null)
+        : null,
+      notes: d.notes,
+      created_at: d.created_at,
+    }
+  })
+}
+
 // All active batches for the tenant, ordered FIFO (oldest received first).
 // SUM(quantity_remaining) per ingredient must equal deriveStockLevel() — see
 // the invariant note in lib/calculations/stock-level.ts.

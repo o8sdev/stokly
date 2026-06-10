@@ -9,6 +9,8 @@ import {
   Users,
   Settings,
   Receipt,
+  ShoppingBag,
+  ShoppingCart,
   ClipboardList,
   Trash2,
   type LucideIcon,
@@ -21,10 +23,23 @@ export interface NavItem {
   icon: LucideIcon
 }
 
+// A collapsible parent with child links (e.g. "Satış / Alış" → Satışlar, Alışlar).
+export interface NavGroup {
+  labelKey: string
+  icon: LucideIcon
+  children: NavItem[]
+}
+
+export type NavEntry = NavItem | NavGroup
+
+export function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return (entry as NavGroup).children !== undefined
+}
+
 export interface NavSection {
   // Key into the `nav.section` translation namespace.
   labelKey: string
-  items: NavItem[]
+  items: NavEntry[]
 }
 
 // Grouped sidebar navigation: ƏSAS · HESABATLAR · TƏNZİMLƏMƏLƏR.
@@ -37,7 +52,15 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
       { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
       { href: '/app/inventory/waste', labelKey: 'waste_log', icon: Trash2 },
-      { href: '/app/sales', labelKey: 'sales', icon: Receipt },
+      // Sales + Purchases live under one collapsible "Satış / Alış" group.
+      {
+        labelKey: 'trade',
+        icon: ShoppingBag,
+        children: [
+          { href: '/app/sales', labelKey: 'sales', icon: Receipt },
+          { href: '/app/purchases', labelKey: 'purchases', icon: ShoppingCart },
+        ],
+      },
       { href: '/app/production', labelKey: 'production', icon: Factory },
     ],
   },

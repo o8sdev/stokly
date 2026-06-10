@@ -201,6 +201,23 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Satış / Alış nav dropdown + Alışlar (purchases) page
+The sidebar **Satışlar** item is now a collapsible **"Satış / Alış"** group with two
+children — **Satışlar** (`/app/sales`) and **Alışlar** (`/app/purchases`). The group
+auto-expands + highlights when you're on either route (`nav-items.ts` gained a `NavGroup`
+shape + `isNavGroup`; `sidebar.tsx` renders groups; `header.tsx` flattens children for the
+page title).
+- **Alışlar** = the daily purchase entry (reuses the delivery `DeliveryForm` — per-line
+  supplier, cost, expiry, received-into location → creates batches = **adds to stock**)
+  **plus** a browsable **purchase history** by period, modelled on the waste page.
+  `getPurchaseLog(tenant, from, to)` (delivery movements joined ingredient+supplier) +
+  `components/inventory/purchase-log-table.tsx` (read-only) + summary cards (spend, count).
+- `submitDelivery` now redirects back to `/app/purchases`; the old
+  `/app/inventory/delivery` **redirects** there; the dashboard quick-buy + low-stock
+  "Order" links repoint to `/app/purchases`.
+- Bilingual az/ru (`nav.trade`, `nav.purchases`, `purchases.*`). typecheck + lint + build
+  (92 pages) green.
+
 ### Done — storage locations + stock movement (warehouse → kitchen), per-line supplier
 Stock now physically lives in a per-tenant **location** and can be **moved** between
 them; sales/waste consume the **kitchen**.

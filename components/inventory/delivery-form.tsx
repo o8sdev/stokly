@@ -294,7 +294,7 @@ export function DeliveryForm({
           {t('common.save')}
         </SubmitButton>
         <Button asChild variant="outline" type="button">
-          <Link href="/app/inventory">{t('common.cancel')}</Link>
+          <Link href="/app/purchases">{t('common.cancel')}</Link>
         </Button>
       </div>
     </form>
