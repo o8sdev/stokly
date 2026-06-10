@@ -5,6 +5,12 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { BUSINESS_TYPE_KEYS } from '@/lib/constants/business-types'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
+import {
+  isConsumptionKind,
+  isFrozenKind,
+  isLocationKind,
+} from '@/lib/constants/locations'
 
 export interface SettingsResult {
   error?: string
@@ -164,7 +170,26 @@ export async function createLocation(
   const parsed = locationSchema.safeParse({ name: formData.get('name') })
   if (!parsed.success) return { error: 'validation' }
 
+  const kindRaw = String(formData.get('kind') ?? 'storage')
+  const kind = isLocationKind(kindRaw) ? kindRaw : 'storage'
+
   const supabase = createClient()
+
+  // A consumption kind (kitchen/bar/prep) makes the location a consumption point.
+  // The FIRST consumption point is free; a 2nd+ requires the multi_location feature.
+  let isConsumption = false
+  if (isConsumptionKind(kind)) {
+    const { count } = await supabase
+      .from('storage_locations')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', ctx.tenantId)
+      .eq('is_consumption_point', true)
+    isConsumption =
+      (count ?? 0) === 0 ||
+      (await tenantHasFeature(ctx.tenantId, 'multi_location'))
+  }
+  const isFrozen = formData.get('is_frozen') === 'on' || isFrozenKind(kind)
+
   // Append to the end of the list.
   const { data: last } = await supabase
     .from('storage_locations')
@@ -176,7 +201,9 @@ export async function createLocation(
   const { error } = await supabase.from('storage_locations').insert({
     tenant_id: ctx.tenantId,
     name: parsed.data.name,
-    is_frozen: formData.get('is_frozen') === 'on',
+    kind,
+    is_consumption_point: isConsumption,
+    is_frozen: isFrozen,
     sort_order: (last?.sort_order ?? 0) + 1,
   })
   if (error) return { error: 'generic' }
@@ -213,11 +240,11 @@ export async function deleteLocation(
   const supabase = createClient()
   const { data: loc } = await supabase
     .from('storage_locations')
-    .select('is_kitchen, is_default_receiving')
+    .select('is_default_consumption, is_default_receiving')
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
     .maybeSingle()
-  if (!loc || loc.is_kitchen || loc.is_default_receiving) return
+  if (!loc || loc.is_default_consumption || loc.is_default_receiving) return
   const { count } = await supabase
     .from('ingredient_batches')
     .select('id', { count: 'exact', head: true })
@@ -234,9 +261,11 @@ export async function deleteLocation(
   revalidatePath(LOC_PATH(locale))
 }
 
-// Promote a location to THE kitchen (consumption point) — only one per tenant,
-// so clear the flag elsewhere first.
-export async function setKitchenLocation(
+// Promote a location to THE default consumption point — only one per tenant.
+// Clears the old default (and its vestigial is_kitchen mirror, kept in sync for
+// the not-yet-migrated readers until migration 039), then sets the new one. The
+// default is always a consumption point.
+export async function setDefaultConsumptionLocation(
   locale: string,
   id: string
 ): Promise<void> {
@@ -245,12 +274,76 @@ export async function setKitchenLocation(
   const supabase = createClient()
   await supabase
     .from('storage_locations')
-    .update({ is_kitchen: false })
+    .update({ is_default_consumption: false, is_kitchen: false })
     .eq('tenant_id', ctx.tenantId)
     .neq('id', id)
   await supabase
     .from('storage_locations')
-    .update({ is_kitchen: true })
+    .update({
+      is_default_consumption: true,
+      is_consumption_point: true,
+      is_kitchen: true,
+    })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+// Toggle whether a location is a consumption point (sales/waste/production deduct
+// from it). The FIRST point is free; turning ON a 2nd+ requires multi_location.
+// The default consumption point cannot be turned off (reassign the default first).
+export async function setConsumptionPoint(
+  locale: string,
+  id: string,
+  value: boolean
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  const { data: loc } = await supabase
+    .from('storage_locations')
+    .select('is_default_consumption, is_consumption_point')
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle()
+  if (!loc) return
+  if (!value && loc.is_default_consumption) return // can't unset the default
+  if (value && !loc.is_consumption_point) {
+    const { count } = await supabase
+      .from('storage_locations')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', ctx.tenantId)
+      .eq('is_consumption_point', true)
+    if (
+      (count ?? 0) >= 1 &&
+      !(await tenantHasFeature(ctx.tenantId, 'multi_location'))
+    ) {
+      return // gated: 2nd+ consumption point needs the feature
+    }
+  }
+  await supabase
+    .from('storage_locations')
+    .update({ is_consumption_point: value })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+// Set a location's kind (label/icon/reporting; consumption behavior is the
+// separate is_consumption_point flag).
+export async function setLocationKind(
+  locale: string,
+  id: string,
+  formData: FormData
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const kind = String(formData.get('kind') ?? '')
+  if (!isLocationKind(kind)) return
+  const supabase = createClient()
+  await supabase
+    .from('storage_locations')
+    .update({ kind })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
   revalidatePath(LOC_PATH(locale))
