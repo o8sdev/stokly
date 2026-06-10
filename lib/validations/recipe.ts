@@ -26,6 +26,11 @@ export const recipeSchema = z.object({
   sale_price: z
     .union([z.coerce.number().nonnegative(), z.literal('')])
     .optional(),
+  // Sub-recipe yield as a 0–100 percentage (the action converts to a 0–1
+  // fraction; default 1 = 100%). Only meaningful for sub-recipes.
+  yield_percent: z
+    .union([z.coerce.number().positive().max(100), z.literal('')])
+    .optional(),
   notes: z.string().max(2000).optional().or(z.literal('')),
   lines: z.array(recipeLineSchema).min(1, 'min_one_line'),
 })

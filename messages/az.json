@@ -631,6 +631,8 @@
     "quick_add_all": "Hamısını əlavə et"
   },
   "recipes": {
+    "yield": "Çıxım (yield) %",
+    "yield_hint": "Hazırlanma zamanı itən həcm. Məs. 1 kq xammaldan 0.8 kq sous alınırsa, çıxım 80%-dir. Maya dəyəri və nəzəri istifadə bu nisbətə görə artırılır. Yalnız yarı-reseptlər üçün.",
     "title": "Reseptlər",
     "add": "Resept əlavə et",
     "edit": "Resepti redaktə et",

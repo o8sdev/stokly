@@ -76,6 +76,12 @@ export function RecipeForm({
     recipe?.sale_price != null ? String(recipe.sale_price) : ''
   )
   const [notes, setNotes] = useState(recipe?.notes ?? '')
+  // Sub-recipe yield as a 0–100 percentage (stored as a 0–1 fraction).
+  const [yieldPercent, setYieldPercent] = useState(
+    recipe?.yield_percent != null
+      ? String(Math.round(recipe.yield_percent * 1000) / 10)
+      : ''
+  )
 
   // Line state, seeded from existing recipe lines on edit.
   const [lines, setLines] = useState<EditorLine[]>(() => {
@@ -171,6 +177,7 @@ export function RecipeForm({
         serving_size: servingSize === '' ? '' : Number(servingSize),
         serving_unit: servingUnit,
         sale_price: salePrice === '' ? '' : Number(salePrice),
+        yield_percent: yieldPercent === '' ? '' : Number(yieldPercent),
         notes,
         lines: lines
           .filter((l) => l.sourceId)
@@ -191,6 +198,7 @@ export function RecipeForm({
       servingSize,
       servingUnit,
       salePrice,
+      yieldPercent,
       notes,
       lines,
     ]
@@ -329,6 +337,26 @@ export function RecipeForm({
                 </select>
               </div>
             </div>
+
+            {isSubRecipe && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="yield_percent">{t('recipes.yield')}</Label>
+                  <FieldHint text={t('recipes.yield_hint')} />
+                </div>
+                <Input
+                  id="yield_percent"
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  max="100"
+                  value={yieldPercent}
+                  onChange={(e) => setYieldPercent(e.target.value)}
+                  placeholder="100"
+                  className="font-mono tabular-nums sm:max-w-[12rem]"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3 stokly-card p-5">

@@ -5,22 +5,21 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-10 (Tier B2: supplier price history + receiving price-variance —
-per-ingredient last/avg price stats, a price-history panel on the ingredient page, and a
->10% deviation chip on the purchase form (no migration). Tier B1: par levels +
-build-to-par shopping list — `ingredients.par_level` (migration 034 applied live),
-suggested-order list grouped by supplier, "create purchase from list" prefill. Prior:
-data-integrity round — production/prep runs, unit conversions, expiry write-off; storage
-locations + warehouse→kitchen transfers + kitchen-only consumption; per-line-supplier
-purchases + Alışlar page; Satış/Alış nav dropdown; sales confirm/lock + FIFO)._
+_Last updated: 2026-06-10 (Tier B3: sub-recipe yield % — `recipes.yield_percent`
+(migration 035 applied live); sub-recipe unit cost and theoretical usage now scale by
+yield. Tier B2: supplier price history + receiving price-variance (no migration). Tier B1:
+par levels + build-to-par shopping list (migration 034). Prior: data-integrity round —
+production/prep runs, unit conversions, expiry write-off; storage locations +
+warehouse→kitchen transfers + kitchen-only consumption; per-line-supplier purchases +
+Alışlar page; Satış/Alış nav dropdown; sales confirm/lock + FIFO)._
 
 ---
 
 ## 0. READ FIRST — current state, roadmap, how to continue
 
 **Repo:** github.com/o8sdev/stokly (branch `main`). **Supabase project ref:**
-`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `034`** (the DB is already
-migrated; on a *fresh* DB apply `supabase/migrations/001 → 034` in filename order).
+`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `035`** (the DB is already
+migrated; on a *fresh* DB apply `supabase/migrations/001 → 035` in filename order).
 Working tree is committed; latest commit messages are the quickest "what changed" log.
 
 ### The end-to-end loop that now works
@@ -55,11 +54,11 @@ theoretical-vs-actual variance, food-cost %). Reports: food-cost, inventory-valu
 Plan file: `C:\Users\Rhabi\.claude\plans\quizzical-scribbling-goblet.md` (research +
 audit vs restaurant best practice + the tiered roadmap). **Data-integrity tier = DONE.**
 **Detailed, buildable specs for every Tier B / Tier C item below are in §9.**
-- **Tier B — planning & control:** **B1 (par + build-to-par shopping list, migration 034)
-  and B2 (supplier price history + receiving price-variance) = DONE.** Next up —
-  **sub-recipe yield %**; **per-ingredient custom unit conversions** (piece/pack, e.g.
-  1 case = 24, 1 egg = 50 g — v1 only does metric families kg↔g, l↔ml); retire the legacy
-  free-text `ingredients.storage_location` (superseded by `storage_locations`).
+- **Tier B — planning & control:** **B1 (par + shopping list, mig 034), B2 (price history +
+  variance), B3 (sub-recipe yield %, mig 035) = DONE.** Next up — **B4 per-ingredient custom
+  unit conversions** (piece/pack, e.g. 1 case = 24, 1 egg = 50 g — v1 only does metric
+  families kg↔g, l↔ml); **B5** retire the legacy free-text `ingredients.storage_location`
+  (superseded by `storage_locations`).
 - **Tier C — analytics & KPIs:** ideal-vs-actual food-cost %, **inventory turnover**,
   days-on-hand, **waste %**, prime cost, **stock aging**, **menu engineering**
   (stars/plowhorses/puzzles/dogs from sales-mix × margin).
@@ -274,6 +273,17 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — Tier B3: sub-recipe yield %
+A batch sauce/stock loses volume in prep, so usable output < raw input. `recipes.yield_percent`
+(migration **035**, applied live; 0–1 fraction, default 1 = no change).
+- `subRecipeUnitCost = batchCost / (serving_size × yield_percent)` (`lib/calculations/recipe-cost.ts`);
+  `theoretical-usage.ts` `explode` divides sub-recipe consumption by `(serving_size × yield_percent)`
+  so a lossy batch consumes proportionally more raw.
+- Recipe form: a yield % field shown for sub-recipes (default 100); `recipeSchema` takes a 0–100
+  percentage, the action stores a 0–1 fraction. `recipes` Row/Insert types updated.
+- Bilingual az/ru (`recipes.yield`, `recipes.yield_hint`). typecheck + lint + build green; migration
+  035 verified (column numeric/nullable/default 1 + BEGIN/ROLLBACK write test).
 
 ### Done — Tier B2: supplier price history + receiving price-variance
 Receiving cost control. No migration — built from existing `delivery` movements
@@ -851,7 +861,7 @@ Checklist (updated as completed):
 
 Production runs, expiry write-off and (metric) unit conversions shipped in the
 **data-integrity round (DONE)**. The remaining roadmap, in priority order, with
-enough detail to execute. **Next free migration number = `035`** (034 used by B1, applied live). Reuse the
+enough detail to execute. **Next free migration number = `036`** (034, 035 used by B1, B3 — applied live). Reuse the
 existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
 `deriveStockLevel`, `computePeriodReport`, `computeRecipesWithCost`,
 `DeliveryForm`/`getPurchaseLog`, suppliers/locations CRUD).
@@ -881,7 +891,7 @@ existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
   `unit_cost` deviates; an ingredient "price history" panel on the ingredient detail.
   Extend `getPurchaseLog` with last/avg.
 
-**B3 · Sub-recipe yield %**
+**B3 · Sub-recipe yield % — ✅ DONE (migration 035 applied live)**
 - A batch recipe (sauce/stock) loses volume; today `subRecipeUnitCost = batchCost /
   serving_size` (yield assumed 100%).
 - DB (035): `alter table recipes add column yield_percent numeric default 1` (0–1).

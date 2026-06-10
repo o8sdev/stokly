@@ -77,6 +77,10 @@ export async function createRecipe(
       serving_size: toNumberOrNull(data.serving_size),
       serving_unit: data.serving_unit || null,
       sale_price: toNumberOrNull(data.sale_price),
+      yield_percent:
+        data.yield_percent === '' || data.yield_percent === undefined
+          ? 1
+          : Number(data.yield_percent) / 100,
       notes: data.notes || null,
     })
     .select('id')
@@ -117,6 +121,10 @@ export async function updateRecipe(
       serving_size: toNumberOrNull(data.serving_size),
       serving_unit: data.serving_unit || null,
       sale_price: toNumberOrNull(data.sale_price),
+      yield_percent:
+        data.yield_percent === '' || data.yield_percent === undefined
+          ? 1
+          : Number(data.yield_percent) / 100,
       notes: data.notes || null,
     })
     .eq('id', id)

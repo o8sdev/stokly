@@ -54,11 +54,17 @@ function explode(
       const sub = ctx.recipes.get(line.sub_recipe_id)
       const size =
         sub?.serving_size && sub.serving_size > 0 ? sub.serving_size : 1
+      // A lossy batch (yield_percent < 1) must be made in greater quantity to
+      // yield the same usable servings, so it consumes proportionally more raw.
+      const yieldP =
+        sub?.yield_percent != null && sub.yield_percent > 0
+          ? sub.yield_percent
+          : 1
       // Consuming `line.quantity` serving-units of the sub-recipe = that
       // fraction of a batch. Fresh visited copy so sibling branches don't share.
       explode(
         line.sub_recipe_id,
-        (qty * line.quantity) / size,
+        (qty * line.quantity) / (size * yieldP),
         ctx,
         acc,
         new Set(visited)

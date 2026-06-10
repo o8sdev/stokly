@@ -66,8 +66,14 @@ export function subRecipeUnitCost(
   const recipe = ctx.recipes.get(recipeId)
   const batchCost = resolveRecipeCost(recipeId, ctx, visited)
   const size = recipe?.serving_size ?? null
-  if (size && size > 0) return batchCost / size
-  return batchCost
+  // A batch sauce/stock loses volume in prep; yield_percent (0–1, default 1) is
+  // the usable fraction, so cost per usable serving rises as yield falls.
+  const yieldP =
+    recipe?.yield_percent != null && recipe.yield_percent > 0
+      ? recipe.yield_percent
+      : 1
+  if (size && size > 0) return batchCost / (size * yieldP)
+  return batchCost / yieldP
 }
 
 // Build the ResolveContext maps from flat arrays.

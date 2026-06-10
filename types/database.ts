@@ -333,6 +333,7 @@ export interface Database {
           serving_size: number | null
           serving_unit: string | null
           sale_price: number | null
+          yield_percent: number | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -347,6 +348,7 @@ export interface Database {
           serving_size?: number | null
           serving_unit?: string | null
           sale_price?: number | null
+          yield_percent?: number | null
           notes?: string | null
           created_at?: string
           updated_at?: string
