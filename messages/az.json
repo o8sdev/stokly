@@ -21,6 +21,7 @@
     "shopping_list": "Sifariş siyahısı",
     "stock_aging": "Stok yaşlanması",
     "menu_engineering": "Menyu mühəndisliyi",
+    "by_location": "Məkana görə",
     "period_reports": "Dövr hesabatları",
     "signout": "Çıxış",
     "section": {
@@ -103,6 +104,15 @@
     "col_price": "Satış qiyməti",
     "col_margin": "Marja",
     "col_class": "Təsnifat"
+  },
+  "by_location": {
+    "subtitle": "Hər məkan üzrə stok dəyəri + dövr üzrə satış və itki (yalnız istehlak nöqtələri).",
+    "not_in_plan": "Bu hesabat cari tarifinizə daxil deyil (Peşəkar+).",
+    "empty": "Məkan yoxdur.",
+    "col_location": "Məkan",
+    "col_stock_value": "Stok dəyəri",
+    "col_sales": "Satış (maya)",
+    "col_waste": "İtki"
   },
   "auth": {
     "login_title": "Daxil ol",
@@ -788,6 +798,8 @@
     "no_batches": "Aktiv partiya yoxdur"
   },
   "reports": {
+    "by_location": "Məkana görə hesabat",
+    "by_location_desc": "Hər istehlak nöqtəsi üzrə stok, satış və itki dəyəri.",
     "menu_engineering": "Menyu mühəndisliyi",
     "menu_engineering_desc": "Satış payı × marja: ulduzlar, iş atları, tapmacalar, itlər.",
     "stock_aging": "Stok yaşlanması",

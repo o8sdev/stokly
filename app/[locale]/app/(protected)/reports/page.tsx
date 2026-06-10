@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Hourglass,
   Grid2x2,
+  Warehouse,
 } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { PageHeader } from '@/components/layout/page-header'
@@ -54,6 +55,12 @@ export default async function ReportsPage({
       title: t('menu_engineering'),
       desc: t('menu_engineering_desc'),
       icon: Grid2x2,
+    },
+    {
+      href: '/app/reports/by-location',
+      title: t('by_location'),
+      desc: t('by_location_desc'),
+      icon: Warehouse,
     },
   ]
 

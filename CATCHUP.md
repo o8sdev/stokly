@@ -5,20 +5,21 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-10 (Tier C analytics: C5 stock aging, C6 menu engineering, and
-C1/C2/C3 period KPIs (turnover, days-on-hand, waste %) — all no-migration report work.
-Tier B done: B1 par + shopping list (mig 034), B2 price history/variance, B3 sub-recipe
-yield (mig 035). Remaining: B4 custom units + C4 prime cost (labor) — one focused pass.
-Prior: data-integrity round — production/prep runs, unit conversions, expiry write-off;
-storage locations + transfers + kitchen consumption; per-line-supplier purchases)._
+_Last updated: 2026-06-10 (Multiple consumption points (Bar + Kitchen): locations gained a
+`kind` + multiple `is_consumption_point`s with one `is_default_consumption`; recipes route
+to a consumption location; sales/waste/production deduct per location (migrations 036–039,
+`is_kitchen` dropped); `multi_location` feature gate (Pro+); per-location report. Prior:
+Tier C (C1/C2/C3 KPIs, C5 stock aging, C6 menu engineering); Tier B (B1 par+shopping list
+mig 034, B2 price variance, B3 sub-recipe yield mig 035). Remaining roadmap: B4 custom
+units + C4 prime cost (labor))._
 
 ---
 
 ## 0. READ FIRST — current state, roadmap, how to continue
 
 **Repo:** github.com/o8sdev/stokly (branch `main`). **Supabase project ref:**
-`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `035`** (the DB is already
-migrated; on a *fresh* DB apply `supabase/migrations/001 → 035` in filename order).
+`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `039`** (the DB is already
+migrated; on a *fresh* DB apply `supabase/migrations/001 → 039` in filename order).
 Working tree is committed; latest commit messages are the quickest "what changed" log.
 
 ### The end-to-end loop that now works
@@ -272,6 +273,32 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — Multiple consumption points (Bar + Kitchen)
+A venue can run several consumption points (e.g. a Bar drawing down its own stock, separate
+from the Kitchen). Shipped in 6 phases (migrations 036–039), gated by the new `multi_location`
+feature (Professional+/trial; Starter excluded); basic locations + transfers stay free.
+- **Schema (036, 039):** `storage_locations` gained `kind` (kitchen/bar/prep/storage/
+  cold_storage/freezer/receiving), multi-valued `is_consumption_point`, and one
+  `is_default_consumption` per tenant — replacing the single `is_kitchen` (since dropped).
+  `recipes.consumption_location_id` (ON DELETE SET NULL) routes a dish to a point.
+  `default_consumption_location()` helper; `handle_new_tenant` seeds kind + flags.
+- **Routing RPCs (037):** `confirm_daily_sales` (`p_usage` gains per-line `location_id`),
+  `record_waste` (`p_location_id`), `execute_production_run` (`p_input_location_id`) FIFO from
+  a parameterized location (coalesce → default); error generalized to `location_short:<loc>:<ing>`;
+  no-batch fallback preserved; void/reverse unchanged (restore by batch_id). Old single-kitchen
+  overloads dropped.
+- **App (P4–P5):** locations manager (kind selector + consumption-point/default-consumption
+  chips + presets; 2nd point gated by `multi_location`); recipe form consumption-location
+  picker (dishes); `confirmDailySales` partitions sold items by recipe location, emits
+  per-(ingredient, location) usage; `getDayConfirmPreview` mirrors it (per-location
+  availability, `DayConfirmPreviewLine.location_name`); waste + production location selectors;
+  `getConsumptionPoints` helper.
+- **Reporting (P6):** `/app/reports/by-location` (gated) — stock value + period sales/waste per
+  consumption point. Bilingual az/ru throughout; each phase typecheck+lint+build green; migrations
+  036–039 applied + verified.
+- **Follow-ups:** surface `location_name` per line in the sales confirm UI (data already flows);
+  the admin `hardDeleteTenant` ordered-delete bug (found during the DAD House cleanup) is still open.
 
 ### Done — Tier C6: menu engineering report
 Classify priced menu items by popularity × profitability into stars / plowhorses /

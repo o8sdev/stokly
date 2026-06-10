@@ -763,3 +763,74 @@ export async function getConsumptionPoints(
     defaultId: locs.find((l) => l.is_default_consumption)?.id ?? null,
   }
 }
+
+export interface LocationReportRow {
+  id: string
+  name: string
+  kind: string | null
+  is_consumption_point: boolean
+  stock_value: number
+  sales_value: number
+  waste_value: number
+}
+
+// Per-location report (multi_location): current stock value per location + the
+// period's sales COGS and waste value attributed to each consumption point
+// (from the from_location_id stamped on sale/waste movements).
+export async function getLocationReport(
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<LocationReportRow[]> {
+  const supabase = createClient()
+  const fromStart = `${from}T00:00:00.000Z`
+  const toEnd = `${to}T23:59:59.999Z`
+  const [locsRes, batchesRes, movesRes] = await Promise.all([
+    supabase
+      .from('storage_locations')
+      .select('id, name, kind, is_consumption_point')
+      .eq('tenant_id', tenantId)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('ingredient_batches')
+      .select('location_id, quantity_remaining, unit_cost')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'active')
+      .gt('quantity_remaining', 0),
+    supabase
+      .from('stock_movements')
+      .select('from_location_id, movement_type, quantity, unit_cost')
+      .eq('tenant_id', tenantId)
+      .in('movement_type', ['sale', 'waste'])
+      .gte('created_at', fromStart)
+      .lte('created_at', toEnd),
+  ])
+
+  const stockVal = new Map<string, number>()
+  for (const b of batchesRes.data ?? []) {
+    if (!b.location_id) continue
+    stockVal.set(
+      b.location_id,
+      (stockVal.get(b.location_id) ?? 0) +
+        Number(b.quantity_remaining) * Number(b.unit_cost)
+    )
+  }
+  const salesVal = new Map<string, number>()
+  const wasteVal = new Map<string, number>()
+  for (const m of movesRes.data ?? []) {
+    if (!m.from_location_id) continue
+    const v = Math.abs(Number(m.quantity)) * Number(m.unit_cost ?? 0)
+    const tgt = m.movement_type === 'sale' ? salesVal : wasteVal
+    tgt.set(m.from_location_id, (tgt.get(m.from_location_id) ?? 0) + v)
+  }
+
+  return (locsRes.data ?? []).map((l) => ({
+    id: l.id,
+    name: l.name,
+    kind: l.kind,
+    is_consumption_point: l.is_consumption_point,
+    stock_value: round3(stockVal.get(l.id) ?? 0),
+    sales_value: round3(salesVal.get(l.id) ?? 0),
+    waste_value: round3(wasteVal.get(l.id) ?? 0),
+  }))
+}

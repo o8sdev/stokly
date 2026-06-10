@@ -461,7 +461,6 @@ export interface Database {
           id: string
           tenant_id: string
           name: string
-          is_kitchen: boolean
           is_default_receiving: boolean
           is_frozen: boolean
           kind: string | null
@@ -474,7 +473,6 @@ export interface Database {
           id?: string
           tenant_id: string
           name: string
-          is_kitchen?: boolean
           is_default_receiving?: boolean
           is_frozen?: boolean
           kind?: string | null

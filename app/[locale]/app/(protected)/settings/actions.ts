@@ -262,9 +262,8 @@ export async function deleteLocation(
 }
 
 // Promote a location to THE default consumption point — only one per tenant.
-// Clears the old default (and its vestigial is_kitchen mirror, kept in sync for
-// the not-yet-migrated readers until migration 039), then sets the new one. The
-// default is always a consumption point.
+// Clears the old default, then sets the new one (which is always a consumption
+// point).
 export async function setDefaultConsumptionLocation(
   locale: string,
   id: string
@@ -274,16 +273,12 @@ export async function setDefaultConsumptionLocation(
   const supabase = createClient()
   await supabase
     .from('storage_locations')
-    .update({ is_default_consumption: false, is_kitchen: false })
+    .update({ is_default_consumption: false })
     .eq('tenant_id', ctx.tenantId)
     .neq('id', id)
   await supabase
     .from('storage_locations')
-    .update({
-      is_default_consumption: true,
-      is_consumption_point: true,
-      is_kitchen: true,
-    })
+    .update({ is_default_consumption: true, is_consumption_point: true })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
   revalidatePath(LOC_PATH(locale))

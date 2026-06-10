@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Hourglass,
   Grid2x2,
+  Warehouse,
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
@@ -95,6 +96,11 @@ export const NAV_SECTIONS: NavSection[] = [
         href: '/app/reports/menu-engineering',
         labelKey: 'menu_engineering',
         icon: Grid2x2,
+      },
+      {
+        href: '/app/reports/by-location',
+        labelKey: 'by_location',
+        icon: Warehouse,
       },
     ],
   },
