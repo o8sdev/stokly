@@ -312,3 +312,20 @@ export async function reverseWaste(
   revalidatePath(`/${locale}/app/dashboard`)
   return {}
 }
+
+// Remove all expired stock: each active batch past its use-by gets an
+// 'expiry_writeoff' movement and is marked expired (so it leaves inventory).
+export async function writeOffExpired(
+  locale: string
+): Promise<InventoryActionResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const supabase = createClient()
+  const { error } = await supabase.rpc('write_off_expired', {
+    p_tenant: ctx.tenantId,
+  })
+  if (error) return { error: 'generic' }
+  revalidatePath(`/${locale}/app/inventory`)
+  revalidatePath(`/${locale}/app/dashboard`)
+  return { success: true }
+}

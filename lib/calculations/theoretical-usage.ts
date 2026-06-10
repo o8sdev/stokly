@@ -1,5 +1,6 @@
 import type { Ingredient, Recipe, RecipeIngredient } from '@/types/database'
 import { buildResolveContext } from './recipe-cost'
+import { toBaseUnit } from '@/lib/constants/units'
 
 // ── Theoretical usage ────────────────────────────────────────────────────
 // Given what was sold (menu item → quantity), explode each sold recipe into the
@@ -39,7 +40,12 @@ function explode(
       const ing = ctx.ingredients.get(line.ingredient_id)
       const rawYield = line.yield_override ?? ing?.yield_percent ?? 1
       const y = rawYield > 0 && rawYield <= 1 ? rawYield : 1
-      const consumed = (qty * line.quantity) / y
+      // Convert the line quantity into the ingredient's base/stock unit so the
+      // depleted quantity matches how stock is tracked.
+      const baseQty = ing
+        ? toBaseUnit(line.quantity, line.unit, ing.unit)
+        : line.quantity
+      const consumed = (qty * baseQty) / y
       acc.set(
         line.ingredient_id,
         (acc.get(line.ingredient_id) ?? 0) + consumed

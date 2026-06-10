@@ -5,6 +5,7 @@ import type {
 } from '@/types/database'
 import type { RecipeWithCost } from '@/types/app'
 import { ingredientLineCost, foodCostPercent } from './food-cost'
+import { toBaseUnit } from '@/lib/constants/units'
 
 interface ResolveContext {
   ingredients: Map<string, Ingredient>
@@ -32,8 +33,11 @@ export function resolveRecipeCost(
       if (!ingredient) continue
       const yieldPercent =
         line.yield_override ?? ingredient.yield_percent ?? 1
+      // Convert the line's quantity into the ingredient's base/stock unit (the
+      // unit cost_per_unit is expressed in) before costing.
+      const baseQty = toBaseUnit(line.quantity, line.unit, ingredient.unit)
       total += ingredientLineCost(
-        line.quantity,
+        baseQty,
         ingredient.cost_per_unit,
         yieldPercent
       )

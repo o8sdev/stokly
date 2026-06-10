@@ -396,6 +396,7 @@ export interface Database {
           daily_sales_id: string | null
           from_location_id: string | null
           to_location_id: string | null
+          production_run_id: string | null
           created_at: string
         }
         Insert: {
@@ -417,6 +418,7 @@ export interface Database {
           daily_sales_id?: string | null
           from_location_id?: string | null
           to_location_id?: string | null
+          production_run_id?: string | null
           created_at?: string
         }
         // Append-only by domain rule (enforced via RLS — no update policy).
@@ -927,6 +929,25 @@ export interface Database {
       reverse_waste: {
         Args: { p_movement_id: string }
         Returns: undefined
+      }
+      execute_production_run: {
+        Args: {
+          p_output_ingredient_id: string
+          p_output_quantity: number
+          p_expiry: string | null
+          p_recipe_id: string | null
+          p_notes: string | null
+          p_inputs: Json
+        }
+        Returns: string
+      }
+      void_production_run: {
+        Args: { p_run_id: string }
+        Returns: undefined
+      }
+      write_off_expired: {
+        Args: { p_tenant: string }
+        Returns: number
       }
       submit_demo_request: {
         Args: {

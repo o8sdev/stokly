@@ -37,15 +37,20 @@ export function deriveStockLevel(
       // All other movements are deltas
       switch (movement.movement_type) {
         case 'delivery':
+        case 'production_output': // a batch produced in-house adds stock
           level += movement.quantity
           break
         case 'waste':
         case 'sale':
+        case 'production_input': // raw consumed by a production run
+        case 'expiry_writeoff': // expired stock removed
           level -= Math.abs(movement.quantity)
           break
         case 'adjustment':
           level += movement.quantity // can be negative
           break
+        // 'count' handled above (is_absolute); 'transfer' is a no-op for the
+        // ingredient total (it only changes which location holds the stock).
       }
     }
   }
@@ -74,10 +79,13 @@ export function deriveAllStockLevels(
     }
     switch (movement.movement_type) {
       case 'delivery':
+      case 'production_output':
         levels.set(movement.ingredient_id, current + movement.quantity)
         break
       case 'waste':
       case 'sale':
+      case 'production_input':
+      case 'expiry_writeoff':
         levels.set(
           movement.ingredient_id,
           current - Math.abs(movement.quantity)
@@ -86,6 +94,7 @@ export function deriveAllStockLevels(
       case 'adjustment':
         levels.set(movement.ingredient_id, current + movement.quantity)
         break
+      // 'transfer' is intentionally a no-op for the ingredient total.
     }
   }
 

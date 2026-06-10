@@ -1,33 +1,37 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Factory } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { Link } from '@/lib/i18n/navigation'
+import { requireTenant } from '@/lib/auth/tenant'
+import { getProductionRuns } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
-import { StoklyCard } from '@/components/ui/stokly-theme'
+import { Button } from '@/components/ui/button'
+import { ProductionRunsList } from '@/components/production/production-runs-list'
 
-// Phase 2 placeholder. The data model (production_runs, production_run_inputs,
-// ingredient_batches, FIFO/cost helpers) already exists; the full screen ships
-// in Phase 2.
 export default async function ProductionPage({
   params: { locale },
 }: {
   params: { locale: string }
 }) {
   setRequestLocale(locale)
-  const t = await getTranslations('production')
+  const t = await getTranslations()
+  const ctx = await requireTenant(locale)
+  const runs = await getProductionRuns(ctx.tenantId)
 
   return (
     <div>
-      <PageHeader title={t('title')} />
-      <StoklyCard className="flex flex-col items-center justify-center gap-4 px-6 py-20 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Factory className="h-7 w-7" />
-        </div>
-        <div>
-          <p className="text-lg font-semibold">{t('coming_soon')}</p>
-          <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            {t('coming_soon_desc')}
-          </p>
-        </div>
-      </StoklyCard>
+      <PageHeader
+        title={t('production.title')}
+        description={t('production.subtitle')}
+        action={
+          <Button asChild className="gap-2">
+            <Link href="/app/production/new">
+              <Plus className="h-4 w-4" />
+              {t('production.new')}
+            </Link>
+          </Button>
+        }
+      />
+      <ProductionRunsList locale={locale} runs={runs} />
     </div>
   )
 }

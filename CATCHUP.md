@@ -201,6 +201,30 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — data-integrity round (production, unit conversions, expiry write-off)
+Researched real restaurant back-of-house best practice (procurement → receive → store
+→ kitchen → prep/batch → sell → waste → count → cost/variance) and audited our logic.
+Core loop was solid; fixed the three correctness gaps that silently drift stock/COGS:
+- **Stock reducer** (`stock-level.ts`): now handles `production_input` (−), `production_output`
+  (+) and `expiry_writeoff` (−) (transfer stays a no-op). Period report buckets production
+  (produced as inbound, raw-into-production excluded so cost isn't double-counted).
+- **Production / prep (full)** — migration **032** `execute_production_run` (atomic, kitchen
+  FIFO inputs → produced batch with rolled-up cost + shelf-life expiry + actual yield;
+  refreshes the produced ingredient's cost) + `void_production_run`. New `/app/production`
+  list + `/app/production/new` form (recipe template pre-fills inputs, live cost/yield).
+  Verified: 5 kg chicken etc. → 4.2 kg nuggets @ 4.976 cost, yield 73.7%, invariant holds;
+  void restores it.
+- **Unit conversions (v1)** — `units.ts` metric families (kq↔q, l↔ml) + `toBaseUnit`,
+  applied in `recipe-cost` + `theoretical-usage` so a recipe written in `q`/`ml` for a
+  `kq`/`l` ingredient now costs/depletes correctly. Per-ingredient custom (piece/pack)
+  conversions deferred to Tier B (not shipped half-wired).
+- **Expiry write-off** — migration **033** `write_off_expired` + a "N expired — write off"
+  panel on the inventory hub. Expired batches now actually leave inventory/COGS.
+- Bilingual az/ru; typecheck + lint + build (92 pages) green; engines smoke-tested via
+  BEGIN/ROLLBACK. **Deferred roadmap** (documented in the plan): Tier B (par/build-to-par
+  + suggested order, supplier price history/variance, sub-recipe yield, custom units) and
+  Tier C (turnover, days-on-hand, waste %, prime cost, stock aging, menu engineering).
+
 ### Done — Satış / Alış nav dropdown + Alışlar (purchases) page
 The sidebar **Satışlar** item is now a collapsible **"Satış / Alış"** group with two
 children — **Satışlar** (`/app/sales`) and **Alışlar** (`/app/purchases`). The group

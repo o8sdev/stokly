@@ -16,6 +16,12 @@ export interface PeriodReportLine {
   unit_cost: number
   opening_qty: number
   delivered_qty: number
+  // In-house production: produced_qty added stock (production_output), consumed_qty
+  // was raw drawn into a production run (production_input). Usage excludes the
+  // latter so a raw ingredient's cost isn't double-counted (it's capitalised into
+  // the produced item's cost) — the produced item then counts when it's sold.
+  produced_qty: number
+  consumed_qty: number
   waste_qty: number
   closing_qty: number
   usage_qty: number
@@ -91,12 +97,21 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     daysInPeriod,
   } = input
 
-  // Sum deliveries and waste per ingredient over the period.
-  const delivered = new Map<string, number>()
-  const wasted = new Map<string, number>()
+  // Bucket the period's movements per ingredient.
+  const delivered = new Map<string, number>() // purchases (delivery)
+  const produced = new Map<string, number>() // made in-house (production_output)
+  const consumedInProd = new Map<string, number>() // raw drawn into production
+  const wasted = new Map<string, number>() // waste + expiry write-off
   for (const m of periodMovements) {
     if (m.movement_type === 'delivery') {
       delivered.set(m.ingredient_id, (delivered.get(m.ingredient_id) ?? 0) + m.quantity)
+    } else if (m.movement_type === 'production_output') {
+      produced.set(m.ingredient_id, (produced.get(m.ingredient_id) ?? 0) + m.quantity)
+    } else if (m.movement_type === 'production_input') {
+      consumedInProd.set(
+        m.ingredient_id,
+        (consumedInProd.get(m.ingredient_id) ?? 0) + Math.abs(m.quantity)
+      )
     } else if (
       m.movement_type === 'waste' ||
       m.movement_type === 'expiry_writeoff'
@@ -121,6 +136,8 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     const opening_qty = openingLevels.get(ing.id) ?? 0
     const closing_qty = closingLevels.get(ing.id) ?? 0
     const delivered_qty = delivered.get(ing.id) ?? 0
+    const produced_qty = produced.get(ing.id) ?? 0
+    const consumed_qty = consumedInProd.get(ing.id) ?? 0
     const waste_qty = wasted.get(ing.id) ?? 0
     const theoretical_qty = theoreticalUsage.get(ing.id) ?? 0
 
@@ -129,6 +146,8 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
       Math.abs(opening_qty) < EPS &&
       Math.abs(closing_qty) < EPS &&
       Math.abs(delivered_qty) < EPS &&
+      Math.abs(produced_qty) < EPS &&
+      Math.abs(consumed_qty) < EPS &&
       Math.abs(waste_qty) < EPS &&
       Math.abs(theoretical_qty) < EPS
     ) {
@@ -136,7 +155,11 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
     }
 
     const cost = ing.cost_per_unit ?? 0
-    const usage_qty = opening_qty + delivered_qty - closing_qty
+    // Usage to the outside (sale + waste + expiry) = opening + inbound − closing,
+    // where inbound counts purchases AND in-house production, and raw drawn into
+    // production is added back (it's capitalised into the produced item's cost).
+    const usage_qty =
+      opening_qty + delivered_qty + produced_qty - closing_qty - consumed_qty
     const usage_value = usage_qty * cost
     const variance_qty = usage_qty - theoretical_qty
     const variance_value = variance_qty * cost
@@ -155,6 +178,8 @@ export function computePeriodReport(input: PeriodReportInput): PeriodReportData 
       unit_cost: round2(cost),
       opening_qty: round2(opening_qty),
       delivered_qty: round2(delivered_qty),
+      produced_qty: round2(produced_qty),
+      consumed_qty: round2(consumed_qty),
       waste_qty: round2(waste_qty),
       closing_qty: round2(closing_qty),
       usage_qty: round2(usage_qty),

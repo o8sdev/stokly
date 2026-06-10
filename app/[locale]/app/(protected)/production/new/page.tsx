@@ -1,11 +1,76 @@
-import { redirect } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { ChevronLeft } from 'lucide-react'
+import { Link } from '@/lib/i18n/navigation'
+import { requireTenant } from '@/lib/auth/tenant'
+import {
+  getIngredients,
+  getRecipes,
+  getRecipeIngredients,
+} from '@/lib/data/queries'
+import { PageHeader } from '@/components/layout/page-header'
+import { Button } from '@/components/ui/button'
+import { ProductionForm } from '@/components/production/production-form'
 
-// Phase 2 placeholder — the production builder does not exist yet, so this
-// route simply sends the user back to the production landing page.
-export default function NewProductionRun({
+export default async function NewProductionPage({
   params: { locale },
 }: {
   params: { locale: string }
 }) {
-  redirect(`/${locale}/app/production`)
+  setRequestLocale(locale)
+  const t = await getTranslations()
+  const ctx = await requireTenant(locale)
+  const [ingredients, recipes, recipeIngredients] = await Promise.all([
+    getIngredients(ctx.tenantId),
+    getRecipes(ctx.tenantId),
+    getRecipeIngredients(ctx.tenantId),
+  ])
+
+  // Direct ingredient lines per recipe (used to pre-fill production inputs).
+  const recipeLines: Record<string, { ingredient_id: string; quantity: number }[]> = {}
+  for (const l of recipeIngredients) {
+    if (!l.ingredient_id) continue
+    ;(recipeLines[l.recipe_id] ??= []).push({
+      ingredient_id: l.ingredient_id,
+      quantity: Number(l.quantity),
+    })
+  }
+
+  // Batch (sub-)recipes with ingredient lines make good production templates.
+  const templates = recipes
+    .filter((r) => r.is_sub_recipe && (recipeLines[r.id]?.length ?? 0) > 0)
+    .map((r) => ({
+      id: r.id,
+      name: (locale === 'ru' ? r.name_ru : r.name_az) || r.name,
+      serving_size: r.serving_size,
+    }))
+
+  const ingOpts = ingredients.map((i) => ({
+    id: i.id,
+    name: i.name,
+    unit: i.unit,
+    cost_per_unit: i.cost_per_unit,
+  }))
+
+  return (
+    <div>
+      <PageHeader
+        title={t('production.new')}
+        description={t('production.subtitle')}
+        action={
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/app/production">
+              <ChevronLeft className="h-4 w-4" />
+              {t('common.back')}
+            </Link>
+          </Button>
+        }
+      />
+      <ProductionForm
+        locale={locale}
+        ingredients={ingOpts}
+        recipes={templates}
+        recipeLines={recipeLines}
+      />
+    </div>
+  )
 }

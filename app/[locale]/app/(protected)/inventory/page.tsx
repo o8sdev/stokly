@@ -20,6 +20,7 @@ import {
   InventoryTable,
   type InventoryRow,
 } from '@/components/inventory/inventory-table'
+import { ExpiredWriteOff } from '@/components/inventory/expired-writeoff'
 
 export default async function InventoryPage({
   params: { locale },
@@ -39,6 +40,10 @@ export default async function InventoryPage({
   ])
 
   const levels = deriveAllStockLevels(movements)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const expiredCount = batches.filter(
+    (b) => b.expiry_date && b.expiry_date < todayStr && b.quantity_remaining > 0
+  ).length
   const locName = new Map(locations.map((l) => [l.id, l.name]))
   const locOrder = new Map(locations.map((l, idx) => [l.id, idx]))
 
@@ -116,6 +121,8 @@ export default async function InventoryPage({
           </div>
         }
       />
+
+      <ExpiredWriteOff locale={locale} count={expiredCount} />
 
       {rows.length === 0 ? (
         <div className="stokly-card">

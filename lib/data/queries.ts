@@ -287,6 +287,54 @@ export async function getWasteLog(
   })
 }
 
+export interface ProductionRunView {
+  id: string
+  output_name: string
+  output_quantity: number
+  output_unit: string
+  output_unit_cost: number | null
+  actual_yield_percent: number | null
+  produced_at: string
+  voided: boolean
+}
+
+// Recent production runs with the produced ingredient's name + voided flag.
+export async function getProductionRuns(
+  tenantId: string
+): Promise<ProductionRunView[]> {
+  const supabase = createClient()
+  const [runsRes, voidRes, ings] = await Promise.all([
+    supabase
+      .from('production_runs')
+      .select(
+        'id, output_ingredient_id, output_quantity, output_unit, output_unit_cost, actual_yield_percent, produced_at'
+      )
+      .eq('tenant_id', tenantId)
+      .order('produced_at', { ascending: false })
+      .limit(100),
+    supabase
+      .from('stock_movements')
+      .select('production_run_id')
+      .eq('tenant_id', tenantId)
+      .eq('reason', 'production_void'),
+    getIngredients(tenantId),
+  ])
+  const ingMap = new Map(ings.map((i) => [i.id, i]))
+  const voided = new Set(
+    (voidRes.data ?? []).map((r) => r.production_run_id as string | null)
+  )
+  return (runsRes.data ?? []).map((r) => ({
+    id: r.id,
+    output_name: ingMap.get(r.output_ingredient_id)?.name ?? '—',
+    output_quantity: Number(r.output_quantity),
+    output_unit: r.output_unit,
+    output_unit_cost: r.output_unit_cost,
+    actual_yield_percent: r.actual_yield_percent,
+    produced_at: r.produced_at,
+    voided: voided.has(r.id),
+  }))
+}
+
 export interface PurchaseLogEntry {
   id: string
   ingredient_id: string
