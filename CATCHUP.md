@@ -5,13 +5,14 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-10 (Tier B1: par levels + build-to-par shopping list —
-`ingredients.par_level`, suggested-order list grouped by supplier, "create purchase
-from list" prefill. **Migration 034 applied live.**
-Prior: data-integrity round — production/prep runs, unit conversions, expiry
-write-off; storage locations + warehouse→kitchen transfers + kitchen-only
-consumption; per-line-supplier purchases + Alışlar page; Satış/Alış nav dropdown;
-sales confirm/lock + FIFO; onboarding/nav fixes)._
+_Last updated: 2026-06-10 (Tier B2: supplier price history + receiving price-variance —
+per-ingredient last/avg price stats, a price-history panel on the ingredient page, and a
+>10% deviation chip on the purchase form (no migration). Tier B1: par levels +
+build-to-par shopping list — `ingredients.par_level` (migration 034 applied live),
+suggested-order list grouped by supplier, "create purchase from list" prefill. Prior:
+data-integrity round — production/prep runs, unit conversions, expiry write-off; storage
+locations + warehouse→kitchen transfers + kitchen-only consumption; per-line-supplier
+purchases + Alışlar page; Satış/Alış nav dropdown; sales confirm/lock + FIFO)._
 
 ---
 
@@ -54,12 +55,11 @@ theoretical-vs-actual variance, food-cost %). Reports: food-cost, inventory-valu
 Plan file: `C:\Users\Rhabi\.claude\plans\quizzical-scribbling-goblet.md` (research +
 audit vs restaurant best practice + the tiered roadmap). **Data-integrity tier = DONE.**
 **Detailed, buildable specs for every Tier B / Tier C item below are in §9.**
-- **Tier B — planning & control:** **B1 par + build-to-par shopping list = DONE (migration
-  034 applied live).** Next up — supplier **price history** + receiving
-  **price-variance** alerts (last vs avg cost); **sub-recipe yield %**; **per-ingredient
-  custom unit conversions** (piece/pack, e.g. 1 case = 24, 1 egg = 50 g — v1 only does
-  metric families kg↔g, l↔ml); retire the legacy free-text `ingredients.storage_location`
-  (superseded by `storage_locations`).
+- **Tier B — planning & control:** **B1 (par + build-to-par shopping list, migration 034)
+  and B2 (supplier price history + receiving price-variance) = DONE.** Next up —
+  **sub-recipe yield %**; **per-ingredient custom unit conversions** (piece/pack, e.g.
+  1 case = 24, 1 egg = 50 g — v1 only does metric families kg↔g, l↔ml); retire the legacy
+  free-text `ingredients.storage_location` (superseded by `storage_locations`).
 - **Tier C — analytics & KPIs:** ideal-vs-actual food-cost %, **inventory turnover**,
   days-on-hand, **waste %**, prime cost, **stock aging**, **menu engineering**
   (stars/plowhorses/puzzles/dogs from sales-mix × margin).
@@ -274,6 +274,26 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — Tier B2: supplier price history + receiving price-variance
+Receiving cost control. No migration — built from existing `delivery` movements
+(`unit_cost` / `supplier_id` / `created_at`).
+- Pure calc `lib/calculations/price-variance.ts`: `PriceStat` (last cost + moving avg of
+  the last 5 deliveries + count), `priceVariance = (cost − avg)/avg`, `isPriceOutlier`
+  (>10%). Usable both server- and client-side.
+- Data `lib/data/queries.ts`: `getIngredientPriceStats` (per-ingredient stats keyed by id,
+  for the form) + `getIngredientPriceHistory` (one ingredient's deliveries + supplier names
+  + stat, for the panel).
+- **Price-history panel** (`components/ingredients/price-history-panel.tsx`) on the
+  ingredient detail/edit page: last / avg / delivery-count cards + a per-delivery table
+  flagging each purchase's % vs the average (amber above, green below).
+- **Receiving variance chip** on the purchase form: each line shows the selected
+  ingredient's last/avg price and, when the typed `unit_cost` deviates >10% from the moving
+  average, a ↑/↓ chip. `DeliveryForm` gained a `priceStats` prop; the purchases page feeds
+  it `getIngredientPriceStats`.
+- Bilingual az/ru (`price_history.*`). typecheck + lint + build green.
+- Note: §9 said "extend `getPurchaseLog` with last/avg"; delivered as the dedicated
+  price-history panel + form chip instead (clearer surfaces than per-row log stats).
 
 ### Done (code) — Tier B1: par levels + build-to-par shopping list
 Build-to-par planning. `ingredients.par_level` (migration **034**) is the *target* to top
@@ -852,7 +872,7 @@ existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
   cost, grouped by supplier; "create purchase from list" pre-fills the Alışlar
   `DeliveryForm`. Add the `par_level` input to the ingredient form.
 
-**B2 · Supplier price history + receiving price-variance**
+**B2 · Supplier price history + receiving price-variance — ✅ DONE**
 - Data already exists (delivery `stock_movements`: unit_cost/supplier_id/created_at +
   `ingredient_batches`: unit_cost/received_date) — **no migration**.
 - Calc: per ingredient, last price + moving average of last N deliveries;

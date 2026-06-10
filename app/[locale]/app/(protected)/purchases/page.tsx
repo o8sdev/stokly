@@ -5,6 +5,7 @@ import {
   getSuppliers,
   getStorageLocations,
   getPurchaseLog,
+  getIngredientPriceStats,
 } from '@/lib/data/queries'
 import type { IngredientOption, SupplierOption } from '@/types/app'
 import { PageHeader } from '@/components/layout/page-header'
@@ -36,12 +37,14 @@ export default async function PurchasesPage({
     ? (searchParams.to as string)
     : today
 
-  const [ingredients, suppliers, locations, log] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getSuppliers(ctx.tenantId),
-    getStorageLocations(ctx.tenantId),
-    getPurchaseLog(ctx.tenantId, from, to),
-  ])
+  const [ingredients, suppliers, locations, log, priceStats] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getSuppliers(ctx.tenantId),
+      getStorageLocations(ctx.tenantId),
+      getPurchaseLog(ctx.tenantId, from, to),
+      getIngredientPriceStats(ctx.tenantId),
+    ])
 
   const ingredientOptions: IngredientOption[] = ingredients.map((i) => ({
     id: i.id,
@@ -105,6 +108,7 @@ export default async function PurchasesPage({
           ingredients={ingredientOptions}
           suppliers={supplierOptions}
           initialLines={initialLines}
+          priceStats={priceStats}
           locations={locations.map((l) => ({
             id: l.id,
             name: l.name,

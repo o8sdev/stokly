@@ -13,7 +13,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { formatMoney } from '@/lib/utils'
+import { formatMoney, cn } from '@/lib/utils'
+import {
+  priceVariance,
+  isPriceOutlier,
+  type PriceStat,
+} from '@/lib/calculations/price-variance'
 
 interface LocationOption {
   id: string
@@ -49,12 +54,14 @@ export function DeliveryForm({
   suppliers,
   locations,
   initialLines,
+  priceStats,
 }: {
   locale: string
   ingredients: IngredientOption[]
   suppliers: SupplierOption[]
   locations: LocationOption[]
   initialLines?: { ingredient_id: string; quantity: number }[]
+  priceStats?: Record<string, PriceStat>
 }) {
   const t = useTranslations()
   const defaultLocation =
@@ -168,7 +175,14 @@ export function DeliveryForm({
       )}
 
       <div className="space-y-2">
-        {lines.map((line) => (
+        {lines.map((line) => {
+          const stat = priceStats?.[line.ingredient_id]
+          const typedCost = Number(line.unit_cost)
+          const variance = priceVariance(typedCost, stat?.avg_cost ?? null)
+          const outlier =
+            line.unit_cost !== '' &&
+            isPriceOutlier(typedCost, stat?.avg_cost ?? null)
+          return (
           <div
             key={line.key}
             className="space-y-2 rounded-lg border border-border p-3"
@@ -243,6 +257,38 @@ export function DeliveryForm({
               </Button>
             </div>
 
+            {stat && line.ingredient_id && (
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="text-muted-foreground">
+                  {t('price_history.last_label')}{' '}
+                  <span className="font-mono tabular-nums">
+                    {stat.last_cost != null ? formatMoney(stat.last_cost) : '—'}
+                  </span>
+                  {' · '}
+                  {t('price_history.avg_label')}{' '}
+                  <span className="font-mono tabular-nums">
+                    {stat.avg_cost != null ? formatMoney(stat.avg_cost) : '—'}
+                  </span>
+                </span>
+                {outlier && variance != null && (
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold',
+                      variance > 0
+                        ? 'bg-[#FEF3C7] text-[#92400E]'
+                        : 'bg-[#D1FAE5] text-[#065F46]'
+                    )}
+                  >
+                    {variance > 0 ? '↑' : '↓'}{' '}
+                    {Math.abs(variance * 100).toFixed(0)}%{' '}
+                    {variance > 0
+                      ? t('price_history.above_avg')
+                      : t('price_history.below_avg')}
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               <div className="space-y-1">
                 <Label className="text-xs">
@@ -276,7 +322,8 @@ export function DeliveryForm({
               </div>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="flex items-center justify-between">

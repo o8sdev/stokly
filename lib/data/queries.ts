@@ -17,6 +17,10 @@ import {
   computeShoppingList,
   type ShoppingItem,
 } from '@/lib/calculations/shopping-list'
+import {
+  computePriceStat,
+  type PriceStat,
+} from '@/lib/calculations/price-variance'
 
 const round3 = (n: number): number => Math.round(n * 1000) / 1000
 
@@ -619,4 +623,74 @@ export async function getShoppingList(
     Math.round(items.reduce((s, i) => s + i.est_cost, 0) * 100) / 100
 
   return { groups, total_est, item_count: items.length }
+}
+
+// Per-ingredient price stats (last cost + moving average of recent deliveries),
+// keyed by ingredient_id. Powers the receiving price-variance chip on the
+// purchase form. Built from delivery movements (newest first).
+export async function getIngredientPriceStats(
+  tenantId: string
+): Promise<Record<string, PriceStat>> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('stock_movements')
+    .select('ingredient_id, unit_cost, created_at')
+    .eq('tenant_id', tenantId)
+    .eq('movement_type', 'delivery')
+    .not('unit_cost', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(5000)
+
+  const byIngredient = new Map<string, number[]>()
+  for (const row of data ?? []) {
+    if (row.unit_cost == null) continue
+    const costs = byIngredient.get(row.ingredient_id) ?? []
+    costs.push(Number(row.unit_cost))
+    byIngredient.set(row.ingredient_id, costs)
+  }
+
+  const stats: Record<string, PriceStat> = {}
+  for (const [id, costs] of byIngredient) stats[id] = computePriceStat(costs)
+  return stats
+}
+
+export interface PriceHistoryEntry {
+  id: string
+  created_at: string
+  supplier_name: string | null
+  quantity: number
+  unit_cost: number
+}
+
+// Delivery price history for one ingredient (newest first) + its price stat.
+// Powers the price-history panel on the ingredient detail page.
+export async function getIngredientPriceHistory(
+  tenantId: string,
+  ingredientId: string
+): Promise<{ entries: PriceHistoryEntry[]; stat: PriceStat }> {
+  const supabase = createClient()
+  const [delRes, suppliers] = await Promise.all([
+    supabase
+      .from('stock_movements')
+      .select('id, unit_cost, supplier_id, quantity, created_at')
+      .eq('tenant_id', tenantId)
+      .eq('ingredient_id', ingredientId)
+      .eq('movement_type', 'delivery')
+      .not('unit_cost', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(100),
+    getSuppliers(tenantId),
+  ])
+
+  const supMap = new Map(suppliers.map((s) => [s.id, s.name]))
+  const entries: PriceHistoryEntry[] = (delRes.data ?? []).map((d) => ({
+    id: d.id,
+    created_at: d.created_at,
+    supplier_name: d.supplier_id ? (supMap.get(d.supplier_id) ?? null) : null,
+    quantity: Number(d.quantity),
+    unit_cost: Number(d.unit_cost ?? 0),
+  }))
+
+  const stat = computePriceStat(entries.map((e) => e.unit_cost))
+  return { entries, stat }
 }

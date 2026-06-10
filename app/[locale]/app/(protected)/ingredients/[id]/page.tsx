@@ -1,9 +1,14 @@
 import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getIngredient, getSuppliers } from '@/lib/data/queries'
+import {
+  getIngredient,
+  getSuppliers,
+  getIngredientPriceHistory,
+} from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { IngredientForm } from '@/components/ingredients/ingredient-form'
+import { PriceHistoryPanel } from '@/components/ingredients/price-history-panel'
 
 export default async function EditIngredientPage({
   params: { locale, id },
@@ -14,9 +19,10 @@ export default async function EditIngredientPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredient, suppliers] = await Promise.all([
+  const [ingredient, suppliers, priceHistory] = await Promise.all([
     getIngredient(ctx.tenantId, id),
     getSuppliers(ctx.tenantId),
+    getIngredientPriceHistory(ctx.tenantId, id),
   ])
 
   if (!ingredient) notFound()
@@ -28,6 +34,11 @@ export default async function EditIngredientPage({
         locale={locale}
         suppliers={suppliers}
         ingredient={ingredient}
+      />
+      <PriceHistoryPanel
+        entries={priceHistory.entries}
+        stat={priceHistory.stat}
+        unit={ingredient.unit}
       />
     </div>
   )

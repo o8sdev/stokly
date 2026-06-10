@@ -55,6 +55,18 @@
     "view_list": "Sifariş siyahısı",
     "prefilled_note": "Sətirlər sifariş siyahısından dolduruldu — miqdarları yoxlayıb yadda saxlayın."
   },
+  "price_history": {
+    "title": "Qiymət tarixçəsi",
+    "last": "Son qiymət",
+    "avg": "Orta (son 5)",
+    "deliveries": "Çatdırılma sayı",
+    "empty": "Bu inqrediyent üçün alış tarixçəsi yoxdur.",
+    "vs_avg": "Ortaya görə",
+    "above_avg": "ortadan yuxarı",
+    "below_avg": "ortadan aşağı",
+    "last_label": "Son",
+    "avg_label": "Orta"
+  },
   "auth": {
     "login_title": "Daxil ol",
     "signup_title": "Qeydiyyat",
