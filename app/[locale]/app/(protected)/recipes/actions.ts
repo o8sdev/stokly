@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { recipeSchema } from '@/lib/validations/recipe'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
 
 export interface RecipeActionResult {
   error?: string
@@ -25,6 +26,26 @@ function parseRecipePayload(formData: FormData) {
 
 function toNumberOrNull(value: number | '' | undefined): number | null {
   return value === '' || value === undefined ? null : value
+}
+
+// Resolve a recipe's consumption-location routing: keep it only when the tenant
+// has multi_location AND the target is one of its consumption points; else null
+// (→ the RPC falls back to the default consumption point).
+async function resolveConsumptionLocation(
+  supabase: ReturnType<typeof createClient>,
+  tenantId: string,
+  raw: string | undefined
+): Promise<string | null> {
+  if (!raw) return null
+  if (!(await tenantHasFeature(tenantId, 'multi_location'))) return null
+  const { data } = await supabase
+    .from('storage_locations')
+    .select('id')
+    .eq('id', raw)
+    .eq('tenant_id', tenantId)
+    .eq('is_consumption_point', true)
+    .maybeSingle()
+  return data?.id ?? null
 }
 
 async function persistLines(
@@ -66,6 +87,11 @@ export async function createRecipe(
   const data = parsed.data
 
   const supabase = createClient()
+  const consumptionLocationId = await resolveConsumptionLocation(
+    supabase,
+    ctx.tenantId,
+    data.consumption_location_id
+  )
   const { data: recipe, error } = await supabase
     .from('recipes')
     .insert({
@@ -81,6 +107,7 @@ export async function createRecipe(
         data.yield_percent === '' || data.yield_percent === undefined
           ? 1
           : Number(data.yield_percent) / 100,
+      consumption_location_id: consumptionLocationId,
       notes: data.notes || null,
     })
     .select('id')
@@ -111,6 +138,11 @@ export async function updateRecipe(
   const data = parsed.data
 
   const supabase = createClient()
+  const consumptionLocationId = await resolveConsumptionLocation(
+    supabase,
+    ctx.tenantId,
+    data.consumption_location_id
+  )
   const { error } = await supabase
     .from('recipes')
     .update({
@@ -125,6 +157,7 @@ export async function updateRecipe(
         data.yield_percent === '' || data.yield_percent === undefined
           ? 1
           : Number(data.yield_percent) / 100,
+      consumption_location_id: consumptionLocationId,
       notes: data.notes || null,
     })
     .eq('id', id)

@@ -252,20 +252,47 @@ export async function confirmDailySales(
     getRecipes(ctx.tenantId),
     getRecipeIngredients(ctx.tenantId),
   ])
-  const { usageByIngredient } = computeTheoreticalUsage(
-    sold,
-    ingredients,
-    recipes,
-    recipeIngredients
-  )
   const costById = new Map(ingredients.map((i) => [i.id, i.cost_per_unit ?? 0]))
-  const usage = [...usageByIngredient.entries()]
-    .filter(([, qty]) => qty > 0)
-    .map(([ingredient_id, quantity]) => ({
-      ingredient_id,
-      quantity,
-      unit_cost: costById.get(ingredient_id) ?? 0,
-    }))
+
+  // Route each sold dish to its recipe's consumption location (null = the tenant
+  // default, which confirm_daily_sales coalesces). Partition sold items by that
+  // location, explode each bucket, and emit per-(ingredient, location) usage rows
+  // so each line FIFO-deducts from the right consumption point.
+  const locByRecipe = new Map(
+    recipes.map((r) => [r.id, r.consumption_location_id ?? null])
+  )
+  const buckets = new Map<string | null, typeof sold>()
+  for (const s of sold) {
+    const loc = locByRecipe.get(s.recipe_id) ?? null
+    const arr = buckets.get(loc) ?? []
+    arr.push(s)
+    buckets.set(loc, arr)
+  }
+
+  const usage: {
+    ingredient_id: string
+    quantity: number
+    unit_cost: number
+    location_id: string | null
+  }[] = []
+  for (const [loc, bucketItems] of buckets) {
+    const { usageByIngredient } = computeTheoreticalUsage(
+      bucketItems,
+      ingredients,
+      recipes,
+      recipeIngredients
+    )
+    for (const [ingredient_id, quantity] of usageByIngredient) {
+      if (quantity > 0) {
+        usage.push({
+          ingredient_id,
+          quantity,
+          unit_cost: costById.get(ingredient_id) ?? 0,
+          location_id: loc,
+        })
+      }
+    }
+  }
 
   const { error } = await supabase.rpc('confirm_daily_sales', {
     p_day_id: dayId,

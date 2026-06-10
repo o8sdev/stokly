@@ -465,6 +465,8 @@ export interface DayConfirmPreviewLine {
   quantity: number
   current_stock: number
   short: boolean
+  // The consumption point this line deducts from (null = tenant default).
+  location_name: string | null
 }
 export interface DayConfirmPreview {
   lines: DayConfirmPreviewLine[]
@@ -499,25 +501,32 @@ export async function getDayConfirmPreview(
       getStockByLocation(tenantId),
     ])
 
-  const { usageByIngredient, theoreticalCogs } = computeTheoreticalUsage(
-    sold,
-    ingredients,
-    recipes,
-    recipeIngredients
-  )
   const levels = deriveAllStockLevels(movements)
   const ingById = new Map(ingredients.map((i) => [i.id, i]))
+  const recipeById = new Map(recipes.map((r) => [r.id, r]))
+  const defaultLoc =
+    locations.find((l) => l.is_default_consumption)?.id ?? null
+  const locName = new Map(locations.map((l) => [l.id, l.name]))
 
-  // Sales consume the KITCHEN, so "available" here means kitchen stock — except
-  // for ingredients that have never been batch-tracked (count-only), which fall
-  // back to the derived total, matching confirm_daily_sales. "Ever batched" keys
-  // on any batch row (any status), exactly like the RPC's no-batch decision.
-  const kitchenId = locations.find((l) => l.is_kitchen)?.id ?? null
-  const kitchenQty = new Map<string, number>()
+  // Mirror confirm_daily_sales: route each sold dish to its recipe's consumption
+  // location (null → default), then check availability AT THAT LOCATION — except
+  // count-only ingredients (never batch-tracked), which fall back to the derived
+  // total. "Ever batched" keys on any batch row (any status), like the RPC.
+  const buckets = new Map<string | null, typeof sold>()
+  for (const s of sold) {
+    const loc =
+      recipeById.get(s.recipe_id)?.consumption_location_id ?? defaultLoc
+    const arr = buckets.get(loc) ?? []
+    arr.push(s)
+    buckets.set(loc, arr)
+  }
+
+  const qtyByLoc = new Map<string, Map<string, number>>()
   for (const s of byLoc) {
-    if (s.location_id === kitchenId) {
-      kitchenQty.set(s.ingredient_id, (kitchenQty.get(s.ingredient_id) ?? 0) + s.qty)
-    }
+    if (!s.location_id) continue
+    const m = qtyByLoc.get(s.location_id) ?? new Map<string, number>()
+    m.set(s.ingredient_id, (m.get(s.ingredient_id) ?? 0) + s.qty)
+    qtyByLoc.set(s.location_id, m)
   }
   const { data: batchRows } = await supabase
     .from('ingredient_batches')
@@ -525,27 +534,40 @@ export async function getDayConfirmPreview(
     .eq('tenant_id', tenantId)
   const everBatched = new Set((batchRows ?? []).map((r) => r.ingredient_id))
 
-  const lines: DayConfirmPreviewLine[] = [...usageByIngredient.entries()]
-    .filter(([, qty]) => qty > 0)
-    .map(([id, qty]) => {
+  let cogs = 0
+  const lines: DayConfirmPreviewLine[] = []
+  for (const [loc, bucketItems] of buckets) {
+    const { usageByIngredient, theoreticalCogs } = computeTheoreticalUsage(
+      bucketItems,
+      ingredients,
+      recipes,
+      recipeIngredients
+    )
+    cogs += theoreticalCogs
+    for (const [id, qty] of usageByIngredient) {
+      if (qty <= 0) continue
       const ing = ingById.get(id)
       const available = everBatched.has(id)
-        ? kitchenQty.get(id) ?? 0
+        ? loc
+          ? qtyByLoc.get(loc)?.get(id) ?? 0
+          : 0
         : levels.get(id) ?? 0
-      return {
+      lines.push({
         ingredient_id: id,
         ingredient_name: ing?.name ?? '—',
         unit: ing?.unit ?? '',
         quantity: round3(qty),
         current_stock: round3(available),
         short: qty > available + 1e-9,
-      }
-    })
-    .sort((a, b) => b.quantity - a.quantity)
+        location_name: loc ? locName.get(loc) ?? null : null,
+      })
+    }
+  }
+  lines.sort((a, b) => b.quantity - a.quantity)
 
   return {
     lines,
-    cogs: Math.round(theoreticalCogs * 100) / 100,
+    cogs: Math.round(cogs * 100) / 100,
     any_short: lines.some((l) => l.short),
   }
 }

@@ -31,6 +31,8 @@ export const recipeSchema = z.object({
   yield_percent: z
     .union([z.coerce.number().positive().max(100), z.literal('')])
     .optional(),
+  // Which consumption point this menu item draws from ('' = tenant default).
+  consumption_location_id: z.string().uuid().optional().or(z.literal('')),
   notes: z.string().max(2000).optional().or(z.literal('')),
   lines: z.array(recipeLineSchema).min(1, 'min_one_line'),
 })

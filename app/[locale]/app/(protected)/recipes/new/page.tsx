@@ -12,16 +12,18 @@ export default async function NewRecipePage({
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
-  const { ingredientOptions, subRecipeOptions } =
-    await getRecipeBuilderData(ctx.tenantId)
+  const builder = await getRecipeBuilderData(ctx.tenantId)
 
   return (
     <div>
       <PageHeader title={t('recipes.add')} />
       <RecipeForm
         locale={locale}
-        ingredientOptions={ingredientOptions}
-        subRecipeOptions={subRecipeOptions}
+        ingredientOptions={builder.ingredientOptions}
+        subRecipeOptions={builder.subRecipeOptions}
+        consumptionLocations={builder.consumptionLocations}
+        defaultConsumptionId={builder.defaultConsumptionId}
+        multiLocation={builder.multiLocation}
       />
     </div>
   )

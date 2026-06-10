@@ -3,7 +3,9 @@ import {
   getIngredients,
   getRecipes,
   getRecipeIngredients,
+  getStorageLocations,
 } from '@/lib/data/queries'
+import { tenantHasFeature } from '@/lib/admin/entitlements'
 import {
   buildResolveContext,
   subRecipeUnitCost,
@@ -12,6 +14,11 @@ import {
 export interface RecipeBuilderData {
   ingredientOptions: IngredientOption[]
   subRecipeOptions: SubRecipeOption[]
+  // Consumption points a recipe can be routed to (multi-location). The default
+  // point is listed first; an unset routing falls back to it.
+  consumptionLocations: { id: string; name: string }[]
+  defaultConsumptionId: string | null
+  multiLocation: boolean
 }
 
 // Load and pre-cost the options shown in the recipe builder. Sub-recipe unit
@@ -24,11 +31,14 @@ export async function getRecipeBuilderData(
   tenantId: string,
   excludeRecipeId?: string
 ): Promise<RecipeBuilderData> {
-  const [ingredients, recipes, recipeIngredients] = await Promise.all([
-    getIngredients(tenantId),
-    getRecipes(tenantId),
-    getRecipeIngredients(tenantId),
-  ])
+  const [ingredients, recipes, recipeIngredients, locations, multiLocation] =
+    await Promise.all([
+      getIngredients(tenantId),
+      getRecipes(tenantId),
+      getRecipeIngredients(tenantId),
+      getStorageLocations(tenantId),
+      tenantHasFeature(tenantId, 'multi_location'),
+    ])
 
   const ctx = buildResolveContext(ingredients, recipes, recipeIngredients)
 
@@ -50,5 +60,24 @@ export async function getRecipeBuilderData(
       serving_unit: r.serving_unit,
     }))
 
-  return { ingredientOptions, subRecipeOptions }
+  // Default point first, then the rest (consumption points only).
+  const points = locations.filter((l) => l.is_consumption_point)
+  points.sort((a, b) =>
+    a.is_default_consumption === b.is_default_consumption
+      ? a.sort_order - b.sort_order
+      : a.is_default_consumption
+        ? -1
+        : 1
+  )
+  const consumptionLocations = points.map((l) => ({ id: l.id, name: l.name }))
+  const defaultConsumptionId =
+    locations.find((l) => l.is_default_consumption)?.id ?? null
+
+  return {
+    ingredientOptions,
+    subRecipeOptions,
+    consumptionLocations,
+    defaultConsumptionId,
+    multiLocation,
+  }
 }

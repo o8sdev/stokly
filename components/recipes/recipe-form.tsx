@@ -49,12 +49,18 @@ export function RecipeForm({
   locale,
   ingredientOptions,
   subRecipeOptions,
+  consumptionLocations,
+  defaultConsumptionId,
+  multiLocation,
   recipe,
   existingLines,
 }: {
   locale: string
   ingredientOptions: IngredientOption[]
   subRecipeOptions: SubRecipeOption[]
+  consumptionLocations: { id: string; name: string }[]
+  defaultConsumptionId: string | null
+  multiLocation: boolean
   recipe?: Recipe
   existingLines?: RecipeIngredient[]
 }) {
@@ -81,6 +87,10 @@ export function RecipeForm({
     recipe?.yield_percent != null
       ? String(Math.round(recipe.yield_percent * 1000) / 10)
       : ''
+  )
+  // Which consumption point this dish draws from ('' = tenant default).
+  const [consumptionLocationId, setConsumptionLocationId] = useState(
+    recipe?.consumption_location_id ?? ''
   )
 
   // Line state, seeded from existing recipe lines on edit.
@@ -178,6 +188,7 @@ export function RecipeForm({
         serving_unit: servingUnit,
         sale_price: salePrice === '' ? '' : Number(salePrice),
         yield_percent: yieldPercent === '' ? '' : Number(yieldPercent),
+        consumption_location_id: consumptionLocationId,
         notes,
         lines: lines
           .filter((l) => l.sourceId)
@@ -199,6 +210,7 @@ export function RecipeForm({
       servingUnit,
       salePrice,
       yieldPercent,
+      consumptionLocationId,
       notes,
       lines,
     ]
@@ -357,6 +369,34 @@ export function RecipeForm({
                 />
               </div>
             )}
+
+            {!isSubRecipe &&
+              multiLocation &&
+              consumptionLocations.length > 1 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="consumption_location_id">
+                      {t('recipes.consumption_location')}
+                    </Label>
+                    <FieldHint text={t('recipes.consumption_location_hint')} />
+                  </div>
+                  <select
+                    id="consumption_location_id"
+                    value={consumptionLocationId}
+                    onChange={(e) => setConsumptionLocationId(e.target.value)}
+                    className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:max-w-xs"
+                  >
+                    <option value="">
+                      {t('recipes.consumption_default')}
+                    </option>
+                    {consumptionLocations.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
           </div>
 
           <div className="space-y-3 stokly-card p-5">
