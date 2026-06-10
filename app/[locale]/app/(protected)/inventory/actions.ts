@@ -270,7 +270,7 @@ export async function submitWaste(
     p_occurred_at: occurredAt,
   })
   if (error) {
-    if (error.message?.includes('kitchen_short')) return { error: 'kitchen_short' }
+    if (error.message?.includes('location_short')) return { error: 'kitchen_short' }
     return { error: 'generic' }
   }
 

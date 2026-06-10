@@ -64,6 +64,7 @@ export type FeatureKey =
   | 'onboarding_screen'
   | 'report_food_cost'
   | 'report_inventory_value'
+  | 'multi_location'
 
 export interface Database {
   public: {

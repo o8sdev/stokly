@@ -58,7 +58,7 @@ export async function executeProductionRun(
     p_inputs: d.inputs as unknown as Json,
   })
   if (error) {
-    if (error.message?.includes('kitchen_short')) return { error: 'kitchen_short' }
+    if (error.message?.includes('location_short')) return { error: 'kitchen_short' }
     return { error: 'generic' }
   }
 
