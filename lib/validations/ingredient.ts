@@ -19,6 +19,13 @@ export const ingredientSchema = z.object({
     .nonnegative('positive')
     .nullable()
     .optional(),
+  // Build-to-par target (migration 034). low_stock_threshold is the reorder
+  // trigger; par_level is the top-up target the shopping list orders toward.
+  par_level: z.coerce
+    .number({ invalid_type_error: 'number' })
+    .nonnegative('positive')
+    .nullable()
+    .optional(),
   // Produced-good fields (migration 003).
   is_produced: z.boolean().default(false),
   default_shelf_life_days: z.coerce
@@ -47,6 +54,9 @@ export const ingredientFormSchema = z.object({
     .max(100, 'max'),
   supplier_id: z.string().optional(),
   low_stock_threshold: z
+    .union([z.coerce.number().nonnegative(), z.literal('')])
+    .optional(),
+  par_level: z
     .union([z.coerce.number().nonnegative(), z.literal('')])
     .optional(),
 })

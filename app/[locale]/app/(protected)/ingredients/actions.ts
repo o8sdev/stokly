@@ -15,6 +15,7 @@ function parsePayload(formData: FormData) {
   const yieldDisplay = Number(formData.get('yield_percent_display') ?? 0)
   const supplierRaw = String(formData.get('supplier_id') ?? '')
   const thresholdRaw = String(formData.get('low_stock_threshold') ?? '')
+  const parRaw = String(formData.get('par_level') ?? '')
   const isProduced = formData.get('is_produced') === 'on'
   const shelfRaw = String(formData.get('default_shelf_life_days') ?? '')
   const storageRaw = String(formData.get('storage_location') ?? '')
@@ -28,6 +29,7 @@ function parsePayload(formData: FormData) {
     yield_percent: yieldDisplay / 100,
     supplier_id: supplierRaw ? supplierRaw : null,
     low_stock_threshold: thresholdRaw === '' ? null : Number(thresholdRaw),
+    par_level: parRaw === '' ? null : Number(parRaw),
     is_produced: isProduced,
     default_shelf_life_days:
       isProduced && shelfRaw !== '' ? Number(shelfRaw) : null,
@@ -113,6 +115,7 @@ export async function updateIngredient(
       yield_percent: parsed.data.yield_percent,
       supplier_id: parsed.data.supplier_id ?? null,
       low_stock_threshold: parsed.data.low_stock_threshold ?? null,
+      par_level: parsed.data.par_level ?? null,
       is_produced: parsed.data.is_produced,
       default_shelf_life_days: parsed.data.default_shelf_life_days ?? null,
       storage_location: parsed.data.storage_location ?? null,

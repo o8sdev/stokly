@@ -13,6 +13,10 @@ import type { IngredientBatch } from '@/types/app'
 import type { GlobalIngredient } from '@/types/database'
 import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
 import { computeTheoreticalUsage } from '@/lib/calculations/theoretical-usage'
+import {
+  computeShoppingList,
+  type ShoppingItem,
+} from '@/lib/calculations/shopping-list'
 
 const round3 = (n: number): number => Math.round(n * 1000) / 1000
 
@@ -540,4 +544,79 @@ export async function getDayConfirmPreview(
     cogs: Math.round(theoreticalCogs * 100) / 100,
     any_short: lines.some((l) => l.short),
   }
+}
+
+export interface ShoppingListGroup {
+  supplier_id: string | null
+  supplier_name: string | null
+  items: ShoppingItem[]
+  subtotal: number
+}
+
+export interface ShoppingListData {
+  groups: ShoppingListGroup[]
+  total_est: number
+  item_count: number
+}
+
+// Build-to-par shopping list, grouped by supplier. "On hand" is the derived
+// ingredient-level stock (deriveAllStockLevels); "last cost" is the unit_cost of
+// each ingredient's most recent delivery, falling back to its current cost.
+export async function getShoppingList(
+  tenantId: string
+): Promise<ShoppingListData> {
+  const [ingredients, movements, suppliers] = await Promise.all([
+    getIngredients(tenantId),
+    getStockMovements(tenantId),
+    getSuppliers(tenantId),
+  ])
+
+  const stockLevels = deriveAllStockLevels(movements)
+
+  // Last paid cost per ingredient = unit_cost of its most recent delivery.
+  // getStockMovements returns newest-first, so the first delivery seen wins.
+  const lastCosts = new Map<string, number>()
+  const lastCostAt = new Map<string, number>()
+  for (const m of movements) {
+    if (m.movement_type !== 'delivery' || m.unit_cost == null) continue
+    const ts = new Date(m.created_at).getTime()
+    if (ts > (lastCostAt.get(m.ingredient_id) ?? -Infinity)) {
+      lastCostAt.set(m.ingredient_id, ts)
+      lastCosts.set(m.ingredient_id, Number(m.unit_cost))
+    }
+  }
+
+  const items = computeShoppingList(ingredients, stockLevels, lastCosts)
+  const supMap = new Map(suppliers.map((s) => [s.id, s.name]))
+
+  // Group by supplier; the "no supplier" bucket sorts last.
+  const groupMap = new Map<string, ShoppingListGroup>()
+  for (const item of items) {
+    const key = item.supplier_id ?? ''
+    let group = groupMap.get(key)
+    if (!group) {
+      group = {
+        supplier_id: item.supplier_id,
+        supplier_name: item.supplier_id
+          ? (supMap.get(item.supplier_id) ?? null)
+          : null,
+        items: [],
+        subtotal: 0,
+      }
+      groupMap.set(key, group)
+    }
+    group.items.push(item)
+    group.subtotal = Math.round((group.subtotal + item.est_cost) * 100) / 100
+  }
+
+  const groups = [...groupMap.values()].sort((a, b) => {
+    if (!a.supplier_id) return 1
+    if (!b.supplier_id) return -1
+    return (a.supplier_name ?? '').localeCompare(b.supplier_name ?? '')
+  })
+
+  const total_est =
+    Math.round(items.reduce((s, i) => s + i.est_cost, 0) * 100) / 100
+
+  return { groups, total_est, item_count: items.length }
 }

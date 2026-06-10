@@ -179,6 +179,31 @@ export function IngredientForm({
         </div>
       </div>
 
+      {/* Stock planning: low_stock_threshold above is the reorder trigger; par is
+          the build-to-par target the shopping list tops stock back up to. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="par_level">{t('ingredients.par_level')}</Label>
+            <FieldHint text={t('ingredients.par_level_hint')} />
+          </div>
+          <Input
+            id="par_level"
+            name="par_level"
+            type="number"
+            step="0.001"
+            min="0"
+            defaultValue={ingredient?.par_level ?? ''}
+            className="text-right font-mono tabular-nums"
+          />
+        </div>
+        <div className="flex items-end pb-2">
+          <p className="text-xs text-muted-foreground">
+            {t('ingredients.par_level_note')}
+          </p>
+        </div>
+      </div>
+
       {/* Produced-good fields */}
       <div className="space-y-4 rounded-lg border border-border bg-secondary/40 p-4">
         <div className="flex items-center justify-between gap-3">

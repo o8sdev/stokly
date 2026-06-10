@@ -11,6 +11,7 @@ import {
   Receipt,
   ShoppingBag,
   ShoppingCart,
+  ListChecks,
   ClipboardList,
   Trash2,
   type LucideIcon,
@@ -59,6 +60,11 @@ export const NAV_SECTIONS: NavSection[] = [
         children: [
           { href: '/app/sales', labelKey: 'sales', icon: Receipt },
           { href: '/app/purchases', labelKey: 'purchases', icon: ShoppingCart },
+          {
+            href: '/app/purchases/shopping-list',
+            labelKey: 'shopping_list',
+            icon: ListChecks,
+          },
         ],
       },
       { href: '/app/production', labelKey: 'production', icon: Factory },

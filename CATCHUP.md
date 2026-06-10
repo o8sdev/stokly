@@ -5,18 +5,21 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-10 (data-integrity round: full production/prep runs, unit
-conversions, expiry write-off; storage locations + warehouse→kitchen transfers +
-kitchen-only consumption; per-line-supplier purchases + Alışlar page; Satış/Alış
-nav dropdown; sales confirm/lock + FIFO; onboarding/nav fixes)._
+_Last updated: 2026-06-10 (Tier B1: par levels + build-to-par shopping list —
+`ingredients.par_level`, suggested-order list grouped by supplier, "create purchase
+from list" prefill. **Migration 034 applied live.**
+Prior: data-integrity round — production/prep runs, unit conversions, expiry
+write-off; storage locations + warehouse→kitchen transfers + kitchen-only
+consumption; per-line-supplier purchases + Alışlar page; Satış/Alış nav dropdown;
+sales confirm/lock + FIFO; onboarding/nav fixes)._
 
 ---
 
 ## 0. READ FIRST — current state, roadmap, how to continue
 
 **Repo:** github.com/o8sdev/stokly (branch `main`). **Supabase project ref:**
-`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `033`** (the DB is already
-migrated; on a *fresh* DB apply `supabase/migrations/001 → 033` in filename order).
+`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `034`** (the DB is already
+migrated; on a *fresh* DB apply `supabase/migrations/001 → 034` in filename order).
 Working tree is committed; latest commit messages are the quickest "what changed" log.
 
 ### The end-to-end loop that now works
@@ -51,12 +54,12 @@ theoretical-vs-actual variance, food-cost %). Reports: food-cost, inventory-valu
 Plan file: `C:\Users\Rhabi\.claude\plans\quizzical-scribbling-goblet.md` (research +
 audit vs restaurant best practice + the tiered roadmap). **Data-integrity tier = DONE.**
 **Detailed, buildable specs for every Tier B / Tier C item below are in §9.**
-- **Tier B — planning & control (next):** par/**build-to-par** + a suggested-order /
-  shopping list (today only a `low_stock_threshold` reorder flag exists); supplier **price
-  history** + receiving **price-variance** alerts (last vs avg cost); **sub-recipe yield %**;
-  **per-ingredient custom unit conversions** (piece/pack, e.g. 1 case = 24, 1 egg = 50 g —
-  v1 only does metric families kg↔g, l↔ml); retire the legacy free-text
-  `ingredients.storage_location` (superseded by `storage_locations`).
+- **Tier B — planning & control:** **B1 par + build-to-par shopping list = DONE (migration
+  034 applied live).** Next up — supplier **price history** + receiving
+  **price-variance** alerts (last vs avg cost); **sub-recipe yield %**; **per-ingredient
+  custom unit conversions** (piece/pack, e.g. 1 case = 24, 1 egg = 50 g — v1 only does
+  metric families kg↔g, l↔ml); retire the legacy free-text `ingredients.storage_location`
+  (superseded by `storage_locations`).
 - **Tier C — analytics & KPIs:** ideal-vs-actual food-cost %, **inventory turnover**,
   days-on-hand, **waste %**, prime cost, **stock aging**, **menu engineering**
   (stars/plowhorses/puzzles/dogs from sales-mix × margin).
@@ -271,6 +274,27 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done (code) — Tier B1: par levels + build-to-par shopping list
+Build-to-par planning. `ingredients.par_level` (migration **034**) is the *target* to top
+stock up to; `low_stock_threshold` stays the *reorder trigger*. **Migration 034 applied
+live** — `par_level` verified numeric/nullable on the live DB + a BEGIN/ROLLBACK write
+test passed (set/read/rollback, nothing persisted).
+- **Shopping list** `/app/purchases/shopping-list` (new child in the Satış/Alış nav group):
+  every ingredient below par OR at/below its reorder threshold, with `suggested_qty =
+  max(0, par − on_hand)`, last paid cost (newest delivery → est. line cost), grouped by
+  supplier with per-supplier subtotals; urgent (below-threshold) items flagged + sorted
+  first. Empty state when everything is at/above par.
+- **Create purchase from list** → `/app/purchases?prefill=id:qty,…`; `DeliveryForm` gained
+  an optional `initialLines` prop that seeds its lines (defaulting unit cost + supplier per
+  ingredient). A global "create purchase" CTA + per-supplier "order these" links.
+- Pure calc `lib/calculations/shopping-list.ts` (`computeShoppingList`); data assembly
+  `getShoppingList` in `lib/data/queries.ts` (on-hand via `deriveAllStockLevels`, last cost
+  from each ingredient's newest delivery movement). `par_level` added to the ingredient form
+  (hint distinguishing target vs. minimum), the Zod schema, the create/update actions, and
+  `types/database.ts`.
+- Bilingual az/ru (`nav.shopping_list`, `ingredients.par_level*`, `shopping.*`). typecheck +
+  lint + build green; the `purchases/shopping-list` route compiles.
 
 ### Done — data-integrity round (production, unit conversions, expiry write-off)
 Researched real restaurant back-of-house best practice (procurement → receive → store
@@ -807,14 +831,17 @@ Checklist (updated as completed):
 
 Production runs, expiry write-off and (metric) unit conversions shipped in the
 **data-integrity round (DONE)**. The remaining roadmap, in priority order, with
-enough detail to execute. **Next free migration number = `034`.** Reuse the
+enough detail to execute. **Next free migration number = `035`** (034 used by B1, applied live). Reuse the
 existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
 `deriveStockLevel`, `computePeriodReport`, `computeRecipesWithCost`,
 `DeliveryForm`/`getPurchaseLog`, suppliers/locations CRUD).
 
 ### Tier B — planning & control
 
-**B1 · Par levels + build-to-par suggested order / shopping list**
+**B1 · Par levels + build-to-par suggested order / shopping list — ✅ DONE (migration 034 applied live)**
+- Shipped exactly as specced below. `ingredients.par_level` (migration `034_par_levels`);
+  `lib/calculations/shopping-list.ts` + `getShoppingList`; `/app/purchases/shopping-list`
+  page + `components/inventory/shopping-list-view.tsx`; `DeliveryForm` `initialLines` prefill.
 - Today only `ingredients.low_stock_threshold` (reorder point) exists — no target/par.
 - DB (034): `alter table ingredients add column par_level numeric`. Keep the threshold
   as the *trigger*, par as the *target*.
@@ -837,7 +864,7 @@ existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
 **B3 · Sub-recipe yield %**
 - A batch recipe (sauce/stock) loses volume; today `subRecipeUnitCost = batchCost /
   serving_size` (yield assumed 100%).
-- DB (034): `alter table recipes add column yield_percent numeric default 1` (0–1).
+- DB (035): `alter table recipes add column yield_percent numeric default 1` (0–1).
 - Calc: `subRecipeUnitCost = batchCost / (serving_size × yield_percent)`
   (`lib/calculations/recipe-cost.ts`); in `theoretical-usage.ts` `explode`, divide the
   sub-recipe consumption by `(serving_size × yield_percent)` so a lossy batch consumes
@@ -846,7 +873,7 @@ existing patterns (atomic SECURITY DEFINER RPCs, append-only movements,
 **B4 · Per-ingredient custom unit conversions (piece/pack)** — the deferred half of units
 - v1 already does metric families (kq↔q, l↔ml) via `toBaseUnit` in
   `lib/constants/units.ts`. This adds fixed-factor units (1 case = 24 ədəd; 1 egg = 0.05 kq).
-- DB (034): `ingredient_units(id, tenant_id, ingredient_id, unit, factor_to_base numeric)`
+- DB (035): `ingredient_units(id, tenant_id, ingredient_id, unit, factor_to_base numeric)`
   + RLS mirroring `suppliers`; types.
 - Calc: extend `toBaseUnit` to take a per-ingredient `{unit→factor}` map; thread an
   **optional** `customUnits` into `buildResolveContext` → `resolveRecipeCost`/`explode`

@@ -18,6 +18,7 @@
     "sales": "Satışlar",
     "trade": "Satış / Alış",
     "purchases": "Alışlar",
+    "shopping_list": "Sifariş siyahısı",
     "period_reports": "Dövr hesabatları",
     "signout": "Çıxış",
     "section": {
@@ -35,6 +36,24 @@
     "count": "Alış sayı",
     "total": "Cəmi",
     "empty": "Bu dövrdə alış yoxdur"
+  },
+  "shopping": {
+    "title": "Sifariş siyahısı",
+    "subtitle": "Par (hədəf) səviyyəsindən aşağı düşən inqrediyentlər və təklif olunan sifariş miqdarı.",
+    "empty": "Sifariş tələb olunmur — bütün inqrediyentlər par səviyyəsində və ya ondan yuxarıdır.",
+    "items_to_order": "Sifariş ediləcək məhsul",
+    "est_total": "Təxmini məbləğ",
+    "create_purchase": "Siyahı ilə alış yarat",
+    "order_from_supplier": "Bu təchizatçıdan al",
+    "no_supplier": "Təchizatçı təyin edilməyib",
+    "col_on_hand": "Mövcud",
+    "col_par": "Par (hədəf)",
+    "col_suggested": "Təklif olunan",
+    "col_last_cost": "Son qiymət",
+    "col_est": "Təxmini",
+    "urgent": "Təcili",
+    "view_list": "Sifariş siyahısı",
+    "prefilled_note": "Sətirlər sifariş siyahısından dolduruldu — miqdarları yoxlayıb yadda saxlayın."
   },
   "auth": {
     "login_title": "Daxil ol",
@@ -555,6 +574,9 @@
     }
   },
   "ingredients": {
+    "par_level": "Hədəf stok (par)",
+    "par_level_hint": "Stoku bu səviyyəyə qədər tamamlamaq üçün hədəf. Təklif olunan sifariş = hədəf − mövcud. Minimum həddən (sifariş siqnalı) fərqli olaraq bu, geri doldurma hədəfidir.",
+    "par_level_note": "İstəyə bağlı. Boş buraxılsa, bu inqrediyent sifariş siyahısında par üzrə təklif yaratmır (yalnız minimum həddə görə görünə bilər).",
     "title": "İnqrediyentlər",
     "add": "İnqrediyent əlavə et",
     "edit": "İnqrediyenti redaktə et",

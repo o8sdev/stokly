@@ -11,6 +11,8 @@ import { PageHeader } from '@/components/layout/page-header'
 import { DeliveryForm } from '@/components/inventory/delivery-form'
 import { PurchaseLogTable } from '@/components/inventory/purchase-log-table'
 import { formatMoney } from '@/lib/utils'
+import { Link } from '@/lib/i18n/navigation'
+import { ListChecks } from 'lucide-react'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -19,7 +21,7 @@ export default async function PurchasesPage({
   searchParams,
 }: {
   params: { locale: string }
-  searchParams: { from?: string; to?: string }
+  searchParams: { from?: string; to?: string; prefill?: string }
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
@@ -53,6 +55,23 @@ export default async function PurchasesPage({
     id: s.id,
     name: s.name,
   }))
+
+  // Seed the entry form from a shopping-list prefill (?prefill=id:qty,…), keeping
+  // only this tenant's ingredients.
+  const validIds = new Set(ingredientOptions.map((i) => i.id))
+  const initialLines = (searchParams.prefill ?? '')
+    .split(',')
+    .map((part) => {
+      const [id, q] = part.split(':')
+      return { ingredient_id: id, quantity: Number(q) }
+    })
+    .filter(
+      (l) =>
+        l.ingredient_id &&
+        validIds.has(l.ingredient_id) &&
+        Number.isFinite(l.quantity)
+    )
+
   const totalSpend = log.reduce((sum, e) => sum + e.value, 0)
 
   return (
@@ -64,13 +83,28 @@ export default async function PurchasesPage({
 
       {/* Entry — what you bought today (adds to stock) */}
       <section className="mb-8">
-        <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
-          {t('purchases.new_purchase')}
-        </h2>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-muted-foreground">
+            {t('purchases.new_purchase')}
+          </h2>
+          <Link
+            href="/app/purchases/shopping-list"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+          >
+            <ListChecks className="h-3.5 w-3.5" />
+            {t('shopping.view_list')}
+          </Link>
+        </div>
+        {initialLines.length > 0 && (
+          <p className="mb-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-foreground">
+            {t('shopping.prefilled_note')}
+          </p>
+        )}
         <DeliveryForm
           locale={locale}
           ingredients={ingredientOptions}
           suppliers={supplierOptions}
+          initialLines={initialLines}
           locations={locations.map((l) => ({
             id: l.id,
             name: l.name,

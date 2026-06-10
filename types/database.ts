@@ -292,6 +292,7 @@ export interface Database {
           yield_percent: number
           supplier_id: string | null
           low_stock_threshold: number | null
+          par_level: number | null
           is_produced: boolean
           default_shelf_life_days: number | null
           storage_location: string | null
@@ -309,6 +310,7 @@ export interface Database {
           yield_percent?: number
           supplier_id?: string | null
           low_stock_threshold?: number | null
+          par_level?: number | null
           is_produced?: boolean
           default_shelf_life_days?: number | null
           storage_location?: string | null

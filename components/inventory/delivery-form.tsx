@@ -48,18 +48,38 @@ export function DeliveryForm({
   ingredients,
   suppliers,
   locations,
+  initialLines,
 }: {
   locale: string
   ingredients: IngredientOption[]
   suppliers: SupplierOption[]
   locations: LocationOption[]
+  initialLines?: { ingredient_id: string; quantity: number }[]
 }) {
   const t = useTranslations()
   const defaultLocation =
     locations.find((l) => l.is_default_receiving)?.id ?? locations[0]?.id ?? ''
   const [locationId, setLocationId] = useState(defaultLocation)
   const [notes, setNotes] = useState('')
-  const [lines, setLines] = useState<Line[]>([blankLine()])
+  // Seed from a shopping-list prefill (?prefill=id:qty,…) when provided,
+  // defaulting unit cost + supplier from each ingredient (as selectIngredient
+  // would); otherwise a single blank line.
+  const [lines, setLines] = useState<Line[]>(() => {
+    const seeded = (initialLines ?? []).filter((l) => l.ingredient_id)
+    if (seeded.length === 0) return [blankLine()]
+    return seeded.map((l) => {
+      const opt = ingredients.find((i) => i.id === l.ingredient_id)
+      return {
+        key: newKey(),
+        ingredient_id: l.ingredient_id,
+        quantity: l.quantity > 0 ? String(l.quantity) : '',
+        unit_cost: opt ? String(opt.cost_per_unit) : '',
+        expiry_date: '',
+        supplier_lot: '',
+        supplier_id: opt?.supplier_id ?? '',
+      }
+    })
+  })
 
   const action = submitDelivery.bind(null, locale)
   const [state, formAction] = useFormState<InventoryActionResult, FormData>(
