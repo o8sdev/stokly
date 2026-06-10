@@ -5,8 +5,78 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-08 (Blog (public + admin authoring), one-click quick-add
-of common ingredients, ingredient-form polish, landing-copy + URL/redirect fixes)_
+_Last updated: 2026-06-10 (data-integrity round: full production/prep runs, unit
+conversions, expiry write-off; storage locations + warehouse→kitchen transfers +
+kitchen-only consumption; per-line-supplier purchases + Alışlar page; Satış/Alış
+nav dropdown; sales confirm/lock + FIFO; onboarding/nav fixes)._
+
+---
+
+## 0. READ FIRST — current state, roadmap, how to continue
+
+**Repo:** github.com/o8sdev/stokly (branch `main`). **Supabase project ref:**
+`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `033`** (the DB is already
+migrated; on a *fresh* DB apply `supabase/migrations/001 → 033` in filename order).
+Working tree is committed; latest commit messages are the quickest "what changed" log.
+
+### The end-to-end loop that now works
+Purchase (**Alışlar** `/app/purchases`, per-line supplier/cost/expiry, lands in a
+**location**) → **Move stock** (`/app/inventory/transfer`, warehouse→kitchen, partial
+batch-split, optional new use-by for freezing) → **Prep/Production** (`/app/production`,
+recipe-driven batch: FIFO-consume kitchen inputs → produced batch with rolled-up cost +
+yield) → **Sell** (**Satışlar** `/app/sales`, itemized, **confirm/lock**, kitchen FIFO
+deduction, audited void) → **Waste** (`/app/inventory/waste`, kitchen FIFO, reverse) →
+**Expiry write-off** (inventory hub "N expired → write off") → **Count** (`/app/inventory/
+count`) → **Period report** (`/app/reports/period`, opening+purchases−closing = usage,
+theoretical-vs-actual variance, food-cost %). Reports: food-cost, inventory-value, period.
+
+### Architecture invariants (NEVER break these)
+- `stock_movements` is **append-only**; `deriveStockLevel` (lib/calculations/stock-level.ts)
+  is the single source of truth. **Σ active-batch `quantity_remaining` per ingredient ==
+  `deriveStockLevel`** must always hold.
+- All risky mutations are **atomic SECURITY DEFINER RPCs** (`search_path=''`, fully
+  `public.`-qualified, `FOR UPDATE` locks, idempotent): `confirm_/void_daily_sales`,
+  `transfer_stock`, `execute_/void_production_run`, `record_/reverse_waste`,
+  `write_off_expired`. Authz inside via `current_tenant_id()` / `is_platform_admin()`.
+- **Kitchen-only consumption:** sales/waste/production-inputs FIFO-consume batches in the
+  `is_kitchen` location and **raise if short** — with a **no-batch fallback** (ingredients
+  never batch-tracked, i.e. count-only, are not location-restricted).
+- Reducer cases: delivery/production_output `+`, sale/waste/production_input/expiry_writeoff
+  `−abs`, count = absolute, adjustment `±`, **transfer = no-op** (only moves location).
+- **Test destructive/RPC SQL with `BEGIN … ROLLBACK`**, impersonating a tenant via
+  `set_config('request.jwt.claims', json_build_object('sub', <tenant_member user_id>,
+  'role','authenticated'), true)`. Never commit secrets; the admin password is weak (flagged).
+
+### Roadmap (the plan) — what to build next
+Plan file: `C:\Users\Rhabi\.claude\plans\quizzical-scribbling-goblet.md` (research +
+audit vs restaurant best practice + the tiered roadmap). **Data-integrity tier = DONE.**
+- **Tier B — planning & control (next):** par/**build-to-par** + a suggested-order /
+  shopping list (today only a `low_stock_threshold` reorder flag exists); supplier **price
+  history** + receiving **price-variance** alerts (last vs avg cost); **sub-recipe yield %**;
+  **per-ingredient custom unit conversions** (piece/pack, e.g. 1 case = 24, 1 egg = 50 g —
+  v1 only does metric families kg↔g, l↔ml); retire the legacy free-text
+  `ingredients.storage_location` (superseded by `storage_locations`).
+- **Tier C — analytics & KPIs:** ideal-vs-actual food-cost %, **inventory turnover**,
+  days-on-hand, **waste %**, prime cost, **stock aging**, **menu engineering**
+  (stars/plowhorses/puzzles/dogs from sales-mix × margin).
+- **Standing ops items:** set `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` + a scheduler;
+  change the weak admin password; optional daily cron to auto-run `write_off_expired`;
+  delete orphaned auth user `rhabibli@outlook.com`; minor code-review nits (business-type
+  chooser already fixed; nav-progress 10s edge).
+
+### How to continue on a fresh device
+```bash
+git clone https://github.com/o8sdev/stokly && cd stokly && npm install
+cp .env.local.example .env.local   # SUPABASE URL + anon key (+ service_role for admin)
+npm run dev
+```
+Verify before every push: `npm run typecheck && npm run lint && npm run build`
+(should be **~92 pages, green**) and `node -e "require('./messages/az.json');require('./messages/ru.json')"`.
+Migrations are applied to the live project via the **Supabase MCP** (`apply_migration`);
+recent: 025 batch LOT codes · 026 sales confirm/FIFO · 027 onboarding-dismiss · 028 drop
+library business_types · 029 storage_locations · 030 transfer_stock · 031 kitchen
+consumption · 032 production execute/void · 033 expiry write-off. **Read §7 changelog
+bottom-up** for full per-feature detail.
 
 ---
 
@@ -31,7 +101,7 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 ```bash
 npm install
 cp .env.local.example .env.local     # URL + anon key; + service_role for admin
-# apply migrations in filename order (001 → 021) against your Supabase project
+# apply migrations in filename order (001 → 033) against your Supabase project
 npm run dev
 ```
 
