@@ -151,12 +151,17 @@ export async function hardDeleteTenant(
     details: { slug: t.slug },
   })
 
-  // Remove member auth users (service role), then the tenant row (cascades).
+  // Snapshot members (for auth-user cleanup), then ordered-delete the tenant + all
+  // its data via the RPC — a plain cascade delete fails on RESTRICT FKs and locked
+  // confirmed-sales days. Member auth users are removed after, via the service role.
   const { data: members } = await supabase
     .from('tenant_members')
     .select('user_id')
     .eq('tenant_id', tenantId)
-  await supabase.from('tenants').delete().eq('id', tenantId)
+  const { error: delErr } = await supabase.rpc('delete_tenant_cascade', {
+    p_tenant: tenantId,
+  })
+  if (delErr) return { error: 'generic' }
   try {
     const admin = createAdminClient()
     for (const m of members ?? []) {

@@ -895,6 +895,12 @@ export interface Database {
     }
     Views: Record<never, never>
     Functions: {
+      delete_tenant_cascade: {
+        Args: {
+          p_tenant: string
+        }
+        Returns: undefined
+      }
       current_tenant_id: {
         Args: Record<string, never>
         Returns: string
