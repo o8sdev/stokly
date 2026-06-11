@@ -4,6 +4,7 @@ import {
   getIngredients,
   getRecipes,
   getRecipeIngredients,
+  getRecipeCategories,
   getSalesMix,
 } from '@/lib/data/queries'
 import { computeRecipesWithCost } from '@/lib/calculations/recipe-cost'
@@ -29,7 +30,7 @@ export default async function MenuEngineeringPage({
   searchParams,
 }: {
   params: { locale: string }
-  searchParams: { from?: string; to?: string }
+  searchParams: { from?: string; to?: string; category?: string }
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
@@ -44,16 +45,28 @@ export default async function MenuEngineeringPage({
     ? (searchParams.to as string)
     : today
 
-  const [ingredients, recipes, recipeIngredients, mix] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getRecipes(ctx.tenantId),
-    getRecipeIngredients(ctx.tenantId),
-    getSalesMix(ctx.tenantId, from, to),
-  ])
+  const [ingredients, recipes, recipeIngredients, mix, categories] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getRecipes(ctx.tenantId),
+      getRecipeIngredients(ctx.tenantId),
+      getSalesMix(ctx.tenantId, from, to),
+      getRecipeCategories(ctx.tenantId),
+    ])
+
+  // Menu-section focus: '' = all, 'none' = uncategorised, else a category id.
+  const category = searchParams.category ?? ''
+  const inCategory = (r: { category_id: string | null }) =>
+    category === ''
+      ? true
+      : category === 'none'
+        ? !r.category_id
+        : r.category_id === category
 
   const withCost = computeRecipesWithCost(ingredients, recipes, recipeIngredients)
   const inputs = withCost
     .filter((r) => !r.is_sub_recipe && r.sale_price != null && r.sale_price > 0)
+    .filter(inCategory)
     .map((r) => ({
       recipe_id: r.id,
       name: r.name,
@@ -86,6 +99,30 @@ export default async function MenuEngineeringPage({
           </label>
           <input id="to" name="to" type="date" defaultValue={to} className={inputCls} />
         </div>
+        {categories.length > 0 && (
+          <div className="space-y-1">
+            <label
+              htmlFor="category"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              {t('recipes.category')}
+            </label>
+            <select
+              id="category"
+              name="category"
+              defaultValue={category}
+              className={inputCls}
+            >
+              <option value="">{t('recipes.all_categories')}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+              <option value="none">{t('recipes.no_category')}</option>
+            </select>
+          </div>
+        )}
         <button
           type="submit"
           className="h-9 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"

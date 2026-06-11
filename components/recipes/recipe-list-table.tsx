@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Pencil } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import type { RecipeWithCost } from '@/types/app'
+import type { RecipeCategory } from '@/types/database'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,15 +20,31 @@ import { formatMoney } from '@/lib/utils'
 
 type Filter = 'all' | 'dishes' | 'sub'
 
-export function RecipeListTable({ rows }: { rows: RecipeWithCost[] }) {
+export function RecipeListTable({
+  rows,
+  categories = [],
+}: {
+  rows: RecipeWithCost[]
+  categories?: RecipeCategory[]
+}) {
   const t = useTranslations('recipes')
   const [filter, setFilter] = useState<Filter>('all')
+  // '' = all sections; 'none' = uncategorised; otherwise a category id.
+  const [category, setCategory] = useState('')
+
+  const categoryName = useMemo(
+    () => new Map(categories.map((c) => [c.id, c.name])),
+    [categories]
+  )
 
   const filtered = useMemo(() => {
-    if (filter === 'dishes') return rows.filter((r) => !r.is_sub_recipe)
-    if (filter === 'sub') return rows.filter((r) => r.is_sub_recipe)
-    return rows
-  }, [rows, filter])
+    let r = rows
+    if (filter === 'dishes') r = r.filter((x) => !x.is_sub_recipe)
+    if (filter === 'sub') r = r.filter((x) => x.is_sub_recipe)
+    if (category === 'none') r = r.filter((x) => !x.category_id)
+    else if (category) r = r.filter((x) => x.category_id === category)
+    return r
+  }, [rows, filter, category])
 
   const filters: { key: Filter; label: string }[] = [
     { key: 'all', label: t('filter_all') },
@@ -37,22 +54,39 @@ export function RecipeListTable({ rows }: { rows: RecipeWithCost[] }) {
 
   return (
     <div className="space-y-4">
-      {/* Segmented filter */}
-      <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
-        {filters.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={cn(
-              'h-8 rounded-md px-3 text-sm font-medium transition-colors',
-              filter === f.key
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
+      {/* Segmented filter + menu-section filter */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
+          {filters.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={cn(
+                'h-8 rounded-md px-3 text-sm font-medium transition-colors',
+                filter === f.key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        {categories.length > 0 && (
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="flex h-9 rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
           >
-            {f.label}
-          </button>
-        ))}
+            <option value="">{t('all_categories')}</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+            <option value="none">{t('no_category')}</option>
+          </select>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -77,6 +111,11 @@ export function RecipeListTable({ rows }: { rows: RecipeWithCost[] }) {
                   {row.name}
                   {row.is_sub_recipe && (
                     <Badge variant="secondary">{t('is_sub_recipe')}</Badge>
+                  )}
+                  {row.category_id && categoryName.get(row.category_id) && (
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {categoryName.get(row.category_id)}
+                    </span>
                   )}
                 </span>
               </TableCell>

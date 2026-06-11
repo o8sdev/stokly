@@ -24,6 +24,7 @@ export default async function NewRecipePage({
         consumptionLocations={builder.consumptionLocations}
         defaultConsumptionId={builder.defaultConsumptionId}
         multiLocation={builder.multiLocation}
+        categories={builder.categories}
       />
     </div>
   )

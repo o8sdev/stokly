@@ -6,6 +6,7 @@ import {
   getIngredients,
   getRecipes,
   getRecipeIngredients,
+  getRecipeCategories,
 } from '@/lib/data/queries'
 import {
   computeRecipesWithCost,
@@ -25,8 +26,10 @@ import { formatMoney } from '@/lib/utils'
 
 export default async function FoodCostReportPage({
   params: { locale },
+  searchParams,
 }: {
   params: { locale: string }
+  searchParams: { category?: string }
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
@@ -48,15 +51,27 @@ export default async function FoodCostReportPage({
     await logReportView(ctx.tenantId, ctx.userId, 'food_cost')
   }
 
-  const [ingredients, recipes, recipeIngredients] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getRecipes(ctx.tenantId),
-    getRecipeIngredients(ctx.tenantId),
-  ])
+  const [ingredients, recipes, recipeIngredients, categories] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getRecipes(ctx.tenantId),
+      getRecipeIngredients(ctx.tenantId),
+      getRecipeCategories(ctx.tenantId),
+    ])
+
+  // Menu-section focus: '' = all, 'none' = uncategorised, else a category id.
+  const category = searchParams.category ?? ''
+  const inCategory = (r: { category_id: string | null }) =>
+    category === ''
+      ? true
+      : category === 'none'
+        ? !r.category_id
+        : r.category_id === category
 
   // Dishes only (exclude sub-recipes), sorted most expensive food cost first.
   const rows = computeRecipesWithCost(ingredients, recipes, recipeIngredients)
     .filter((r) => !r.is_sub_recipe)
+    .filter(inCategory)
     .sort((a, b) => b.foodCostPercent - a.foodCostPercent)
 
   const avg = averageFoodCostPercent(rows)
@@ -68,6 +83,39 @@ export default async function FoodCostReportPage({
   return (
     <div>
       <PageHeader title={t('reports.food_cost')} />
+
+      {categories.length > 0 && (
+        <form className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
+          <div className="space-y-1">
+            <label
+              htmlFor="category"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              {t('recipes.category')}
+            </label>
+            <select
+              id="category"
+              name="category"
+              defaultValue={category}
+              className="flex h-9 rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            >
+              <option value="">{t('recipes.all_categories')}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+              <option value="none">{t('recipes.no_category')}</option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            className="h-9 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
+          >
+            {t('inventory.apply')}
+          </button>
+        </form>
+      )}
 
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <MetricCard

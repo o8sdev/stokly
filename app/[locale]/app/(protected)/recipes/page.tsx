@@ -6,11 +6,13 @@ import {
   getIngredients,
   getRecipes,
   getRecipeIngredients,
+  getRecipeCategories,
 } from '@/lib/data/queries'
 import { computeRecipesWithCost } from '@/lib/calculations/recipe-cost'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { RecipeListTable } from '@/components/recipes/recipe-list-table'
+import { CategoriesManager } from '@/components/recipes/categories-manager'
 
 export default async function RecipesPage({
   params: { locale },
@@ -21,11 +23,13 @@ export default async function RecipesPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, recipes, recipeIngredients] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getRecipes(ctx.tenantId),
-    getRecipeIngredients(ctx.tenantId),
-  ])
+  const [ingredients, recipes, recipeIngredients, categories] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getRecipes(ctx.tenantId),
+      getRecipeIngredients(ctx.tenantId),
+      getRecipeCategories(ctx.tenantId),
+    ])
 
   const rows = computeRecipesWithCost(
     ingredients,
@@ -38,15 +42,18 @@ export default async function RecipesPage({
       <PageHeader
         title={t('recipes.title')}
         action={
-          <Button asChild className="gap-2">
-            <Link href="/app/recipes/new">
-              <Plus className="h-4 w-4" />
-              {t('recipes.add')}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <CategoriesManager locale={locale} categories={categories} />
+            <Button asChild className="gap-2">
+              <Link href="/app/recipes/new">
+                <Plus className="h-4 w-4" />
+                {t('recipes.add')}
+              </Link>
+            </Button>
+          </div>
         }
       />
-      <RecipeListTable rows={rows} />
+      <RecipeListTable rows={rows} categories={categories} />
     </div>
   )
 }

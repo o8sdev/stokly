@@ -4,6 +4,7 @@ import {
   getRecipes,
   getRecipeIngredients,
   getStorageLocations,
+  getRecipeCategories,
 } from '@/lib/data/queries'
 import { tenantHasFeature } from '@/lib/admin/entitlements'
 import {
@@ -19,6 +20,8 @@ export interface RecipeBuilderData {
   consumptionLocations: { id: string; name: string }[]
   defaultConsumptionId: string | null
   multiLocation: boolean
+  // Menu sections (breakfast, soups, …) the dish can belong to.
+  categories: { id: string; name: string }[]
 }
 
 // Load and pre-cost the options shown in the recipe builder. Sub-recipe unit
@@ -31,14 +34,21 @@ export async function getRecipeBuilderData(
   tenantId: string,
   excludeRecipeId?: string
 ): Promise<RecipeBuilderData> {
-  const [ingredients, recipes, recipeIngredients, locations, multiLocation] =
-    await Promise.all([
-      getIngredients(tenantId),
-      getRecipes(tenantId),
-      getRecipeIngredients(tenantId),
-      getStorageLocations(tenantId),
-      tenantHasFeature(tenantId, 'multi_location'),
-    ])
+  const [
+    ingredients,
+    recipes,
+    recipeIngredients,
+    locations,
+    multiLocation,
+    categoryRows,
+  ] = await Promise.all([
+    getIngredients(tenantId),
+    getRecipes(tenantId),
+    getRecipeIngredients(tenantId),
+    getStorageLocations(tenantId),
+    tenantHasFeature(tenantId, 'multi_location'),
+    getRecipeCategories(tenantId),
+  ])
 
   const ctx = buildResolveContext(ingredients, recipes, recipeIngredients)
 
@@ -80,5 +90,6 @@ export async function getRecipeBuilderData(
     consumptionLocations,
     defaultConsumptionId,
     multiLocation,
+    categories: categoryRows.map((c) => ({ id: c.id, name: c.name })),
   }
 }

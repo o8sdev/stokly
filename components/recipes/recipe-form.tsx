@@ -53,6 +53,7 @@ export function RecipeForm({
   consumptionLocations,
   defaultConsumptionId,
   multiLocation,
+  categories = [],
   recipe,
   existingLines,
 }: {
@@ -62,6 +63,7 @@ export function RecipeForm({
   consumptionLocations: { id: string; name: string }[]
   defaultConsumptionId: string | null
   multiLocation: boolean
+  categories?: { id: string; name: string }[]
   recipe?: Recipe
   existingLines?: RecipeIngredient[]
 }) {
@@ -93,6 +95,8 @@ export function RecipeForm({
   const [consumptionLocationId, setConsumptionLocationId] = useState(
     recipe?.consumption_location_id ?? ''
   )
+  // Menu section ('' = uncategorised).
+  const [categoryId, setCategoryId] = useState(recipe?.category_id ?? '')
 
   // Line state, seeded from existing recipe lines on edit.
   const [lines, setLines] = useState<EditorLine[]>(() => {
@@ -200,6 +204,7 @@ export function RecipeForm({
         sale_price: salePrice === '' ? '' : Number(salePrice),
         yield_percent: yieldPercent === '' ? '' : Number(yieldPercent),
         consumption_location_id: consumptionLocationId,
+        category_id: categoryId,
         notes,
         lines: lines
           .filter((l) => l.sourceId)
@@ -222,6 +227,7 @@ export function RecipeForm({
       salePrice,
       yieldPercent,
       consumptionLocationId,
+      categoryId,
       notes,
       lines,
     ]
@@ -313,6 +319,26 @@ export function RecipeForm({
                 className="sr-only"
               />
             </div>
+
+            {/* Menu section (dishes only) — drives list/report filtering. */}
+            {!isSubRecipe && categories.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="category_id">{t('recipes.category')}</Label>
+                <select
+                  id="category_id"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:max-w-[16rem]"
+                >
+                  <option value="">{t('recipes.no_category')}</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">

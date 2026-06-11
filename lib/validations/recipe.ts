@@ -33,6 +33,8 @@ export const recipeSchema = z.object({
     .optional(),
   // Which consumption point this menu item draws from ('' = tenant default).
   consumption_location_id: z.string().uuid().optional().or(z.literal('')),
+  // Menu section (breakfast, soups, …); '' = uncategorised.
+  category_id: z.string().uuid().optional().or(z.literal('')),
   notes: z.string().max(2000).optional().or(z.literal('')),
   lines: z.array(recipeLineSchema).min(1, 'min_one_line'),
 })

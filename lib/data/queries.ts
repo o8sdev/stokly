@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type {
   Ingredient,
   Recipe,
+  RecipeCategory,
   RecipeIngredient,
   StockMovement,
   Supplier,
@@ -55,6 +56,20 @@ export async function getIngredients(
     ...i,
     unit_conversions: byIngredient.get(i.id) ?? null,
   }))
+}
+
+// Menu sections (breakfast, soups, …) a tenant has defined for its recipes.
+export async function getRecipeCategories(
+  tenantId: string
+): Promise<RecipeCategory[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('recipe_categories')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
+  return data ?? []
 }
 
 // A single ingredient's custom unit conversions (B4), for the editor panel.

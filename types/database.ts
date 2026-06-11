@@ -377,6 +377,7 @@ export interface Database {
           sale_price: number | null
           yield_percent: number | null
           consumption_location_id: string | null
+          category_id: string | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -393,11 +394,32 @@ export interface Database {
           sale_price?: number | null
           yield_percent?: number | null
           consumption_location_id?: string | null
+          category_id?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['recipes']['Insert']>
+        Relationships: []
+      }
+      recipe_categories: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['recipe_categories']['Insert']
+        >
         Relationships: []
       }
       recipe_ingredients: {
@@ -1089,6 +1111,8 @@ export type StorageLocation =
   Database['public']['Tables']['storage_locations']['Row']
 export type Ingredient = Database['public']['Tables']['ingredients']['Row']
 export type Recipe = Database['public']['Tables']['recipes']['Row']
+export type RecipeCategory =
+  Database['public']['Tables']['recipe_categories']['Row']
 export type RecipeIngredient =
   Database['public']['Tables']['recipe_ingredients']['Row']
 export type StockMovement =

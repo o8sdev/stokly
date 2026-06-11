@@ -11,6 +11,7 @@ import { isConvertible } from '@/lib/constants/units'
 
 export interface RecipeActionResult {
   error?: string
+  success?: boolean
 }
 
 // The client serialises the full recipe (header + lines) into a single hidden
@@ -46,6 +47,22 @@ async function resolveConsumptionLocation(
     .eq('id', raw)
     .eq('tenant_id', tenantId)
     .eq('is_consumption_point', true)
+    .maybeSingle()
+  return data?.id ?? null
+}
+
+// Keep a recipe's category only when it actually belongs to the tenant.
+async function resolveCategory(
+  supabase: ReturnType<typeof createClient>,
+  tenantId: string,
+  raw: string | undefined
+): Promise<string | null> {
+  if (!raw) return null
+  const { data } = await supabase
+    .from('recipe_categories')
+    .select('id')
+    .eq('id', raw)
+    .eq('tenant_id', tenantId)
     .maybeSingle()
   return data?.id ?? null
 }
@@ -116,6 +133,11 @@ export async function createRecipe(
     ctx.tenantId,
     data.consumption_location_id
   )
+  const categoryId = await resolveCategory(
+    supabase,
+    ctx.tenantId,
+    data.category_id
+  )
   const { data: recipe, error } = await supabase
     .from('recipes')
     .insert({
@@ -132,6 +154,7 @@ export async function createRecipe(
           ? 1
           : Number(data.yield_percent) / 100,
       consumption_location_id: consumptionLocationId,
+      category_id: categoryId,
       notes: data.notes || null,
     })
     .select('id')
@@ -171,6 +194,11 @@ export async function updateRecipe(
     ctx.tenantId,
     data.consumption_location_id
   )
+  const categoryId = await resolveCategory(
+    supabase,
+    ctx.tenantId,
+    data.category_id
+  )
   const { error } = await supabase
     .from('recipes')
     .update({
@@ -186,6 +214,7 @@ export async function updateRecipe(
           ? 1
           : Number(data.yield_percent) / 100,
       consumption_location_id: consumptionLocationId,
+      category_id: categoryId,
       notes: data.notes || null,
     })
     .eq('id', id)
@@ -197,4 +226,41 @@ export async function updateRecipe(
 
   revalidatePath(`/${locale}/app/recipes`)
   redirect(`/${locale}/app/recipes`)
+}
+
+// ── Menu categories (sections: breakfast, soups, …) ─────────────────────────
+export async function createRecipeCategory(
+  locale: string,
+  _prev: RecipeActionResult,
+  formData: FormData
+): Promise<RecipeActionResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const name = String(formData.get('name') ?? '').trim()
+  if (!name || name.length > 100) return { error: 'validation' }
+
+  const supabase = createClient()
+  const { error } = await supabase.from('recipe_categories').insert({
+    tenant_id: ctx.tenantId,
+    name,
+  })
+  if (error) return { error: 'generic' } // incl. duplicate name per tenant
+  revalidatePath(`/${locale}/app/recipes`)
+  return { success: true }
+}
+
+// Recipes in a deleted category fall back to "uncategorised" (FK SET NULL).
+export async function deleteRecipeCategory(
+  locale: string,
+  categoryId: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('recipe_categories')
+    .delete()
+    .eq('id', categoryId)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(`/${locale}/app/recipes`)
 }
