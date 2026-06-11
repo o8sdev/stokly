@@ -149,12 +149,14 @@ export function FoodCostBadge({
 
 /* ── Stock status badge ──────────────────────────────────────────────────── */
 
-export type StockStatus = 'ok' | 'low' | 'out'
+export type StockStatus = 'ok' | 'low' | 'out' | 'negative'
 
 const STOCK_COLORS: Record<StockStatus, Band> = {
   ok: { bg: '#F0FDF4', text: '#166534', border: '#BBF7D0' },
   low: { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A' },
   out: { bg: '#FEF2F2', text: '#991B1B', border: '#FECACA' },
+  // Oversold (negative): a louder, solid red than 'out' (0) — a missed transfer.
+  negative: { bg: '#DC2626', text: '#FFFFFF', border: '#DC2626' },
 }
 
 export function StockBadge({

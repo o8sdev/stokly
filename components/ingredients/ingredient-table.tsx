@@ -41,6 +41,7 @@ export function IngredientTable({
   }, [rows, query])
 
   function stockStatus(row: IngredientWithStock): StockStatus {
+    if (row.currentStock < 0) return 'negative'
     if (row.currentStock <= 0) return 'out'
     if (
       row.low_stock_threshold != null &&
@@ -54,6 +55,7 @@ export function IngredientTable({
     ok: t('inventory.status_ok'),
     low: t('inventory.status_low'),
     out: t('inventory.status_zero'),
+    negative: t('inventory.status_negative'),
   }
 
   return (

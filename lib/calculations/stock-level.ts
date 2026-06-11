@@ -55,7 +55,9 @@ export function deriveStockLevel(
     }
   }
 
-  return Math.max(0, level)
+  // Negative is allowed: an oversell (a missed transfer/delivery) shows as a
+  // negative level — a red flag in the UI — rather than being hidden as 0.
+  return level
 }
 
 // Build a map of ingredientId -> derived stock level in a single pass.
@@ -98,11 +100,8 @@ export function deriveAllStockLevels(
     }
   }
 
-  // Clamp negatives to zero.
-  for (const [id, level] of levels) {
-    if (level < 0) levels.set(id, 0)
-  }
-
+  // Negatives are intentionally NOT clamped — an oversell surfaces as a negative
+  // level (a missed transfer/delivery) instead of being hidden as 0.
   return levels
 }
 

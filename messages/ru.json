@@ -773,6 +773,7 @@
     "status_ok": "Норма",
     "status_low": "Мало",
     "status_zero": "Пусто",
+    "status_negative": "Минус",
     "count_help": "Введите подсчитанное количество для каждого ингредиента",
     "count_date": "Дата подсчёта",
     "counted_quantity": "Подсчитано",

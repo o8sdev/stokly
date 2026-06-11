@@ -70,7 +70,8 @@ export default async function InventoryPage({
     const stock = levels.get(i.id) ?? 0
     const threshold = i.low_stock_threshold
     let status: StockStatus = 'ok'
-    if (stock <= 0) status = 'out'
+    if (stock < 0) status = 'negative'
+    else if (stock <= 0) status = 'out'
     else if (threshold != null && stock <= threshold) status = 'low'
     return {
       id: i.id,

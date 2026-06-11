@@ -35,7 +35,13 @@ export async function LowStockWidget({ rows }: { rows: LowStockRow[] }) {
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{row.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  <MonoValue value={formatQuantity(row.currentStock)} />{' '}
+                  <span
+                    className={
+                      row.currentStock < 0 ? 'font-semibold text-[#DC2626]' : ''
+                    }
+                  >
+                    <MonoValue value={formatQuantity(row.currentStock)} />
+                  </span>{' '}
                   / {t('threshold')}{' '}
                   <MonoValue value={formatQuantity(row.threshold)} /> {row.unit}
                 </p>

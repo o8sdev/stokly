@@ -52,6 +52,7 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
     ok: t('inventory.status_ok'),
     low: t('inventory.status_low'),
     out: t('inventory.status_zero'),
+    negative: t('inventory.status_negative'),
   }
 
   return (
@@ -99,7 +100,11 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                 </span>
               </TableCell>
               <TableCell className="text-right">
-                <MonoValue value={formatQuantity(row.stock)} unit={row.unit} />
+                <span
+                  className={cn(row.stock < 0 && 'font-semibold text-[#DC2626]')}
+                >
+                  <MonoValue value={formatQuantity(row.stock)} unit={row.unit} />
+                </span>
               </TableCell>
               <TableCell>
                 <StockBadge

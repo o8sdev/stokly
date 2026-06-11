@@ -773,6 +773,7 @@
     "status_ok": "Normal",
     "status_low": "Az",
     "status_zero": "Boş",
+    "status_negative": "Mənfi",
     "count_help": "Hər inqrediyent üçün sayılan miqdarı daxil edin",
     "count_date": "Sayım tarixi",
     "counted_quantity": "Sayılan miqdar",
