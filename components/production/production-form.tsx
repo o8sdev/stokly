@@ -26,6 +26,7 @@ interface RecipeOpt {
   id: string
   name: string
   serving_size: number | null
+  produced_ingredient_id: string | null
 }
 interface InputLine {
   key: string
@@ -88,18 +89,40 @@ export function ProductionForm({
     setLines((prev) => prev.filter((l) => l.key !== key))
   }
 
-  // Pre-fill the input rows from a chosen recipe template (one batch).
+  // Build input rows from a template scaled to `qty` of output (qty / batch).
+  function buildLines(recId: string, qty: number): InputLine[] | null {
+    const src = recipeLines[recId]
+    if (!src || src.length === 0) return null
+    const r = recipes.find((x) => x.id === recId)
+    const batch = r?.serving_size && r.serving_size > 0 ? r.serving_size : null
+    const factor = batch && qty > 0 ? qty / batch : 1
+    return src.map((s) => ({
+      key: newKey(),
+      ingredient_id: s.ingredient_id,
+      quantity: String(Math.round(s.quantity * factor * 1000) / 1000),
+    }))
+  }
+
+  // Choosing a prep template points the output at its backing produced
+  // ingredient, defaults the output qty to one batch (serving_size), and fills
+  // the inputs scaled to that.
   function selectRecipe(id: string) {
     setRecipeId(id)
-    const src = recipeLines[id]
-    if (src && src.length > 0) {
-      setLines(
-        src.map((s) => ({
-          key: newKey(),
-          ingredient_id: s.ingredient_id,
-          quantity: String(s.quantity),
-        }))
-      )
+    const r = recipes.find((x) => x.id === id)
+    if (r?.produced_ingredient_id) setOutputId(r.produced_ingredient_id)
+    const batch = r?.serving_size && r.serving_size > 0 ? r.serving_size : null
+    const qty = batch ?? (Number(outputQty) || 0)
+    if (batch) setOutputQty(String(batch))
+    const next = buildLines(id, qty)
+    if (next) setLines(next)
+  }
+
+  // Re-scale the template inputs as the produced quantity changes (N / batch).
+  function changeOutputQty(v: string) {
+    setOutputQty(v)
+    if (recipeId) {
+      const next = buildLines(recipeId, Number(v) || 0)
+      if (next) setLines(next)
     }
   }
 
@@ -175,7 +198,7 @@ export function ProductionForm({
             step="0.001"
             min="0"
             value={outputQty}
-            onChange={(e) => setOutputQty(e.target.value)}
+            onChange={(e) => changeOutputQty(e.target.value)}
             className="text-right font-mono tabular-nums"
           />
         </div>

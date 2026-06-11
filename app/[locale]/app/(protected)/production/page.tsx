@@ -2,10 +2,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Plus } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getProductionRuns } from '@/lib/data/queries'
+import { getProductionRuns, getPreps } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { ProductionRunsList } from '@/components/production/production-runs-list'
+import { PrepsPanel } from '@/components/production/preps-panel'
 
 export default async function ProductionPage({
   params: { locale },
@@ -15,7 +16,10 @@ export default async function ProductionPage({
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
-  const runs = await getProductionRuns(ctx.tenantId)
+  const [runs, preps] = await Promise.all([
+    getProductionRuns(ctx.tenantId),
+    getPreps(ctx.tenantId),
+  ])
 
   return (
     <div>
@@ -31,6 +35,7 @@ export default async function ProductionPage({
           </Button>
         }
       />
+      <PrepsPanel preps={preps} />
       <ProductionRunsList locale={locale} runs={runs} />
     </div>
   )

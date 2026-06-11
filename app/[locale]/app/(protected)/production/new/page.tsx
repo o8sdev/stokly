@@ -47,6 +47,7 @@ export default async function NewProductionPage({
       id: r.id,
       name: (locale === 'ru' ? r.name_ru : r.name_az) || r.name,
       serving_size: r.serving_size,
+      produced_ingredient_id: r.produced_ingredient_id,
     }))
 
   const ingOpts = ingredients.map((i) => ({

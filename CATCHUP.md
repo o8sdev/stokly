@@ -275,6 +275,30 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Stocked preps (Yarımfabrikat): correct two-stage production (migration 048)
+Preps now consume **raw at production** and deduct as **their own stock at sale** (not exploded to
+raw on every sale). Built on the existing produced-ingredient + production-run machinery; default
+is stocked, made-to-order is opt-in. Migration 048 + app-layer; verified end-to-end via deployed
+RPCs under BEGIN/ROLLBACK (produce 5 raw → 10 prep @ rolled-up cost; sell 3 → prep 7, **raw
+untouched** = no double-deduct).
+- **048:** `recipes.produced_ingredient_id` (→ ingredients, SET NULL). Stocked ⟺ linked;
+  made-to-order ⟺ null.
+- **Authoring:** recipe form shows a **Stocked** toggle for preps (default ON). On save,
+  `resolveBackingPrep` (recipes/actions.ts) find-or-creates the backing produced ingredient (holds
+  the prep's batches) and sets the link; toggling off unlinks (keeps the ingredient). Existing
+  sub-recipes stay null → unchanged. Backing preps hidden from the recipe **raw** picker.
+- **Seam (the fix):** `explode()` (theoretical-usage), `resolveRecipeCost` (recipe-cost) and
+  `recipe-builder` subRecipeOptions cost — a sub-recipe line whose recipe is stocked **deducts/costs
+  the produced ingredient (qty×line.qty), no raw recursion**; cost falls back to the raw recompute
+  until the prep has a production cost. `getDayConfirmPreview` + the usage snapshot inherit it. The
+  double-count guard = raw only at production, prep only at sale.
+- **Production scaling:** picking a prep template sets output = its backing ingredient and scales
+  inputs by `N / serving_size` (was 1:1). Reuses `execute_production_run`.
+- **Surfacing:** Preps panel on /app/production — on-hand, cost/serving, last yield, nearest expiry
+  (`getPreps`). Bilingual recipes.stocked* + production.prep* keys.
+- **Counts** still reconcile via the raw-equivalent card (5 kg raw + 10 portions ⇒ 10 kg). Selling a
+  stocked prep with no production drives prep stock negative (the red flag), not a silent raw explode.
+
 ### Done — Tenant UX round (9 owner requests, migrations 046–047)
 1. **Dashboard:** the Getting-Started card now renders ABOVE the dashboard (never
    replacing it) and lost the business-type chooser + ingredient import/library/

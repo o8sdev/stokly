@@ -58,6 +58,72 @@ export async function getIngredients(
   }))
 }
 
+// Stocked preps (Yarımfabrikat) summary for the production page: on-hand,
+// cost/serving, last production yield, and nearest expiry of the prep's stock.
+export interface PrepSummary {
+  recipe_id: string
+  produced_ingredient_id: string
+  name: string
+  unit: string
+  on_hand: number
+  cost_per_unit: number
+  last_yield_percent: number | null
+  nearest_expiry: string | null
+}
+
+export async function getPreps(tenantId: string): Promise<PrepSummary[]> {
+  const supabase = createClient()
+  const { data: recipes } = await supabase
+    .from('recipes')
+    .select('id, name, serving_unit, produced_ingredient_id')
+    .eq('tenant_id', tenantId)
+    .not('produced_ingredient_id', 'is', null)
+  const reps = recipes ?? []
+  if (reps.length === 0) return []
+
+  const [movements, ingredients, runsRes, batches] = await Promise.all([
+    getStockMovements(tenantId),
+    getIngredients(tenantId),
+    supabase
+      .from('production_runs')
+      .select('output_ingredient_id, actual_yield_percent, produced_at')
+      .eq('tenant_id', tenantId)
+      .order('produced_at', { ascending: false }),
+    getActiveBatches(tenantId),
+  ])
+  const levels = deriveAllStockLevels(movements)
+  const ingById = new Map(ingredients.map((i) => [i.id, i]))
+  // Most-recent run's yield per produced ingredient (runs already DESC).
+  const lastYield = new Map<string, number | null>()
+  for (const r of runsRes.data ?? []) {
+    if (!lastYield.has(r.output_ingredient_id)) {
+      lastYield.set(r.output_ingredient_id, r.actual_yield_percent)
+    }
+  }
+  // Nearest expiry across the prep's active, non-empty batches.
+  const nearestExpiry = new Map<string, string>()
+  for (const b of batches) {
+    if (b.quantity_remaining <= 0 || !b.expiry_date) continue
+    const cur = nearestExpiry.get(b.ingredient_id)
+    if (!cur || b.expiry_date < cur) nearestExpiry.set(b.ingredient_id, b.expiry_date)
+  }
+
+  return reps.map((r) => {
+    const pid = r.produced_ingredient_id as string
+    const ing = ingById.get(pid)
+    return {
+      recipe_id: r.id,
+      produced_ingredient_id: pid,
+      name: r.name,
+      unit: ing?.unit ?? r.serving_unit ?? '',
+      on_hand: levels.get(pid) ?? 0,
+      cost_per_unit: ing?.cost_per_unit ?? 0,
+      last_yield_percent: lastYield.get(pid) ?? null,
+      nearest_expiry: nearestExpiry.get(pid) ?? null,
+    }
+  })
+}
+
 // Production history needed to explode prepped goods back into raw ingredients
 // (raw-equivalent view): every run's output + its raw inputs. Inputs carry no
 // tenant_id, so they're fetched via the runs' ids.
