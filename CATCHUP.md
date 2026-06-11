@@ -304,6 +304,11 @@ rolling range; no new costing logic, no migration.
   (`/app/data/sales`: date/dish/qty/price/total/comp) + **Alış jurnalı** (`/app/data/purchases`:
   date/ingredient/supplier/qty/unit-cost/value). Server pages date-window via the range selector;
   `getSalesLog` added to `queries.ts`. Next: waste + stock-counts explorers, then finances summary.
+- **Phase 4 (shipped):** **İtki jurnalı** (`/app/data/waste`: date/ingredient/category/qty/value +
+  reversed status; range-windowed) and **Sayım nəticələri** (`/app/data/counts`: each count period's
+  headline — dates, days, sales, food-cost % badge, waste, net variance, missing-sales flag — every row
+  opens its period report). New `getCountRows` (counts.ts) reads each period's stored `report_data`;
+  the counts list is NOT range-windowed (discrete events). Next: finances summary + gating polish.
 
 ### Done — Stocked preps (Yarımfabrikat): correct two-stage production (migration 048)
 Preps now consume **raw at production** and deduct as **their own stock at sale** (not exploded to

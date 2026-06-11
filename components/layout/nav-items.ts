@@ -130,6 +130,12 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: 'data_purchases',
         icon: ShoppingCart,
       },
+      { href: '/app/data/waste', labelKey: 'data_waste', icon: Trash2 },
+      {
+        href: '/app/data/counts',
+        labelKey: 'data_counts',
+        icon: ClipboardList,
+      },
     ],
   },
   {

@@ -312,6 +312,47 @@ export async function getPeriod(
   return (data as CountPeriod | null) ?? null
 }
 
+export interface CountRow {
+  id: string
+  period_start: string
+  period_end: string
+  days_in_period: number
+  counted_at: string
+  sales_total: number | null
+  food_cost_percent: number | null
+  waste_value: number | null
+  // Σ line variance value (actual − theoretical usage); null when sales weren't
+  // itemized for the period.
+  variance_value: number | null
+  has_missing_sales: boolean
+}
+
+// Recent stock-count results as flat rows for the owner data explorer. Pulls the
+// headline figures from each period's stored report_data (null until generated).
+export async function getCountRows(tenantId: string): Promise<CountRow[]> {
+  const periods = await listPeriods(tenantId)
+  const r2 = (n: number): number => Math.round(n * 100) / 100
+  return periods.map((p) => {
+    const report = (p.report_data as unknown as PeriodReportData | null) ?? null
+    const variance =
+      report && report.has_itemized_sales
+        ? r2(report.lines.reduce((s, l) => s + l.variance_value, 0))
+        : null
+    return {
+      id: p.id,
+      period_start: p.period_start,
+      period_end: p.period_end,
+      days_in_period: p.days_in_period,
+      counted_at: p.counted_at,
+      sales_total: report?.sales_total ?? null,
+      food_cost_percent: report?.food_cost_percent ?? null,
+      waste_value: report?.waste_value ?? null,
+      variance_value: variance,
+      has_missing_sales: p.has_missing_sales ?? false,
+    }
+  })
+}
+
 // ── Report generation ────────────────────────────────────────────────────
 // (Re)compute the stored report for a period from all current data. Recomputes
 // missing-sales (late entries change it). `bumpVersion` increments the version
