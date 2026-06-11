@@ -380,6 +380,7 @@ export interface Database {
           yield_percent: number | null
           consumption_location_id: string | null
           category_id: string | null
+          produced_ingredient_id: string | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -397,6 +398,7 @@ export interface Database {
           yield_percent?: number | null
           consumption_location_id?: string | null
           category_id?: string | null
+          produced_ingredient_id?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string

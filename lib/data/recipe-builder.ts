@@ -52,7 +52,17 @@ export async function getRecipeBuilderData(
 
   const ctx = buildResolveContext(ingredients, recipes, recipeIngredients)
 
-  const ingredientOptions: IngredientOption[] = ingredients.map((i) => ({
+  // Hide ingredients that merely BACK a stocked prep from the raw picker — a prep
+  // is composed/referenced via its sub-recipe, not as a raw line. (They still
+  // appear in inventory/counts and the production input picker.)
+  const backingPrepIds = new Set(
+    recipes
+      .map((r) => r.produced_ingredient_id)
+      .filter((x): x is string => x != null)
+  )
+  const ingredientOptions: IngredientOption[] = ingredients
+    .filter((i) => !backingPrepIds.has(i.id))
+    .map((i) => ({
     id: i.id,
     name: i.name,
     unit: i.unit,
@@ -64,12 +74,22 @@ export async function getRecipeBuilderData(
 
   const subRecipeOptions: SubRecipeOption[] = recipes
     .filter((r) => r.is_sub_recipe && r.id !== excludeRecipeId)
-    .map((r) => ({
-      id: r.id,
-      name: r.name,
-      unitCost: subRecipeUnitCost(r.id, ctx),
-      serving_unit: r.serving_unit,
-    }))
+    .map((r) => {
+      // A stocked prep costs its rolled-up production cost/serving; else from raw.
+      const prep = r.produced_ingredient_id
+        ? ctx.ingredients.get(r.produced_ingredient_id)
+        : null
+      const unitCost =
+        prep && prep.cost_per_unit > 0
+          ? prep.cost_per_unit
+          : subRecipeUnitCost(r.id, ctx)
+      return {
+        id: r.id,
+        name: r.name,
+        unitCost,
+        serving_unit: r.serving_unit,
+      }
+    })
 
   // Default point first, then the rest (consumption points only).
   const points = locations.filter((l) => l.is_consumption_point)

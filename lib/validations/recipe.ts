@@ -31,6 +31,10 @@ export const recipeSchema = z.object({
   yield_percent: z
     .union([z.coerce.number().positive().max(100), z.literal('')])
     .optional(),
+  // Prep is tracked as stock (produced) vs made-to-order (explode to raw at
+  // sale). Only meaningful for sub-recipes; the action backs it with a produced
+  // ingredient. The form always sends an explicit boolean.
+  is_stocked: z.boolean().optional(),
   // Which consumption point this menu item draws from ('' = tenant default).
   consumption_location_id: z.string().uuid().optional().or(z.literal('')),
   // Menu section (breakfast, soups, …); '' = uncategorised.

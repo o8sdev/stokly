@@ -43,13 +43,22 @@ export function resolveRecipeCost(
         yieldPercent
       )
     } else if (line.sub_recipe_id) {
-      // Cost of one unit of the sub-recipe multiplied by the quantity used.
-      const subUnitCost = subRecipeUnitCost(
-        line.sub_recipe_id,
-        ctx,
-        new Set(visited)
-      )
-      total += subUnitCost * line.quantity
+      const sub = ctx.recipes.get(line.sub_recipe_id)
+      const prep = sub?.produced_ingredient_id
+        ? ctx.ingredients.get(sub.produced_ingredient_id)
+        : null
+      if (prep && prep.cost_per_unit > 0) {
+        // STOCKED prep: use its rolled-up production cost per serving.
+        total += line.quantity * prep.cost_per_unit
+      } else {
+        // Made-to-order (or stocked-but-not-yet-produced): cost from raw.
+        const subUnitCost = subRecipeUnitCost(
+          line.sub_recipe_id,
+          ctx,
+          new Set(visited)
+        )
+        total += subUnitCost * line.quantity
+      }
     }
   }
 

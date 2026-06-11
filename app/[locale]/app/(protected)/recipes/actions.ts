@@ -67,6 +67,47 @@ async function resolveCategory(
   return data?.id ?? null
 }
 
+// Stocked preps (Yarımfabrikat) are backed by a produced ingredient that holds
+// their stock — the schema keys inventory on ingredient_id. Find-or-create it and
+// return its id; return null for dishes / made-to-order preps (which explode to
+// raw at sale). Unlinking keeps the ingredient (its stock + history stay valid).
+async function resolveBackingPrep(
+  supabase: ReturnType<typeof createClient>,
+  tenantId: string,
+  opts: {
+    isSubRecipe: boolean
+    isStocked: boolean
+    name: string
+    servingUnit: string
+    existingProducedId: string | null
+  }
+): Promise<string | null> {
+  if (!opts.isSubRecipe || !opts.isStocked) return null
+
+  const unit = opts.servingUnit || 'porsiya'
+  if (opts.existingProducedId) {
+    await supabase
+      .from('ingredients')
+      .update({ name: opts.name, unit })
+      .eq('id', opts.existingProducedId)
+      .eq('tenant_id', tenantId)
+    return opts.existingProducedId
+  }
+  const { data: ing } = await supabase
+    .from('ingredients')
+    .insert({
+      tenant_id: tenantId,
+      name: opts.name,
+      unit,
+      cost_per_unit: 0,
+      yield_percent: 1,
+      is_produced: true,
+    })
+    .select('id')
+    .single()
+  return ing?.id ?? null
+}
+
 // B4 fail-loud: every ingredient line's unit must have a path to the
 // ingredient's base unit (same unit, metric family, or a defined per-ingredient
 // conversion) — no more silent same-unit assumption.
@@ -138,6 +179,13 @@ export async function createRecipe(
     ctx.tenantId,
     data.category_id
   )
+  const producedIngredientId = await resolveBackingPrep(supabase, ctx.tenantId, {
+    isSubRecipe: data.is_sub_recipe,
+    isStocked: data.is_stocked === true,
+    name: data.name,
+    servingUnit: data.serving_unit || '',
+    existingProducedId: null,
+  })
   const { data: recipe, error } = await supabase
     .from('recipes')
     .insert({
@@ -155,6 +203,7 @@ export async function createRecipe(
           : Number(data.yield_percent) / 100,
       consumption_location_id: consumptionLocationId,
       category_id: categoryId,
+      produced_ingredient_id: producedIngredientId,
       notes: data.notes || null,
     })
     .select('id')
@@ -199,6 +248,19 @@ export async function updateRecipe(
     ctx.tenantId,
     data.category_id
   )
+  const { data: existingRecipe } = await supabase
+    .from('recipes')
+    .select('produced_ingredient_id')
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle()
+  const producedIngredientId = await resolveBackingPrep(supabase, ctx.tenantId, {
+    isSubRecipe: data.is_sub_recipe,
+    isStocked: data.is_stocked === true,
+    name: data.name,
+    servingUnit: data.serving_unit || '',
+    existingProducedId: existingRecipe?.produced_ingredient_id ?? null,
+  })
   const { error } = await supabase
     .from('recipes')
     .update({
@@ -215,6 +277,7 @@ export async function updateRecipe(
           : Number(data.yield_percent) / 100,
       consumption_location_id: consumptionLocationId,
       category_id: categoryId,
+      produced_ingredient_id: producedIngredientId,
       notes: data.notes || null,
     })
     .eq('id', id)

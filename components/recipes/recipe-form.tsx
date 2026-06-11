@@ -97,6 +97,11 @@ export function RecipeForm({
   )
   // Menu section ('' = uncategorised).
   const [categoryId, setCategoryId] = useState(recipe?.category_id ?? '')
+  // Prep tracked as stock (produced) vs made-to-order. Default ON for a new
+  // prep; an existing prep is stocked iff it already backs a produced ingredient.
+  const [isStocked, setIsStocked] = useState(
+    recipe ? recipe.produced_ingredient_id != null : true
+  )
 
   // Line state, seeded from existing recipe lines on edit.
   const [lines, setLines] = useState<EditorLine[]>(() => {
@@ -205,6 +210,7 @@ export function RecipeForm({
         yield_percent: yieldPercent === '' ? '' : Number(yieldPercent),
         consumption_location_id: consumptionLocationId,
         category_id: categoryId,
+        is_stocked: isSubRecipe ? isStocked : false,
         notes,
         lines: lines
           .filter((l) => l.sourceId)
@@ -228,6 +234,8 @@ export function RecipeForm({
       yieldPercent,
       consumptionLocationId,
       categoryId,
+      isStocked,
+      isSubRecipe,
       notes,
       lines,
     ]
@@ -386,6 +394,26 @@ export function RecipeForm({
                 </select>
               </div>
             </div>
+
+            {isSubRecipe && (
+              <div className="space-y-2 rounded-lg border border-border bg-secondary/40 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <Label htmlFor="is_stocked">{t('recipes.stocked')}</Label>
+                    <p className="text-xs text-muted-foreground">
+                      {isStocked
+                        ? t('recipes.stocked_help')
+                        : t('recipes.made_to_order_help')}
+                    </p>
+                  </div>
+                  <Switch
+                    id="is_stocked"
+                    checked={isStocked}
+                    onCheckedChange={setIsStocked}
+                  />
+                </div>
+              </div>
+            )}
 
             {isSubRecipe && (
               <div className="space-y-2">

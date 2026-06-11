@@ -53,23 +53,31 @@ function explode(
       )
     } else if (line.sub_recipe_id) {
       const sub = ctx.recipes.get(line.sub_recipe_id)
-      const size =
-        sub?.serving_size && sub.serving_size > 0 ? sub.serving_size : 1
-      // A lossy batch (yield_percent < 1) must be made in greater quantity to
-      // yield the same usable servings, so it consumes proportionally more raw.
-      const yieldP =
-        sub?.yield_percent != null && sub.yield_percent > 0
-          ? sub.yield_percent
-          : 1
-      // Consuming `line.quantity` serving-units of the sub-recipe = that
-      // fraction of a batch. Fresh visited copy so sibling branches don't share.
-      explode(
-        line.sub_recipe_id,
-        (qty * line.quantity) / (size * yieldP),
-        ctx,
-        acc,
-        new Set(visited)
-      )
+      if (sub?.produced_ingredient_id) {
+        // STOCKED prep (Yarımfabrikat): the raw was consumed at production time,
+        // so a sale deducts the PREP's own stock — stop here, don't recurse.
+        acc.set(
+          sub.produced_ingredient_id,
+          (acc.get(sub.produced_ingredient_id) ?? 0) + qty * line.quantity
+        )
+      } else {
+        // MADE-TO-ORDER: explode to raw. A lossy batch (yield < 1) must be made
+        // in greater quantity to yield the same servings, so it consumes more raw.
+        const size =
+          sub?.serving_size && sub.serving_size > 0 ? sub.serving_size : 1
+        const yieldP =
+          sub?.yield_percent != null && sub.yield_percent > 0
+            ? sub.yield_percent
+            : 1
+        // Fresh visited copy so sibling branches don't share.
+        explode(
+          line.sub_recipe_id,
+          (qty * line.quantity) / (size * yieldP),
+          ctx,
+          acc,
+          new Set(visited)
+        )
+      }
     }
   }
 }
