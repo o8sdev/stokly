@@ -49,6 +49,7 @@ export async function GettingStarted({ locale }: { locale: string }) {
       <div className="mt-6">
         <h3 className="text-sm font-semibold">{t('gs_shortcuts')}</h3>
         <div className="mt-3 flex flex-wrap gap-2">
+          <Shortcut href="/app/guide" label={t('guide_btn')} />
           <Shortcut href="/app/recipes/new" label={t('step3_btn')} />
           <Shortcut href="/app/inventory/count" label={t('step4_btn')} />
         </div>

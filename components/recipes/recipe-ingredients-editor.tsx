@@ -213,7 +213,10 @@ export function RecipeIngredientsEditor({
         )
       })}
 
-      <div className="flex flex-wrap gap-2 pt-2">
+      <p className="pt-2 text-xs text-muted-foreground">
+        {t('line_kind_hint')}
+      </p>
+      <div className="flex flex-wrap gap-2">
         <Button
           type="button"
           variant="secondary"

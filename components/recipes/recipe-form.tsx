@@ -326,7 +326,11 @@ export function RecipeForm({
                 onCheckedChange={setIsSubRecipe}
                 className="sr-only"
               />
+              <FieldHint text={t('recipes.kind_hint')} />
             </div>
+            <p className="text-xs text-muted-foreground">
+              {t('recipes.kind_example')}
+            </p>
 
             {/* Menu section (dishes only) — drives list/report filtering. */}
             {!isSubRecipe && categories.length > 0 && (

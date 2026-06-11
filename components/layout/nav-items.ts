@@ -8,6 +8,7 @@ import {
   Wallet,
   Users,
   Settings,
+  BookOpen,
   Receipt,
   ShoppingBag,
   ShoppingCart,
@@ -122,6 +123,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'settings',
     items: [
+      { href: '/app/guide', labelKey: 'guide', icon: BookOpen },
       { href: '/app/settings/suppliers', labelKey: 'suppliers', icon: Users },
       { href: '/app/settings', labelKey: 'settings', icon: Settings },
     ],
