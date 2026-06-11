@@ -903,6 +903,66 @@ export async function getSalesMix(
   return mix
 }
 
+export interface SalesLogEntry {
+  id: string
+  sale_date: string
+  recipe_name: string
+  quantity: number
+  unit_price: number
+  line_total: number
+  is_comp: boolean
+}
+
+// Browsable itemized-sales log for a date range (inclusive): one row per sold
+// menu line, with the dish name, paid price and whether it was a comp/staff meal.
+export async function getSalesLog(
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<SalesLogEntry[]> {
+  const supabase = createClient()
+  const { data: sales } = await supabase
+    .from('daily_sales')
+    .select('id, sale_date')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', from)
+    .lte('sale_date', to)
+  const dayMap = new Map((sales ?? []).map((s) => [s.id, String(s.sale_date)]))
+  const ids = [...dayMap.keys()]
+  if (ids.length === 0) return []
+
+  const { data: items } = await supabase
+    .from('daily_sales_items')
+    .select('id, daily_sales_id, recipe_id, quantity, unit_price, is_comp')
+    .in('daily_sales_id', ids)
+  const recIds = [...new Set((items ?? []).map((i) => i.recipe_id))]
+  const recMap = new Map<string, string>()
+  if (recIds.length > 0) {
+    const { data: recs } = await supabase
+      .from('recipes')
+      .select('id, name')
+      .eq('tenant_id', tenantId)
+      .in('id', recIds)
+    for (const r of recs ?? []) recMap.set(r.id, r.name)
+  }
+
+  return (items ?? [])
+    .map((it) => {
+      const q = Number(it.quantity)
+      const p = Number(it.unit_price ?? 0)
+      return {
+        id: it.id,
+        sale_date: dayMap.get(it.daily_sales_id) ?? '',
+        recipe_name: recMap.get(it.recipe_id) ?? '—',
+        quantity: q,
+        unit_price: p,
+        line_total: q * p,
+        is_comp: !!it.is_comp,
+      }
+    })
+    .sort((a, b) => (a.sale_date < b.sale_date ? 1 : -1))
+}
+
 // The tenant's consumption points (where sales/waste/production deduct), default
 // point first. Powers the location selectors on the waste + production forms.
 export async function getConsumptionPoints(

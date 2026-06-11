@@ -298,6 +298,12 @@ rolling range; no new costing logic, no migration.
   strip** (low stock, expiring, oversold/negative, missing-sales days). New `getOverviewPanels` +
   `components/dashboard/overview-panels.tsx`. Next: filterable/sortable/paginated explorers
   (sales/purchases/waste/counts), then a finances summary.
+- **Phase 3 (shipped):** reusable `components/data/data-explorer.tsx` — free-text search, click-to-sort
+  headers (desc→asc→off), pagination — driven by client column defs (accessor/render closures can't
+  cross the server boundary). New owner **Data** nav section (`nav.section.data`) with **Satış jurnalı**
+  (`/app/data/sales`: date/dish/qty/price/total/comp) + **Alış jurnalı** (`/app/data/purchases`:
+  date/ingredient/supplier/qty/unit-cost/value). Server pages date-window via the range selector;
+  `getSalesLog` added to `queries.ts`. Next: waste + stock-counts explorers, then finances summary.
 
 ### Done — Stocked preps (Yarımfabrikat): correct two-stage production (migration 048)
 Preps now consume **raw at production** and deduct as **their own stock at sale** (not exploded to

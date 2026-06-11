@@ -29,6 +29,33 @@
     "missing_sales_n": "{count} дн. без продаж",
     "all_good": "Всё в порядке"
   },
+  "explorer": {
+    "search": "Поиск…",
+    "empty": "Ничего не найдено",
+    "results": "{count} результатов",
+    "prev": "Назад",
+    "next": "Вперёд"
+  },
+  "data": {
+    "sales_title": "Журнал продаж",
+    "sales_desc": "Фильтруйте, сортируйте и просматривайте все продажи.",
+    "purchases_title": "Журнал закупок",
+    "purchases_desc": "Просматривайте все закупки по поставщикам и расходам.",
+    "col_date": "Дата",
+    "col_dish": "Блюдо",
+    "col_qty": "Кол-во",
+    "col_unit_price": "Цена за ед.",
+    "col_total": "Итого",
+    "col_type": "Тип",
+    "comp": "Комп",
+    "sale": "Продажа",
+    "col_ingredient": "Ингредиент",
+    "col_supplier": "Поставщик",
+    "col_unit_cost": "Себест. ед.",
+    "col_value": "Стоимость",
+    "search_sales": "Поиск блюда…",
+    "search_purchases": "Ингредиент или поставщик…"
+  },
   "suspended": {
     "title": "Пробный период истёк",
     "body": "Чтобы продолжить пользоваться Stokly, активируйте аккаунт.",
@@ -83,6 +110,11 @@
     "guide": "Гид",
     "purchases": "Закупки",
     "shopping_list": "Список заказа",
+    "data_sales": "Журнал продаж",
+    "data_purchases": "Журнал закупок",
+    "data_waste": "Журнал потерь",
+    "data_counts": "Подсчёты",
+    "data_finances": "Финансы",
     "stock_aging": "Старение запасов",
     "menu_engineering": "Инженерия меню",
     "by_location": "По локациям",
@@ -91,6 +123,7 @@
     "section": {
       "main": "ОСНОВНОЕ",
       "reports": "ОТЧЁТЫ",
+      "data": "ДАННЫЕ",
       "settings": "НАСТРОЙКИ"
     }
   },

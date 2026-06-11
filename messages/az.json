@@ -29,6 +29,33 @@
     "missing_sales_n": "{count} gün satışsız",
     "all_good": "Hər şey qaydasındadır"
   },
+  "explorer": {
+    "search": "Axtar…",
+    "empty": "Nəticə yoxdur",
+    "results": "{count} nəticə",
+    "prev": "Əvvəlki",
+    "next": "Növbəti"
+  },
+  "data": {
+    "sales_title": "Satış jurnalı",
+    "sales_desc": "Bütün satışları süzün, sıralayın və nəzərdən keçirin.",
+    "purchases_title": "Alış jurnalı",
+    "purchases_desc": "Bütün alışları təchizatçı və xərc üzrə nəzərdən keçirin.",
+    "col_date": "Tarix",
+    "col_dish": "Yemək",
+    "col_qty": "Miqdar",
+    "col_unit_price": "Vahid qiymət",
+    "col_total": "Cəmi",
+    "col_type": "Növ",
+    "comp": "Komp",
+    "sale": "Satış",
+    "col_ingredient": "İnqrediyent",
+    "col_supplier": "Təchizatçı",
+    "col_unit_cost": "Vahid maya",
+    "col_value": "Dəyər",
+    "search_sales": "Yemək axtar…",
+    "search_purchases": "İnqrediyent və ya təchizatçı…"
+  },
   "suspended": {
     "title": "Sınaq müddəti bitdi",
     "body": "Stokly-dən istifadəyə davam etmək üçün hesabınızı aktivləşdirin.",
@@ -83,6 +110,11 @@
     "guide": "Bələdçi",
     "purchases": "Alışlar",
     "shopping_list": "Sifariş siyahısı",
+    "data_sales": "Satış jurnalı",
+    "data_purchases": "Alış jurnalı",
+    "data_waste": "İtki jurnalı",
+    "data_counts": "Sayımlar",
+    "data_finances": "Maliyyə",
     "stock_aging": "Stok yaşlanması",
     "menu_engineering": "Menyu mühəndisliyi",
     "by_location": "Məkana görə",
@@ -91,6 +123,7 @@
     "section": {
       "main": "ƏSAS",
       "reports": "HESABATLAR",
+      "data": "MƏLUMATLAR",
       "settings": "TƏNZİMLƏMƏLƏR"
     }
   },

@@ -121,6 +121,18 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    // Owner data hub: full, filterable/sortable/paginated access to the raw logs.
+    labelKey: 'data',
+    items: [
+      { href: '/app/data/sales', labelKey: 'data_sales', icon: Receipt },
+      {
+        href: '/app/data/purchases',
+        labelKey: 'data_purchases',
+        icon: ShoppingCart,
+      },
+    ],
+  },
+  {
     labelKey: 'settings',
     items: [
       { href: '/app/guide', labelKey: 'guide', icon: BookOpen },
