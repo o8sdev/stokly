@@ -84,15 +84,18 @@ export function IngredientForm({
         </div>
       </div>
 
+      {/* Multi-column rows: each cell is a flex column with the control pinned
+          to the bottom (mt-auto), so inputs stay aligned even when a label +
+          hint wraps to a second line on narrow widths. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Label htmlFor="unit">{t('ingredients.unit')}</Label>
           <select
             id="unit"
             name="unit"
             required
             defaultValue={ingredient?.unit ?? ''}
-            className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            className="mt-auto flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
           >
             <option value="" disabled>
               {t('ingredients.select_unit')}
@@ -105,7 +108,7 @@ export function IngredientForm({
             ))}
           </select>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="cost_per_unit">{t('ingredients.cost')}</Label>
             <FieldHint text={t('ingredients.cost_hint')} />
@@ -118,10 +121,10 @@ export function IngredientForm({
             min="0"
             required
             defaultValue={ingredient?.cost_per_unit ?? 0}
-            className="text-right font-mono tabular-nums"
+            className="mt-auto text-right font-mono tabular-nums"
           />
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="yield_percent_display">
               {t('ingredients.yield')}
@@ -137,20 +140,20 @@ export function IngredientForm({
             max="100"
             required
             defaultValue={yieldDisplay}
-            className="text-right font-mono tabular-nums"
+            className="mt-auto text-right font-mono tabular-nums"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Label htmlFor="supplier_id">{t('ingredients.supplier')}</Label>
           {/* Native select keeps the form a plain HTML submission. */}
           <select
             id="supplier_id"
             name="supplier_id"
             defaultValue={ingredient?.supplier_id ?? ''}
-            className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            className="mt-auto flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
           >
             <option value="">{t('ingredients.no_supplier')}</option>
             {suppliers.map((s) => (
@@ -160,7 +163,7 @@ export function IngredientForm({
             ))}
           </select>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="low_stock_threshold">
               {t('ingredients.low_stock')}
@@ -174,7 +177,7 @@ export function IngredientForm({
             step="0.001"
             min="0"
             defaultValue={ingredient?.low_stock_threshold ?? ''}
-            className="text-right font-mono tabular-nums"
+            className="mt-auto text-right font-mono tabular-nums"
           />
         </div>
       </div>
@@ -182,7 +185,7 @@ export function IngredientForm({
       {/* Stock planning: low_stock_threshold above is the reorder trigger; par is
           the build-to-par target the shopping list tops stock back up to. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
             <Label htmlFor="par_level">{t('ingredients.par_level')}</Label>
             <FieldHint text={t('ingredients.par_level_hint')} />
@@ -194,7 +197,7 @@ export function IngredientForm({
             step="0.001"
             min="0"
             defaultValue={ingredient?.par_level ?? ''}
-            className="text-right font-mono tabular-nums"
+            className="mt-auto text-right font-mono tabular-nums"
           />
         </div>
         <div className="flex items-end pb-2">
