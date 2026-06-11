@@ -8,11 +8,14 @@ import {
   getActiveBatches,
   getStorageLocations,
   getStockByLocation,
+  getProductionComposition,
 } from '@/lib/data/queries'
 import {
   deriveAllStockLevels,
   lastCountDate,
 } from '@/lib/calculations/stock-level'
+import { computeRawEquivalents } from '@/lib/calculations/raw-equivalents'
+import { RawEquivalentsCard } from '@/components/inventory/raw-equivalents-card'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { EmptyState, type StockStatus } from '@/components/ui/stokly-theme'
@@ -31,15 +34,25 @@ export default async function InventoryPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, movements, batches, locations, byLoc] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getStockMovements(ctx.tenantId),
-    getActiveBatches(ctx.tenantId),
-    getStorageLocations(ctx.tenantId),
-    getStockByLocation(ctx.tenantId),
-  ])
+  const [ingredients, movements, batches, locations, byLoc, composition] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getStockMovements(ctx.tenantId),
+      getActiveBatches(ctx.tenantId),
+      getStorageLocations(ctx.tenantId),
+      getStockByLocation(ctx.tenantId),
+      getProductionComposition(ctx.tenantId),
+    ])
 
   const levels = deriveAllStockLevels(movements)
+  // Prepped goods exploded back to embedded raw ingredients (10 portions of
+  // nuggets ≙ 5 kg chicken), so counts reconcile to the true raw position.
+  const rawEquivalents = computeRawEquivalents(
+    ingredients,
+    levels,
+    composition.runs,
+    composition.inputs
+  )
   const todayStr = new Date().toISOString().slice(0, 10)
   const expiredCount = batches.filter(
     (b) => b.expiry_date && b.expiry_date < todayStr && b.quantity_remaining > 0
@@ -132,6 +145,8 @@ export default async function InventoryPage({
       ) : (
         <InventoryTable rows={rows} locations={locations.map((l) => l.name)} />
       )}
+
+      <RawEquivalentsCard lines={rawEquivalents} />
     </div>
   )
 }

@@ -275,6 +275,35 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Tenant UX round (9 owner requests, migrations 046–047)
+1. **Dashboard:** the Getting-Started card now renders ABOVE the dashboard (never
+   replacing it) and lost the business-type chooser + ingredient import/library/
+   QuickAdd bits; the guided tour + recipe/count shortcuts + dismiss remain.
+2. **Ingredient form alignment:** multi-column cells are flex columns with controls
+   pinned `mt-auto`, so wrapped labels no longer push inputs out of line.
+3. **Recipe live cost fixed:** the form's "Ümumi dəyər" multiplied raw qty × cost
+   (100 q of a 5 AZN/kq item showed 500). `IngredientOption` now carries
+   `unit_conversions`; the live total uses `toBaseUnit` — identical to the server calc.
+4. **Inventory per location:** location filter on the inventory table (per-location
+   qty, status, batches); purchases→transfers reflect since it reads active batches.
+5. **Sidebar:** ƏSAS regrouped into collapsible Mətbəx (ingredients/recipes/
+   production), Anbar (inventory/waste), Satış/Alış.
+6. **Recipe categories (046):** `recipe_categories` + `recipes.category_id`
+   (SET NULL); manage dialog on recipes page; category select on the form; section
+   filters on the recipes list AND menu-engineering + food-cost reports (?category=).
+7. **Suppliers editable:** `updateSupplier` + pencil-to-edit side panel.
+8. **Preps raw-equivalent (counts reconcile):** `computeRawEquivalents` derives
+   per-unit composition from production history (Σ inputs / Σ output per pair) and
+   explodes prepped stock back to raw — inventory page card shows direct + in-preps
+   = total (5 kg chicken + 10 portions nuggets ⇒ 10 kg). Verified end-to-end via the
+   deployed `execute_production_run` under BEGIN/ROLLBACK. Single-level (prep-in-prep
+   not recursed, v1).
+9. **Comps / staff meals (047):** `daily_sales_items.is_comp` — comp lines deduct
+   stock (usage/confirm unchanged) but add ZERO revenue; editor has a per-line Komp
+   toggle (same dish can be paid + comp); footer + month cards show comp value
+   separately; `getSalesMix` (menu engineering) counts paid units only. Sales page
+   gained month-at-a-glance cards (revenue, days + daily avg, comp value).
+
 ### Done — Six operational gotchas (audit + remediation)
 Audited the app against an owner-supplied "blueprint" of 6 restaurant-inventory gotchas.
 **#5 (fat-finger idempotency)** and **#6 (yield)** already passed (void→re-confirm; recipe-

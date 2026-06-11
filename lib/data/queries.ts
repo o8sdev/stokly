@@ -58,6 +58,46 @@ export async function getIngredients(
   }))
 }
 
+// Production history needed to explode prepped goods back into raw ingredients
+// (raw-equivalent view): every run's output + its raw inputs. Inputs carry no
+// tenant_id, so they're fetched via the runs' ids.
+export async function getProductionComposition(tenantId: string): Promise<{
+  runs: { id: string; output_ingredient_id: string; output_quantity: number }[]
+  inputs: {
+    production_run_id: string
+    ingredient_id: string
+    quantity_used: number
+  }[]
+}> {
+  const supabase = createClient()
+  const { data: runs } = await supabase
+    .from('production_runs')
+    .select('id, output_ingredient_id, output_quantity')
+    .eq('tenant_id', tenantId)
+  const runRows = (runs ?? []).map((r) => ({
+    id: r.id,
+    output_ingredient_id: r.output_ingredient_id,
+    output_quantity: Number(r.output_quantity),
+  }))
+  if (runRows.length === 0) return { runs: [], inputs: [] }
+
+  const { data: inputs } = await supabase
+    .from('production_run_inputs')
+    .select('production_run_id, ingredient_id, quantity_used')
+    .in(
+      'production_run_id',
+      runRows.map((r) => r.id)
+    )
+  return {
+    runs: runRows,
+    inputs: (inputs ?? []).map((i) => ({
+      production_run_id: i.production_run_id,
+      ingredient_id: i.ingredient_id,
+      quantity_used: Number(i.quantity_used),
+    })),
+  }
+}
+
 // Menu sections (breakfast, soups, …) a tenant has defined for its recipes.
 export async function getRecipeCategories(
   tenantId: string
