@@ -10,7 +10,6 @@ import {
   getStockMovements,
   getRecentMovements,
   getActiveBatches,
-  getCommonLibrary,
   getTenant,
 } from '@/lib/data/queries'
 import {
@@ -54,50 +53,22 @@ export default async function DashboardPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  // First-run onboarding gate, derived from real data (choose business type →
-  // add ingredients → recipes → initial count), or an explicit dismissal. Load
-  // only the cheap signals first so an onboarding-stage tenant doesn't pay for
-  // the heavy dashboard widgets it will never render. Gated by the
-  // onboarding_screen feature flag (per-plan / per-tenant).
+  // First-run welcome card, shown ABOVE the dashboard (never replacing it),
+  // until the core setup (a recipe + an initial count) is done or the card is
+  // explicitly dismissed. Gated by the onboarding_screen feature flag.
   const [tenant, ingredients, recipes, lastCount] = await Promise.all([
     getTenant(ctx.tenantId),
     getIngredients(ctx.tenantId),
     getRecipes(ctx.tenantId),
     getLastCountInfo(ctx.tenantId),
   ])
-  const steps = {
-    businessType: !!tenant?.business_type,
-    ingredients: ingredients.length > 0,
-    recipes: recipes.length > 0,
-    count: lastCount.lastCountDate !== null,
-  }
-  // A business that, say, tracks raw inventory without recipes could never
-  // satisfy every step — so an explicit dismissal also clears the card.
   const needsOnboarding =
     !tenant?.onboarding_dismissed_at &&
-    (!steps.businessType || !steps.ingredients || !steps.recipes || !steps.count)
+    (recipes.length === 0 || lastCount.lastCountDate === null)
+  const showGettingStarted =
+    needsOnboarding && (await tenantHasFeature(ctx.tenantId, 'onboarding_screen'))
 
-  if (needsOnboarding) {
-    const [onboardingEnabled, libEnabled] = await Promise.all([
-      tenantHasFeature(ctx.tenantId, 'onboarding_screen'),
-      tenantHasFeature(ctx.tenantId, 'ingredient_library'),
-    ])
-    if (onboardingEnabled) {
-      const common =
-        libEnabled && !steps.ingredients ? await getCommonLibrary() : []
-      return (
-        <div className="mx-auto max-w-3xl py-2">
-          <GettingStarted
-            locale={locale}
-            businessType={tenant?.business_type ?? null}
-            commonItems={common}
-          />
-        </div>
-      )
-    }
-  }
-
-  // Normal dashboard — now load the heavier widget data.
+  // Dashboard widget data.
   const [recipeIngredients, movements, recent, batches] = await Promise.all([
     getRecipeIngredients(ctx.tenantId),
     getStockMovements(ctx.tenantId),
@@ -180,6 +151,12 @@ export default async function DashboardPage({
 
   return (
     <div>
+      {showGettingStarted && (
+        <div className="mb-6">
+          <GettingStarted locale={locale} />
+        </div>
+      )}
+
       <PageHeader
         title={t('dashboard.title')}
         action={
