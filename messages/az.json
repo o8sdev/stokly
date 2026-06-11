@@ -74,6 +74,24 @@
     "search_counts": "Dövr axtar…",
     "missing_sales_flag": "Çatışmayan satış günləri"
   },
+  "finances": {
+    "title": "Maliyyə",
+    "desc": "Seçilmiş dövr üçün mənfəət hesabatı və müqayisə.",
+    "line": "Maddə",
+    "this_period": "Bu dövr",
+    "prev_period": "Əvvəlki dövr",
+    "revenue": "Gəlir",
+    "cogs": "Maya dəyəri (COGS)",
+    "gross_profit": "Brüt mənfəət",
+    "gross_margin": "Brüt marja",
+    "food_cost": "Yemək dəyəri",
+    "purchases": "Alışlar",
+    "waste": "İtki",
+    "inv_opening": "Açılış anbarı",
+    "inv_closing": "Bağlanış anbarı",
+    "inv_change": "Anbar dəyişikliyi",
+    "statement": "Mənfəət hesabatı"
+  },
   "suspended": {
     "title": "Sınaq müddəti bitdi",
     "body": "Stokly-dən istifadəyə davam etmək üçün hesabınızı aktivləşdirin.",

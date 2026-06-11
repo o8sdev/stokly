@@ -309,6 +309,13 @@ rolling range; no new costing logic, no migration.
   headline — dates, days, sales, food-cost % badge, waste, net variance, missing-sales flag — every row
   opens its period report). New `getCountRows` (counts.ts) reads each period's stored `report_data`;
   the counts list is NOT range-windowed (discrete events). Next: finances summary + gating polish.
+- **Phase 5 (shipped):** **Maliyyə** (`/app/data/finances`) — a P&L statement over the selected range
+  with this-period vs previous-period columns: revenue, COGS, gross profit (+margin), purchases, waste,
+  inventory opening→closing→change, plus hero cards (revenue, gross profit, gross margin %, food cost
+  %). Reuses `getOverview` (added `inventoryOpening`). Nav **Data** section finalized
+  (sales · purchases · waste · counts · finances). **Gating decision:** the owner data hub is
+  deliberately **ungated** — owners get full visibility per the explicit ask; existing plan gates still
+  govern the separate Pro report pages. Whole workstream is app-layer only — **no migration**.
 
 ### Done — Stocked preps (Yarımfabrikat): correct two-stage production (migration 048)
 Preps now consume **raw at production** and deduct as **their own stock at sale** (not exploded to

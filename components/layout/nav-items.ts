@@ -18,6 +18,7 @@ import {
   Grid2x2,
   Warehouse,
   Trash2,
+  Coins,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -136,6 +137,7 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: 'data_counts',
         icon: ClipboardList,
       },
+      { href: '/app/data/finances', labelKey: 'data_finances', icon: Coins },
     ],
   },
   {

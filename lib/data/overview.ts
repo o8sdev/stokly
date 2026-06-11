@@ -94,6 +94,7 @@ export interface OverviewKpis {
   grossProfit: number
   purchases: number
   wasteValue: number
+  inventoryOpening: number // stock value at the start of `from`
   inventoryValue: number // closing stock value as of `to`
 }
 
@@ -190,6 +191,7 @@ function computeWindow(
     grossProfit: round2(report.sales_total - report.cogs),
     purchases: report.deliveries_value,
     wasteValue: report.waste_value,
+    inventoryOpening: report.opening_value,
     inventoryValue: report.closing_value,
   }
 }
