@@ -74,7 +74,7 @@ function RecordDialog({
             </div>
             <div>
               <label className={LABEL}>{t('plan')}</label>
-              <select name="plan_key" className={SELECT} defaultValue="professional">
+              <select name="plan_key" className={SELECT} defaultValue="normal">
                 {plans.map((p) => (
                   <option key={p.key} value={p.key}>
                     {locale === 'ru' ? p.name_ru : p.name_az}

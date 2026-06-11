@@ -17,5 +17,18 @@ export async function POST(req: Request) {
   }
   const supabase = createAdminClient()
   const result = await refreshAdminNotifications(supabase)
-  return NextResponse.json(result)
+
+  // Auto-suspend trials whose window has elapsed. pg_cron is unavailable, so —
+  // like the notification refresh above — this runs app-side via the service
+  // role. Catches tenants who never log in (the lazy-suspend in requireTenant
+  // only fires on access), keeping suspended-account metrics honest.
+  const nowIso = new Date().toISOString()
+  const { data: suspended } = await supabase
+    .from('tenants')
+    .update({ status: 'suspended', suspended_at: nowIso })
+    .eq('status', 'trial')
+    .lt('trial_ends_at', nowIso)
+    .select('id')
+
+  return NextResponse.json({ ...result, suspended: suspended?.length ?? 0 })
 }

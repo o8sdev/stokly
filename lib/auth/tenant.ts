@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import type { Role } from '@/types/database'
+import type { Role, TenantStatus } from '@/types/database'
 
 export const IMPERSONATION_COOKIE = 'stokly_admin_tenant'
 
@@ -12,6 +12,10 @@ export interface TenantContext {
   role: Role
   // True when a system admin is impersonating this tenant (god-mode).
   isAdmin: boolean
+  // Tenant lifecycle status. Blocked statuses (suspended/churned/deleted) never
+  // reach callers for real members — requireTenant redirects them to
+  // /app/suspended; admin impersonation is always reported as 'active'.
+  status: TenantStatus
 }
 
 // Resolve the active tenant for business (/app) pages and actions.
@@ -43,6 +47,7 @@ export async function requireTenant(locale: string): Promise<TenantContext> {
         tenantId: impersonated,
         role: 'owner',
         isAdmin: true,
+        status: 'active',
       }
     }
     // Admin with no restaurant selected → pick one in the console.
@@ -58,6 +63,34 @@ export async function requireTenant(locale: string): Promise<TenantContext> {
 
   if (!member) {
     redirect(`/${locale}/app/login`)
+  }
+
+  // Enforce the tenant lifecycle status (admins impersonating are exempt — they
+  // returned above). A trial whose window has elapsed is lazily auto-suspended on
+  // this load, so enforcement holds even when the cron sweep never runs; the
+  // redirect itself is driven by the computed status, so it is correct even if
+  // the persisting write is a no-op.
+  const { data: tenant } = await supabase
+    .from('tenants')
+    .select('status, trial_ends_at')
+    .eq('id', member.tenant_id)
+    .maybeSingle()
+
+  let status: TenantStatus = tenant?.status ?? 'active'
+  if (
+    status === 'trial' &&
+    tenant?.trial_ends_at &&
+    new Date(tenant.trial_ends_at).getTime() < Date.now()
+  ) {
+    status = 'suspended'
+    await supabase
+      .from('tenants')
+      .update({ status: 'suspended', suspended_at: new Date().toISOString() })
+      .eq('id', member.tenant_id)
+      .eq('status', 'trial')
+  }
+  if (status === 'suspended' || status === 'churned' || status === 'deleted') {
+    redirect(`/${locale}/app/suspended`)
   }
 
   // Throttled "last active" stamp — normal members only, never during admin
@@ -76,6 +109,7 @@ export async function requireTenant(locale: string): Promise<TenantContext> {
     tenantId: member.tenant_id,
     role: member.role as Role,
     isAdmin: false,
+    status,
   }
 }
 

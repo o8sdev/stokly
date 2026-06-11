@@ -1,4 +1,12 @@
 {
+  "suspended": {
+    "title": "Sınaq müddəti bitdi",
+    "body": "Stokly-dən istifadəyə davam etmək üçün hesabınızı aktivləşdirin.",
+    "activate": "{plan} planına keçin",
+    "price": "{price} {currency} / ay",
+    "contact": "Hesabınızı aktivləşdirmək üçün bizimlə əlaqə saxlayın. Ödəniş qeydə alınan kimi giriş bərpa olunur.",
+    "signout": "Çıxış"
+  },
   "app": {
     "name": "Stokly",
     "tagline": "Restoran inventarı və yemək dəyəri idarəetməsi"

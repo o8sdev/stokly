@@ -104,7 +104,7 @@ Phase-2 features** (batch expiry / FIFO and production runs).
 ```bash
 npm install
 cp .env.local.example .env.local     # URL + anon key; + service_role for admin
-# apply migrations in filename order (001 → 033) against your Supabase project
+# apply migrations in filename order (001 → 042) against your Supabase project
 npm run dev
 ```
 
@@ -135,9 +135,10 @@ npm run dev
 (per-tenant grant/deny). Resolution = kill-switch → tenant override → plan
 inclusion, via SECURITY DEFINER `tenant_has_feature()` / `tenant_entitlements()`.
 The business app gates features with `tenantHasFeature(tenantId, key)`, so moving
-a tenant up/down a tier **instantly changes available functionality** (verified:
-professional→starter removes `bulk_import`; a per-tenant override re-grants it).
-Placeholder prices ship (49/99/169/299); edit live in `/admin/plans`.
+a tenant up/down a tier **instantly changes available functionality** (the
+mechanism is retained, but the live system is now collapsed to `trial` + `normal`,
+both including every feature, so the gates are effectively always-true — see §7).
+Prices edit live in `/admin/plans` (Standart 99₼/mo).
 
 ### Migrations 010–021 (all applied live)
 
@@ -273,6 +274,32 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — Two-plan subscription + trial → auto-suspend → pay-to-reactivate
+Collapsed the 5-tier ladder to just **`trial` + `normal` (Standart, 99₼/mo)**, both
+including **every** feature — the feature-flag infra stays (gates are now always-true
+no-ops). The trial is time-limited (14 days); when it elapses the account is
+**suspended, not deleted**, and blocked from `/app/*` until a payment reactivates it.
+- **041 (two plans):** add `normal`; `plan_features` all-included for trial+normal
+  (also fixed `report_inventory_value` being gated off every plan); migrate tenants
+  off removed tiers; **deactivate** (not delete) starter/professional/growth/enterprise
+  so historical `manual_payments`/activity FKs survive. `PlanKey = 'trial' | 'normal'`;
+  `PLAN_COLORS` + revenue payment-dialog default → `normal`. `/admin/plans` +
+  create-business are DB-driven → auto-show the 2 active plans.
+- **042 (reactivation):** re-created `on_payment_recorded` so **any** payment clears a
+  suspension/churn (reactivate-first, before the existing higher-rank upgrade branch,
+  so a same-rank `normal`→`normal` payment also revives a suspended tenant).
+- **Enforcement (the missing piece):** `requireTenant` now fetches tenant status,
+  **lazy auto-suspends** an elapsed trial on load, and redirects suspended/churned/
+  deleted members to **`/app/suspended`** (admin impersonation exempt; `status` added to
+  `TenantContext`). New `app/[locale]/app/suspended/page.tsx` (OUTSIDE `(protected)` → no
+  loop): card with the Standart plan + price, contact line, sign-out. `/api/admin/cron`
+  also bulk-suspends elapsed trials via the service role (catches tenants who never log
+  in). Bilingual `suspended.*` az/ru.
+- Verified: live SQL (2 active plans, every feature true, no stranded tier); BEGIN/
+  ROLLBACK e2e on throwaway + the real tenant (trial-expire → cron-suspend → pay →
+  active/normal, suspended_at cleared) — real tenant untouched; typecheck+lint+build
+  green. Migrations 041–042 applied live.
 
 ### Done — Multiple consumption points (Bar + Kitchen)
 A venue can run several consumption points (e.g. a Bar drawing down its own stock, separate
