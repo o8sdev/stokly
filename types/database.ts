@@ -162,6 +162,30 @@ export interface Database {
         >
         Relationships: []
       }
+      daily_sales_theoretical_usage: {
+        Row: {
+          id: string
+          tenant_id: string
+          daily_sales_id: string
+          ingredient_id: string
+          quantity: number
+          unit_cost: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          daily_sales_id: string
+          ingredient_id: string
+          quantity: number
+          unit_cost?: number
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['daily_sales_theoretical_usage']['Insert']
+        >
+        Relationships: []
+      }
       count_periods: {
         Row: {
           id: string

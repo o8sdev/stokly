@@ -164,6 +164,44 @@ async function soldItemsInRange(
   return acc
 }
 
+// Sum the per-day theoretical-usage snapshots (frozen at each confirm) over a
+// window. `complete` is false when any itemized-sales day in the window lacks a
+// snapshot (pre-feature days), telling the caller to fall back to a live recompute.
+async function theoreticalUsageSnapshot(
+  supabase: DB,
+  tenantId: string,
+  start: string,
+  end: string
+): Promise<{ map: Map<string, number>; complete: boolean }> {
+  const map = new Map<string, number>()
+  const { data: days } = await supabase
+    .from('daily_sales')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', start)
+    .lte('sale_date', end)
+  const ids = (days ?? []).map((d) => d.id)
+  if (ids.length === 0) return { map, complete: true }
+
+  const [{ data: snap }, { data: items }] = await Promise.all([
+    supabase
+      .from('daily_sales_theoretical_usage')
+      .select('daily_sales_id, ingredient_id, quantity')
+      .in('daily_sales_id', ids),
+    supabase
+      .from('daily_sales_items')
+      .select('daily_sales_id')
+      .in('daily_sales_id', ids),
+  ])
+  const covered = new Set((snap ?? []).map((r) => r.daily_sales_id))
+  for (const r of snap ?? []) {
+    map.set(r.ingredient_id, (map.get(r.ingredient_id) ?? 0) + Number(r.quantity))
+  }
+  const itemizedDays = new Set((items ?? []).map((i) => i.daily_sales_id))
+  const complete = [...itemizedDays].every((id) => covered.has(id))
+  return { map, complete }
+}
+
 // What the next count will cover + which sales days are missing. Drives the
 // pre-count checklist.
 export async function getPreCountInfo(tenantId: string): Promise<PreCountInfo> {
@@ -332,20 +370,33 @@ export async function generatePeriodReport(
     const soldMap = await soldItemsInRange(supabase, tenantId, win.start, win.end)
     if (soldMap.size > 0) {
       hasItemizedSales = true
-      const [recipes, recipeIngredients] = await Promise.all([
-        getRecipes(tenantId),
-        getRecipeIngredients(tenantId),
-      ])
-      const soldItems = [...soldMap.entries()].map(([recipe_id, quantity]) => ({
-        recipe_id,
-        quantity,
-      }))
-      theoreticalUsage = computeTheoreticalUsage(
-        soldItems,
-        ingredients,
-        recipes,
-        recipeIngredients
-      ).usageByIngredient
+      // Prefer the frozen per-day snapshot (immutable history, #4). Fall back to a
+      // live recipe explosion only for windows that still have pre-feature days
+      // without a snapshot, so nothing regresses during the transition.
+      const snap = await theoreticalUsageSnapshot(
+        supabase,
+        tenantId,
+        win.start,
+        win.end
+      )
+      if (snap.complete) {
+        theoreticalUsage = snap.map
+      } else {
+        const [recipes, recipeIngredients] = await Promise.all([
+          getRecipes(tenantId),
+          getRecipeIngredients(tenantId),
+        ])
+        const soldItems = [...soldMap.entries()].map(([recipe_id, quantity]) => ({
+          recipe_id,
+          quantity,
+        }))
+        theoreticalUsage = computeTheoreticalUsage(
+          soldItems,
+          ingredients,
+          recipes,
+          recipeIngredients
+        ).usageByIngredient
+      }
     }
   }
 

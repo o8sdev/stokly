@@ -299,11 +299,36 @@ export async function confirmDailySales(
     p_usage: usage as unknown as Json,
   })
   if (error) {
-    // The RPC refuses confirmation when the consumption point can't cover a sale
-    // — the user must move stock there first. (Error message + UI wording stay
-    // "kitchen" until P5 makes them location-aware.)
+    // Oversell no longer blocks confirmation (migration 043 absorbs the shortfall
+    // and surfaces it as negative stock), so any error here is unexpected. The
+    // location_short mapping stays as a defensive fallback.
     if (error.message?.includes('location_short')) return { error: 'kitchen_short' }
     return { error: 'generic' }
+  }
+
+  // Snapshot the theoretical usage just deducted so period reports freeze this
+  // day's recipe explosion — a later recipe edit won't rewrite history (#4).
+  // Delete-then-insert keeps it correct across void → re-confirm.
+  const snapByIng = new Map<string, { quantity: number; unit_cost: number }>()
+  for (const u of usage) {
+    const cur = snapByIng.get(u.ingredient_id)
+    if (cur) cur.quantity += u.quantity
+    else snapByIng.set(u.ingredient_id, { quantity: u.quantity, unit_cost: u.unit_cost })
+  }
+  await supabase
+    .from('daily_sales_theoretical_usage')
+    .delete()
+    .eq('daily_sales_id', dayId)
+  if (snapByIng.size > 0) {
+    await supabase.from('daily_sales_theoretical_usage').insert(
+      [...snapByIng.entries()].map(([ingredient_id, v]) => ({
+        tenant_id: ctx.tenantId,
+        daily_sales_id: dayId,
+        ingredient_id,
+        quantity: v.quantity,
+        unit_cost: v.unit_cost,
+      }))
+    )
   }
 
   revalidateSales(locale, day.sale_date)
@@ -332,6 +357,12 @@ export async function voidDailySales(
 
   const { error } = await supabase.rpc('void_daily_sales', { p_day_id: dayId })
   if (error) return { error: 'generic' }
+
+  // Drop the frozen theoretical-usage snapshot; a re-confirm rewrites it (#4).
+  await supabase
+    .from('daily_sales_theoretical_usage')
+    .delete()
+    .eq('daily_sales_id', dayId)
 
   revalidateSales(locale, day.sale_date)
   return { success: true }
