@@ -55,7 +55,12 @@ export interface EditorLine {
 export type IngredientOption = Pick<
   Ingredient,
   'id' | 'name' | 'unit' | 'cost_per_unit' | 'yield_percent' | 'supplier_id'
->
+> & {
+  // Per-unit custom conversion factors (B4) so the live recipe editor can
+  // convert a line's unit to the ingredient's base unit exactly like the
+  // server-side cost calc does.
+  unit_conversions?: Record<string, number> | null
+}
 
 export type SubRecipeOption = {
   id: string

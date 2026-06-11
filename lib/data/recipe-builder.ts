@@ -49,6 +49,7 @@ export async function getRecipeBuilderData(
     cost_per_unit: i.cost_per_unit,
     yield_percent: i.yield_percent,
     supplier_id: i.supplier_id,
+    unit_conversions: i.unit_conversions ?? null,
   }))
 
   const subRecipeOptions: SubRecipeOption[] = recipes

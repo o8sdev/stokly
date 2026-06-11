@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ingredientLineCost } from '@/lib/calculations/food-cost'
+import { toBaseUnit } from '@/lib/constants/units'
 import { RecipeIngredientsEditor } from './recipe-ingredients-editor'
 import { RecipeCostSummary } from './recipe-cost-summary'
 
@@ -157,6 +158,9 @@ export function RecipeForm({
   }
 
   // Live total cost — recomputed on every render (i.e. every keystroke).
+  // Mirrors the server-side calc: the line quantity is converted to the
+  // ingredient's base unit (metric families + per-ingredient factors) BEFORE
+  // costing, so a 100 q line on a 5 AZN/kq ingredient costs 0.50, not 500.
   const totalCost = useMemo(() => {
     return lines.reduce((sum, line) => {
       const qty = Number(line.quantity)
@@ -168,7 +172,14 @@ export function RecipeForm({
           ? Number(line.yieldOverride) / 100
           : null
         const yieldPercent = override ?? opt.yield_percent ?? 1
-        return sum + ingredientLineCost(qty, opt.cost_per_unit, yieldPercent)
+        // An unpicked unit means "the ingredient's own unit".
+        const baseQty = toBaseUnit(
+          qty,
+          line.unit || opt.unit,
+          opt.unit,
+          opt.unit_conversions
+        )
+        return sum + ingredientLineCost(baseQty, opt.cost_per_unit, yieldPercent)
       }
       const sub = subRecipeOptions.find((o) => o.id === line.sourceId)
       if (!sub) return sum
