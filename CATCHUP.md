@@ -5,7 +5,10 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-10 (Multiple consumption points (Bar + Kitchen): locations gained a
+_Last updated: 2026-06-11 (Owner's overview Phase 1: the tenant dashboard is now a period-scoped
+command center — selector (7d/30d/this/last month) drives a 6-KPI band (revenue, food-cost %, gross
+profit, purchases, waste, inventory value) with deltas + a daily-sales trend, reusing the
+period-report engine over a rolling range; no migration. Prior: Multiple consumption points (Bar + Kitchen): locations gained a
 `kind` + multiple `is_consumption_point`s with one `is_default_consumption`; recipes route
 to a consumption location; sales/waste/production deduct per location (migrations 036–039,
 `is_kitchen` dropped); `multi_location` feature gate (Pro+); per-location report. Prior:
@@ -274,6 +277,22 @@ npm run lint        # next lint
 - `supabase/migrations` — `001` schema, `002` RLS, `003` batches + production
 
 ## 7. Status / changelog
+
+### Done — Owner's overview, Phase 1: period KPI band + daily sales trend (no migration)
+The tenant **dashboard** is now the owner's at-a-glance command center. A period selector
+(7 gün / 30 gün / Bu ay / Keçən ay, default Bu ay) drives a 6-KPI band — **Gəlir, Yemək dəyəri %,
+Brüt mənfəət, Alışlar, İtki, Anbar dəyəri** — each with a delta vs the previous equal-length window,
+plus a daily-sales bar trend. KPIs reuse the period-report engine (`computePeriodReport`) over a
+rolling range; no new costing logic, no migration.
+- **New `lib/data/overview.ts`:** `resolveRange`/`previousRange` (UTC, inclusive) + `getOverview`
+  (reuses already-loaded movements+ingredients; opening = stock at start of `from`, closing = end
+  of `to`; revenue/COGS/food-cost %/gross-profit/purchases/waste/inventory). Daily sales gap-filled.
+- **UI:** `components/dashboard/range-selector.tsx` (`?range=` query param) + `sales-trend-chart.tsx`
+  (Recharts bar, brand `fill-primary`). Dashboard renders the band + trend above the existing
+  operational widgets (recent movements / low stock / expiry). Old 4-metric row removed (subsumed).
+- **i18n:** new `overview.*` namespace (az/ru). Verified green (typecheck/lint/build); dashboard is
+  auth-gated so not previewable headless. Next: Phase 2 (top dishes, supplier spend, waste-by-reason,
+  attention strip), then filterable/sortable/paginated explorers (sales/purchases/waste/counts).
 
 ### Done — Stocked preps (Yarımfabrikat): correct two-stage production (migration 048)
 Preps now consume **raw at production** and deduct as **their own stock at sale** (not exploded to

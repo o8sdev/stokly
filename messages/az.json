@@ -1,4 +1,21 @@
 {
+  "overview": {
+    "range_7d": "7 gün",
+    "range_30d": "30 gün",
+    "range_this_month": "Bu ay",
+    "range_last_month": "Keçən ay",
+    "revenue": "Gəlir",
+    "food_cost": "Yemək dəyəri",
+    "gross_profit": "Brüt mənfəət",
+    "purchases": "Alışlar",
+    "waste": "İtki",
+    "inventory_value": "Anbar dəyəri",
+    "vs_prev": "əvvəlki dövrə",
+    "pts": "p.",
+    "as_of": "{date} tarixinə",
+    "daily_sales": "Günlük satış",
+    "no_sales": "Bu dövr üçün satış qeydə alınmayıb"
+  },
   "suspended": {
     "title": "Sınaq müddəti bitdi",
     "body": "Stokly-dən istifadəyə davam etmək üçün hesabınızı aktivləşdirin.",
