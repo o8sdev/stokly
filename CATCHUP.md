@@ -275,6 +275,31 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Six operational gotchas (audit + remediation)
+Audited the app against an owner-supplied "blueprint" of 6 restaurant-inventory gotchas.
+**#5 (fat-finger idempotency)** and **#6 (yield)** already passed (void→re-confirm; recipe-
+explosion yield is math-equivalent to transfer-time yield). The other four were closed in 4
+sequential steps (migrations 043–045 + app), each build-green + live-migrated + DB-verified:
+- **#3 count business date (Step A, code-only):** stock-count form takes a required Business
+  Date; the count movement's `created_at` is stamped end-of-day of that date and
+  `createPeriodForCount` closes the period on it (guarded: after the prior period, not future).
+- **#1 negative stock (Step B, mig 043):** `confirm_daily_sales`/`record_waste`/
+  `execute_production_run` no longer block on a shortfall — they absorb it on the newest batch
+  (quantity_remaining goes negative, stays active), preserving Σ-batches==deriveStockLevel while
+  stock shows negative. `deriveStockLevel`/`deriveAllStockLevels` no longer clamp to 0; a new
+  `negative` StockStatus → red badge + red qty (inventory/ingredient tables + dashboard widget).
+- **#4 immutable history (Step C, mig 044):** `daily_sales_theoretical_usage` snapshots each
+  confirmed day's exploded per-ingredient usage (written in confirmDailySales, cleared on void);
+  the period report sums the snapshot for fully-covered windows, falling back to live recompute
+  only for pre-feature days. A recipe edit no longer rewrites past reports (actual COGS was
+  already immutable).
+- **#2 base-unit + pack conversions / B4 (Step D, mig 045):** `ingredient_unit_conversions`
+  defines e.g. 1 şüşə = 750 ml for an ml-based ingredient. `toBaseUnit` consults metric families
+  then per-ingredient factors (kills the silent same-unit fallback); `getIngredients` attaches
+  `unit_conversions` so `computeRecipesWithCost`/`computeTheoreticalUsage` convert exactly. A
+  conversions editor sits on the ingredient page; recipe save rejects (`unit` error) any line
+  whose unit has no path to the base. Buying-by-the-case in deliveries is a noted follow-up.
+
 ### Done — Admin total control over the tenant lifecycle
 The platform admin can now drive every real-world transition from `/admin/tenants/[id]`,
 with full visibility — closing the gaps left after the trial-suspend work. App-layer only

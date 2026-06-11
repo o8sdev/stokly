@@ -1,14 +1,10 @@
-import type {
-  Ingredient,
-  Recipe,
-  RecipeIngredient,
-} from '@/types/database'
-import type { RecipeWithCost } from '@/types/app'
+import type { Recipe, RecipeIngredient } from '@/types/database'
+import type { RecipeWithCost, IngredientWithConversions } from '@/types/app'
 import { ingredientLineCost, foodCostPercent } from './food-cost'
 import { toBaseUnit } from '@/lib/constants/units'
 
 interface ResolveContext {
-  ingredients: Map<string, Ingredient>
+  ingredients: Map<string, IngredientWithConversions>
   recipes: Map<string, Recipe>
   // recipe_id -> its component lines
   linesByRecipe: Map<string, RecipeIngredient[]>
@@ -35,7 +31,12 @@ export function resolveRecipeCost(
         line.yield_override ?? ingredient.yield_percent ?? 1
       // Convert the line's quantity into the ingredient's base/stock unit (the
       // unit cost_per_unit is expressed in) before costing.
-      const baseQty = toBaseUnit(line.quantity, line.unit, ingredient.unit)
+      const baseQty = toBaseUnit(
+        line.quantity,
+        line.unit,
+        ingredient.unit,
+        ingredient.unit_conversions
+      )
       total += ingredientLineCost(
         baseQty,
         ingredient.cost_per_unit,
@@ -78,7 +79,7 @@ export function subRecipeUnitCost(
 
 // Build the ResolveContext maps from flat arrays.
 export function buildResolveContext(
-  ingredients: Ingredient[],
+  ingredients: IngredientWithConversions[],
   recipes: Recipe[],
   recipeIngredients: RecipeIngredient[]
 ): ResolveContext {
@@ -100,7 +101,7 @@ export function buildResolveContext(
 // Compute cost figures for every recipe in one pass. Used by the recipe list,
 // food-cost report and dashboard average.
 export function computeRecipesWithCost(
-  ingredients: Ingredient[],
+  ingredients: IngredientWithConversions[],
   recipes: Recipe[],
   recipeIngredients: RecipeIngredient[]
 ): RecipeWithCost[] {

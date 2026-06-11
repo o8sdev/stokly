@@ -1,4 +1,5 @@
-import type { Ingredient, Recipe, RecipeIngredient } from '@/types/database'
+import type { Recipe, RecipeIngredient } from '@/types/database'
+import type { IngredientWithConversions } from '@/types/app'
 import { buildResolveContext } from './recipe-cost'
 import { toBaseUnit } from '@/lib/constants/units'
 
@@ -43,7 +44,7 @@ function explode(
       // Convert the line quantity into the ingredient's base/stock unit so the
       // depleted quantity matches how stock is tracked.
       const baseQty = ing
-        ? toBaseUnit(line.quantity, line.unit, ing.unit)
+        ? toBaseUnit(line.quantity, line.unit, ing.unit, ing.unit_conversions)
         : line.quantity
       const consumed = (qty * baseQty) / y
       acc.set(
@@ -75,7 +76,7 @@ function explode(
 
 export function computeTheoreticalUsage(
   soldItems: SoldItem[],
-  ingredients: Ingredient[],
+  ingredients: IngredientWithConversions[],
   recipes: Recipe[],
   recipeIngredients: RecipeIngredient[]
 ): TheoreticalUsage {

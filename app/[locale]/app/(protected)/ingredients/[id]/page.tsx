@@ -5,10 +5,12 @@ import {
   getIngredient,
   getSuppliers,
   getIngredientPriceHistory,
+  getIngredientConversions,
 } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { IngredientForm } from '@/components/ingredients/ingredient-form'
 import { PriceHistoryPanel } from '@/components/ingredients/price-history-panel'
+import { UnitConversionsPanel } from '@/components/ingredients/unit-conversions-panel'
 
 export default async function EditIngredientPage({
   params: { locale, id },
@@ -19,10 +21,11 @@ export default async function EditIngredientPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredient, suppliers, priceHistory] = await Promise.all([
+  const [ingredient, suppliers, priceHistory, conversions] = await Promise.all([
     getIngredient(ctx.tenantId, id),
     getSuppliers(ctx.tenantId),
     getIngredientPriceHistory(ctx.tenantId, id),
+    getIngredientConversions(ctx.tenantId, id),
   ])
 
   if (!ingredient) notFound()
@@ -39,6 +42,12 @@ export default async function EditIngredientPage({
         entries={priceHistory.entries}
         stat={priceHistory.stat}
         unit={ingredient.unit}
+      />
+      <UnitConversionsPanel
+        locale={locale}
+        ingredientId={ingredient.id}
+        baseUnit={ingredient.unit}
+        conversions={conversions}
       />
     </div>
   )

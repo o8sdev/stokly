@@ -9,7 +9,7 @@ import type {
   WasteCategory,
   Tenant,
 } from '@/types/database'
-import type { IngredientBatch } from '@/types/app'
+import type { IngredientBatch, IngredientWithConversions } from '@/types/app'
 import type { GlobalIngredient } from '@/types/database'
 import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
 import { computeTheoreticalUsage } from '@/lib/calculations/theoretical-usage'
@@ -29,14 +29,50 @@ const round3 = (n: number): number => Math.round(n * 1000) / 1000
 
 export async function getIngredients(
   tenantId: string
-): Promise<Ingredient[]> {
+): Promise<IngredientWithConversions[]> {
   const supabase = createClient()
   const { data } = await supabase
     .from('ingredients')
     .select('*')
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true })
-  return data ?? []
+  const ingredients = data ?? []
+  if (ingredients.length === 0) return []
+
+  // Attach each ingredient's custom unit conversions (B4) so the cost/usage calc
+  // can convert non-metric pack units (case, bottle, …) to the base/stock unit.
+  const { data: conv } = await supabase
+    .from('ingredient_unit_conversions')
+    .select('ingredient_id, unit, factor_to_base')
+    .eq('tenant_id', tenantId)
+  const byIngredient = new Map<string, Record<string, number>>()
+  for (const c of conv ?? []) {
+    const m = byIngredient.get(c.ingredient_id) ?? {}
+    m[c.unit] = Number(c.factor_to_base)
+    byIngredient.set(c.ingredient_id, m)
+  }
+  return ingredients.map((i) => ({
+    ...i,
+    unit_conversions: byIngredient.get(i.id) ?? null,
+  }))
+}
+
+// A single ingredient's custom unit conversions (B4), for the editor panel.
+export async function getIngredientConversions(
+  tenantId: string,
+  ingredientId: string
+): Promise<{ unit: string; factor_to_base: number }[]> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('ingredient_unit_conversions')
+    .select('unit, factor_to_base')
+    .eq('tenant_id', tenantId)
+    .eq('ingredient_id', ingredientId)
+    .order('unit', { ascending: true })
+  return (data ?? []).map((c) => ({
+    unit: c.unit,
+    factor_to_base: Number(c.factor_to_base),
+  }))
 }
 
 export async function getIngredient(

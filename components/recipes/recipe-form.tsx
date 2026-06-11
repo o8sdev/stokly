@@ -434,7 +434,11 @@ export function RecipeForm({
             disabled={isSubRecipe}
           />
           {state.error && (
-            <p className="text-sm text-destructive">{t('common.error')}</p>
+            <p className="text-sm text-destructive">
+              {state.error === 'unit'
+                ? t('recipes.unit_error')
+                : t('common.error')}
+            </p>
           )}
           <SubmitButton
             pendingText={t('common.saving')}

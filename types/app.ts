@@ -26,6 +26,13 @@ export interface IngredientWithStock extends Ingredient {
   lastCountAt: string | null
 }
 
+// Ingredient enriched with its per-unit custom conversion factors (B4):
+// unit → how many BASE units one of that unit equals, e.g. { 'şüşə': 750 } for an
+// ml-based ingredient. Attached by getIngredients; consumed by the cost/usage calc.
+export type IngredientWithConversions = Ingredient & {
+  unit_conversions?: Record<string, number> | null
+}
+
 // Recipe enriched with computed cost figures for list/report views.
 export interface RecipeWithCost extends Recipe {
   ingredientCount: number

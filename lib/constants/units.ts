@@ -49,14 +49,34 @@ export function convertUnit(
   return null
 }
 
-// Convert a recipe-line quantity into an ingredient's base (stock) unit. Falls
-// back to the quantity unchanged when the units aren't convertible — preserving
-// the legacy "assume same unit" behaviour without throwing.
+// Convert a recipe-line quantity into an ingredient's base (stock) unit. Tries
+// the metric families, then the ingredient's own custom factors (B4), e.g.
+// { 'şüşə': 750, 'qutu': 4500 } for an ml-based ingredient. Falls back to the
+// quantity unchanged only for legacy/undefined units (recipe save now rejects
+// unconvertible units, so this last resort is rarely hit).
 export function toBaseUnit(
   qty: number,
   lineUnit: string,
-  baseUnit: string
+  baseUnit: string,
+  factors?: Record<string, number> | null
 ): number {
+  if (lineUnit === baseUnit) return qty
   const c = convertUnit(qty, lineUnit, baseUnit)
-  return c == null ? qty : c
+  if (c != null) return c
+  const f = factors?.[lineUnit]
+  if (f != null && f > 0) return qty * f
+  return qty
+}
+
+// Whether a line unit has a defined path to the base (same unit, metric family,
+// or a per-ingredient factor). Used to reject unconvertible lines at save time.
+export function isConvertible(
+  lineUnit: string,
+  baseUnit: string,
+  factors?: Record<string, number> | null
+): boolean {
+  if (lineUnit === baseUnit) return true
+  if (convertUnit(1, lineUnit, baseUnit) != null) return true
+  const f = factors?.[lineUnit]
+  return f != null && f > 0
 }

@@ -186,6 +186,28 @@ export interface Database {
         >
         Relationships: []
       }
+      ingredient_unit_conversions: {
+        Row: {
+          id: string
+          tenant_id: string
+          ingredient_id: string
+          unit: string
+          factor_to_base: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          ingredient_id: string
+          unit: string
+          factor_to_base: number
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['ingredient_unit_conversions']['Insert']
+        >
+        Relationships: []
+      }
       count_periods: {
         Row: {
           id: string

@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { recipeSchema } from '@/lib/validations/recipe'
 import { tenantHasFeature } from '@/lib/admin/entitlements'
+import { getIngredients } from '@/lib/data/queries'
+import { isConvertible } from '@/lib/constants/units'
 
 export interface RecipeActionResult {
   error?: string
@@ -48,6 +50,24 @@ async function resolveConsumptionLocation(
   return data?.id ?? null
 }
 
+// B4 fail-loud: every ingredient line's unit must have a path to the
+// ingredient's base unit (same unit, metric family, or a defined per-ingredient
+// conversion) — no more silent same-unit assumption.
+async function recipeUnitsConvertible(
+  tenantId: string,
+  lines: { kind: string; sourceId: string; unit: string }[]
+): Promise<boolean> {
+  const ingLines = lines.filter((l) => l.kind === 'ingredient')
+  if (ingLines.length === 0) return true
+  const ingredients = await getIngredients(tenantId)
+  const byId = new Map(ingredients.map((i) => [i.id, i]))
+  return ingLines.every((l) => {
+    const ing = byId.get(l.sourceId)
+    if (!ing) return true // unknown ingredient is caught by the FK insert
+    return isConvertible(l.unit, ing.unit, ing.unit_conversions)
+  })
+}
+
 async function persistLines(
   recipeId: string,
   lines: { kind: string; sourceId: string; quantity: number; unit: string; yieldOverride?: number | '' }[]
@@ -85,6 +105,10 @@ export async function createRecipe(
   const parsed = parseRecipePayload(formData)
   if (!parsed || !parsed.success) return { error: 'validation' }
   const data = parsed.data
+
+  if (!(await recipeUnitsConvertible(ctx.tenantId, data.lines))) {
+    return { error: 'unit' }
+  }
 
   const supabase = createClient()
   const consumptionLocationId = await resolveConsumptionLocation(
@@ -136,6 +160,10 @@ export async function updateRecipe(
   const parsed = parseRecipePayload(formData)
   if (!parsed || !parsed.success) return { error: 'validation' }
   const data = parsed.data
+
+  if (!(await recipeUnitsConvertible(ctx.tenantId, data.lines))) {
+    return { error: 'unit' }
+  }
 
   const supabase = createClient()
   const consumptionLocationId = await resolveConsumptionLocation(

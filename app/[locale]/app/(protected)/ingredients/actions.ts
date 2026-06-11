@@ -8,6 +8,7 @@ import { ingredientSchema } from '@/lib/validations/ingredient'
 
 export interface ActionResult {
   error?: string
+  ok?: boolean
 }
 
 // Parse the raw form payload into the storage shape (yield as 0–1 fraction).
@@ -71,6 +72,66 @@ export async function createIngredient(
   // the Getting-Started card recomputes and disappears on next visit.
   revalidatePath(`/${locale}/app/dashboard`)
   redirect(`/${locale}/app/ingredients`)
+}
+
+// ── Per-ingredient unit conversions (B4) ───────────────────────────────────
+// Define how a pack/alt unit converts to the ingredient's base unit, e.g.
+// "1 şüşə = 750 ml". Consumed by the cost/usage calc and recipe-line validation.
+export async function setIngredientConversion(
+  locale: string,
+  ingredientId: string,
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const unit = String(formData.get('unit') ?? '').trim()
+  const factor = Number(formData.get('factor') ?? NaN)
+  if (!unit || !Number.isFinite(factor) || factor <= 0) {
+    return { error: 'validation' }
+  }
+
+  const supabase = createClient()
+  const { data: ing } = await supabase
+    .from('ingredients')
+    .select('unit')
+    .eq('id', ingredientId)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle()
+  if (!ing) return { error: 'validation' }
+  if (ing.unit === unit) return { error: 'same_unit' }
+
+  const { error } = await supabase
+    .from('ingredient_unit_conversions')
+    .upsert(
+      {
+        tenant_id: ctx.tenantId,
+        ingredient_id: ingredientId,
+        unit,
+        factor_to_base: factor,
+      },
+      { onConflict: 'ingredient_id,unit' }
+    )
+  if (error) return { error: 'generic' }
+  revalidatePath(`/${locale}/app/ingredients/${ingredientId}`)
+  return { ok: true }
+}
+
+export async function removeIngredientConversion(
+  locale: string,
+  ingredientId: string,
+  unit: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('ingredient_unit_conversions')
+    .delete()
+    .eq('tenant_id', ctx.tenantId)
+    .eq('ingredient_id', ingredientId)
+    .eq('unit', unit)
+  revalidatePath(`/${locale}/app/ingredients/${ingredientId}`)
 }
 
 // Best-effort delete. The stock_movements FK is ON DELETE RESTRICT, so an
