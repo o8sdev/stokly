@@ -46,16 +46,32 @@ export interface NavSection {
   items: NavEntry[]
 }
 
-// Grouped sidebar navigation: ƏSAS · HESABATLAR · TƏNZİMLƏMƏLƏR.
+// Grouped sidebar navigation: ƏSAS · HESABATLAR · TƏNZİMLƏMƏLƏR. Related pages
+// sit under collapsible groups (Mətbəx, Anbar, Satış / Alış) to keep it tidy.
 export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'main',
     items: [
       { href: '/app/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
-      { href: '/app/ingredients', labelKey: 'ingredients', icon: Carrot },
-      { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
-      { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
-      { href: '/app/inventory/waste', labelKey: 'waste_log', icon: Trash2 },
+      // Menu building: ingredients → recipes → preps/production.
+      {
+        labelKey: 'kitchen',
+        icon: ChefHat,
+        children: [
+          { href: '/app/ingredients', labelKey: 'ingredients', icon: Carrot },
+          { href: '/app/recipes', labelKey: 'recipes', icon: ChefHat },
+          { href: '/app/production', labelKey: 'production', icon: Factory },
+        ],
+      },
+      // Stock on hand + what leaves it.
+      {
+        labelKey: 'stock',
+        icon: Boxes,
+        children: [
+          { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
+          { href: '/app/inventory/waste', labelKey: 'waste_log', icon: Trash2 },
+        ],
+      },
       // Sales + Purchases live under one collapsible "Satış / Alış" group.
       {
         labelKey: 'trade',
@@ -70,7 +86,6 @@ export const NAV_SECTIONS: NavSection[] = [
           },
         ],
       },
-      { href: '/app/production', labelKey: 'production', icon: Factory },
     ],
   },
   {

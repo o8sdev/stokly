@@ -35,9 +35,18 @@ export interface InventoryRow {
   locations: { name: string; qty: number }[]
 }
 
-export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
+export function InventoryTable({
+  rows,
+  locations = [],
+}: {
+  rows: InventoryRow[]
+  // Storage-location names, in display order, for the per-location filter.
+  locations?: string[]
+}) {
   const t = useTranslations()
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  // 'all' = whole business; a location name = that location's stock only.
+  const [loc, setLoc] = useState<string>('all')
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -55,8 +64,48 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
     negative: t('inventory.status_negative'),
   }
 
+  function locQty(row: InventoryRow): number {
+    return row.locations.find((l) => l.name === loc)?.qty ?? 0
+  }
+  // Status for a single location: thresholds are per-ingredient totals, so the
+  // filtered view only distinguishes negative / empty / present.
+  function locStatus(qty: number): StockStatus {
+    if (qty < 0) return 'negative'
+    if (qty <= 0) return 'out'
+    return 'ok'
+  }
+
+  const filtered =
+    loc === 'all'
+      ? rows
+      : rows.filter(
+          (r) =>
+            locQty(r) !== 0 ||
+            r.batches.some((b) => b.location_name === loc)
+        )
+
   return (
-    <DataTable
+    <>
+      {locations.length > 1 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t('inventory.location')}
+          </span>
+          <select
+            value={loc}
+            onChange={(e) => setLoc(e.target.value)}
+            className="flex h-9 rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+          >
+            <option value="all">{t('inventory.all_locations')}</option>
+            {locations.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <DataTable
       columns={[
         { label: t('ingredients.name') },
         { label: t('inventory.current_stock'), align: 'right' },
@@ -64,9 +113,15 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
         { label: t('inventory.last_count') },
       ]}
     >
-      {rows.map((row) => {
+      {filtered.map((row) => {
+        const visibleBatches =
+          loc === 'all'
+            ? row.batches
+            : row.batches.filter((b) => b.location_name === loc)
         const isOpen = expanded.has(row.id)
-        const hasBatches = row.batches.length > 0
+        const hasBatches = visibleBatches.length > 0
+        const displayStock = loc === 'all' ? row.stock : locQty(row)
+        const displayStatus = loc === 'all' ? row.status : locStatus(displayStock)
         return (
           <Fragment key={row.id}>
             <TableRow
@@ -87,7 +142,7 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                   )}
                   <span className="flex flex-col">
                     {row.name}
-                    {row.locations.length > 0 && (
+                    {loc === 'all' && row.locations.length > 0 && (
                       <span className="text-[11px] font-normal text-muted-foreground">
                         {row.locations
                           .map(
@@ -101,15 +156,20 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
               </TableCell>
               <TableCell className="text-right">
                 <span
-                  className={cn(row.stock < 0 && 'font-semibold text-[#DC2626]')}
+                  className={cn(
+                    displayStock < 0 && 'font-semibold text-[#DC2626]'
+                  )}
                 >
-                  <MonoValue value={formatQuantity(row.stock)} unit={row.unit} />
+                  <MonoValue
+                    value={formatQuantity(displayStock)}
+                    unit={row.unit}
+                  />
                 </span>
               </TableCell>
               <TableCell>
                 <StockBadge
-                  status={row.status}
-                  label={statusLabel[row.status]}
+                  status={displayStatus}
+                  label={statusLabel[displayStatus]}
                 />
               </TableCell>
               <TableCell className="text-muted-foreground">
@@ -149,7 +209,7 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {row.batches.map((b) => (
+                          {visibleBatches.map((b) => (
                             <tr
                               key={b.id}
                               className="border-b border-[#F0F4F8] last:border-0"
@@ -192,6 +252,7 @@ export function InventoryTable({ rows }: { rows: InventoryRow[] }) {
           </Fragment>
         )
       })}
-    </DataTable>
+      </DataTable>
+    </>
   )
 }

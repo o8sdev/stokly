@@ -130,7 +130,7 @@ export default async function InventoryPage({
           <EmptyState message={t('ingredients.empty')} />
         </div>
       ) : (
-        <InventoryTable rows={rows} />
+        <InventoryTable rows={rows} locations={locations.map((l) => l.name)} />
       )}
     </div>
   )

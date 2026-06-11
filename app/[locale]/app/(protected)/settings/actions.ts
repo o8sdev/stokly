@@ -139,6 +139,41 @@ export async function createSupplier(
   return { success: true }
 }
 
+// Edit an existing supplier's details. The id travels as a hidden form field so
+// the same stable action instance serves whichever row is being edited.
+export async function updateSupplier(
+  locale: string,
+  _prev: SettingsResult,
+  formData: FormData
+): Promise<SettingsResult> {
+  const ctx = await requireTenant(locale)
+  const supplierId = String(formData.get('supplier_id') ?? '')
+  if (!supplierId) return { error: 'validation' }
+
+  const parsed = supplierSchema.safeParse({
+    name: formData.get('name'),
+    phone: formData.get('phone') || undefined,
+    notes: formData.get('notes') || undefined,
+  })
+  if (!parsed.success) return { error: 'validation' }
+
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('suppliers')
+    .update({
+      name: parsed.data.name,
+      phone: parsed.data.phone || null,
+      notes: parsed.data.notes || null,
+    })
+    .eq('id', supplierId)
+    .eq('tenant_id', ctx.tenantId)
+
+  if (error) return { error: 'generic' }
+
+  revalidatePath(`/${locale}/app/settings/suppliers`)
+  return { success: true }
+}
+
 export async function deleteSupplier(
   locale: string,
   supplierId: string
