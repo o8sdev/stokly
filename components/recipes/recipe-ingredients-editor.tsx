@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { FieldHint } from '@/components/ui/field-hint'
 import { MonoValue } from '@/components/ui/stokly-theme'
 import { ingredientLineCost } from '@/lib/calculations/food-cost'
-import { UNIT_OPTIONS, UNIT_VALUES } from '@/lib/constants/units'
+import { UNIT_OPTIONS, UNIT_VALUES, toBaseUnit } from '@/lib/constants/units'
 
 export function RecipeIngredientsEditor({
   lines,
@@ -45,7 +45,16 @@ export function RecipeIngredientsEditor({
         ? Number(line.yieldOverride) / 100
         : null
       const yieldPercent = override ?? opt.yield_percent ?? 1
-      return ingredientLineCost(qty, opt.cost_per_unit, yieldPercent)
+      // Convert the line qty to the ingredient's base unit (metric families +
+      // B4 per-ingredient factors) before costing, so a 0.1 q (gram) line on a
+      // 10 AZN/kq item costs 0.001 — matching the total above and the server.
+      const baseQty = toBaseUnit(
+        qty,
+        line.unit || opt.unit,
+        opt.unit,
+        opt.unit_conversions
+      )
+      return ingredientLineCost(baseQty, opt.cost_per_unit, yieldPercent)
     }
 
     const sub = subRecipeOptions.find((o) => o.id === line.sourceId)
@@ -101,8 +110,8 @@ export function RecipeIngredientsEditor({
                 onChange={(e) => {
                   const id = e.target.value
                   if (line.kind === 'ingredient') {
-                    // No unit conversion happens downstream, so default the
-                    // line unit to the chosen ingredient's own unit.
+                    // Default the line unit to the chosen ingredient's own unit
+                    // (the cost calc converts any other unit back to it).
                     const picked = ingredientOptions.find((o) => o.id === id)
                     onChange(line.key, {
                       sourceId: id,
