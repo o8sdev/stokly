@@ -44,19 +44,19 @@ export default async function BlogIndexPage({
 
       <main className="mx-auto max-w-5xl px-5 pb-24 pt-32 lg:px-8 lg:pt-44">
         <Reveal variant="blur" className="text-center">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-brand">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#00926e]">
             {t('eyebrow')}
           </span>
-          <h1 className="mt-4 font-display text-5xl font-bold tracking-[-0.025em] text-white lg:text-6xl">
+          <h1 className="mt-4 font-display text-5xl font-bold tracking-[-0.025em] text-[#1c1a14] lg:text-6xl">
             {t('title')}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-[#9fb2aa]">
+          <p className="mx-auto mt-5 max-w-xl text-lg text-[#5b574a]">
             {t('subtitle')}
           </p>
         </Reveal>
 
         {posts.length === 0 ? (
-          <p className="mt-24 text-center text-[#9fb2aa]">{t('empty')}</p>
+          <p className="mt-24 text-center text-[#5b574a]">{t('empty')}</p>
         ) : (
           <div className="mt-16 grid gap-6 md:grid-cols-2">
             {posts.map((p, i) => {
@@ -80,21 +80,21 @@ export default async function BlogIndexPage({
                     )}
                     <div className="p-7">
                       {p.tag && (
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-brand">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-[#00926e]">
                           {p.tag}
                         </span>
                       )}
-                      <h2 className="mt-2 font-display text-2xl font-semibold leading-snug text-white">
+                      <h2 className="mt-2 font-display text-2xl font-semibold leading-snug text-[#1c1a14]">
                         {title}
                       </h2>
                       {excerpt && (
-                        <p className="mt-3 text-[15px] leading-relaxed text-[#9fb2aa]">
+                        <p className="mt-3 text-[15px] leading-relaxed text-[#5b574a]">
                           {excerpt}
                         </p>
                       )}
-                      <div className="mt-6 flex items-center gap-2 text-xs text-[#6c7e77]">
+                      <div className="mt-6 flex items-center gap-2 text-xs text-[#8e8a7b]">
                         <span>{formatDate(p.published_at ?? p.created_at)}</span>
-                        <span className="ml-auto inline-flex items-center gap-1 font-medium text-brand">
+                        <span className="ml-auto inline-flex items-center gap-1 font-medium text-[#00926e]">
                           {t('read_more')}
                           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </span>

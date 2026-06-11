@@ -9,29 +9,40 @@ export interface FaqItem {
   a: string
 }
 
+// Ruled-paper accordion: hairline rules, mono index numbers, a plus that
+// rotates into a multiplication sign when open.
 export function Faq({ items }: { items: FaqItem[] }) {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <div className="divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+    <div>
       {items.map((item, i) => {
         const isOpen = open === i
         return (
-          <div key={i} className={cn(isOpen && 'bg-white/[0.02]')}>
+          <div
+            key={i}
+            className={cn(
+              'border-t border-[#ddd7c4] transition-colors last:border-b',
+              isOpen && 'bg-[#efebe0]/60'
+            )}
+          >
             <button
               onClick={() => setOpen(isOpen ? null : i)}
-              className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+              className="flex w-full items-baseline gap-4 px-2 py-5 text-left sm:px-4"
             >
-              <span className="text-base font-semibold text-white">
+              <span className="font-mono text-xs font-semibold tabular-nums text-[#8e8a7b]">
+                0{i + 1}
+              </span>
+              <span className="flex-1 font-display text-base font-semibold text-[#1c1a14] sm:text-lg">
                 {item.q}
               </span>
               <span
                 className={cn(
-                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 text-brand transition-all duration-300',
-                  isOpen && 'rotate-45 border-brand/40 bg-brand/10'
+                  'flex h-6 w-6 shrink-0 translate-y-0.5 items-center justify-center rounded-[3px] border border-[#c9c2ab] text-[#1c1a14] transition-transform duration-300',
+                  isOpen && 'rotate-45 border-[#00926e] text-[#00926e]'
                 )}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               </span>
             </button>
             <div
@@ -43,7 +54,7 @@ export function Faq({ items }: { items: FaqItem[] }) {
               )}
             >
               <div className="overflow-hidden">
-                <p className="px-6 pb-5 text-[15px] leading-relaxed text-[#9fb2aa]">
+                <p className="px-2 pb-5 pl-10 text-[15px] leading-relaxed text-[#5b574a] sm:px-4 sm:pl-12">
                   {item.a}
                 </p>
               </div>

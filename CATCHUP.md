@@ -278,6 +278,24 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Landing redesign: "Kitchen ledger" paper editorial (no migration)
+Full visual flip of the marketing site from the dark "AI SaaS template" look to an ownable
+paper-ledger concept: warm paper canvas (`--pp-*` tokens), ink typography, hairline rules, mono
+numerals, sharp 4px corners. Hero artifact is a **till receipt** (dotted leaders, dashed rules,
+barcode, teal rubber **stamp** over the barcode, zigzag torn edge) instead of a product mock; steps
+hang as **kitchen tickets** (punch-hole mask, alternating rotation) on a rail; features are a
+**menu index** with dot leaders; problem list is a ledger with red ✗ indexes; CTA is an ink slab;
+footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01 — …` index rules
+(left-aligned, asymmetric). Atmosphere = fixed ruled-paper lines + red ledger margin (hidden <640px).
+- Class names `mk-page/mk-glass-dark/mk-card-d/mk-atmos/mk-progress` kept but restyled (nav + blog
+  compat); blog pages' inline dark colors swapped to ink. Dark instrument-panel mockups retained as
+  "exhibits" with technical corner ticks + `şək. 0N` captions. Reveal/marquee/CountUp machinery reused.
+- New CSS: `.mk-receipt` (+zigzag ::after), `.mk-stamp` (turbulence mask), `.mk-ticket` (--a/--b),
+  `.mk-lead/.mk-lead-dots`, `.mk-barcode`, `.mk-corners`. New i18n: `landing.receipt.*` (az/ru).
+- Fixed: per-row `last:border-b` inside Reveal wrappers double-ruled lists → container draws the
+  closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
+- `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
+
 ### Done — Owner's overview, Phase 1: period KPI band + daily sales trend (no migration)
 The tenant **dashboard** is now the owner's at-a-glance command center. A period selector
 (7 gün / 30 gün / Bu ay / Keçən ay, default Bu ay) drives a 6-KPI band — **Gəlir, Yemək dəyəri %,

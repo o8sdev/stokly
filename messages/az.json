@@ -1377,6 +1377,21 @@
       "login": "Daxil ol",
       "blog": "Bloq"
     },
+    "receipt": {
+      "title": "Günlük hesabat",
+      "sales": "Satış (gəlir)",
+      "cogs": "Məhsul xərci",
+      "food_cost": "Yemək dəyəri",
+      "waste": "İtki",
+      "inventory": "Anbar dəyəri",
+      "profit": "Brüt mənfəət",
+      "stamp": "Hesablandı",
+      "note": "hər axşam · avtomatik",
+      "fig_recipe": "şək. 01 — resept kalkulyatoru",
+      "fig_inventory": "şək. 02 — partiya izləmə",
+      "fig_dashboard": "şək. 03 — idarə paneli",
+      "ticket": "Bilet"
+    },
     "hero": {
       "badge": "Təxminlərə son — dəqiq rəqəmlər.",
       "title_lead": "Maya dəyərini idarə et,",

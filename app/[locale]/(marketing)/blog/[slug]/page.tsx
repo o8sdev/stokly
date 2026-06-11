@@ -51,29 +51,29 @@ export default async function BlogPostPage({
         <Reveal variant="blur">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-1.5 text-sm text-[#9fb2aa] transition-colors hover:text-white"
+            className="inline-flex items-center gap-1.5 text-sm text-[#5b574a] transition-colors hover:text-[#1c1a14]"
           >
             <ArrowLeft className="h-4 w-4" />
             {t('back')}
           </Link>
 
-          <div className="mt-8 flex items-center gap-3 text-xs text-[#6c7e77]">
+          <div className="mt-8 flex items-center gap-3 text-xs text-[#8e8a7b]">
             {post.tag && (
-              <span className="font-mono uppercase tracking-wider text-brand">
+              <span className="font-mono uppercase tracking-wider text-[#00926e]">
                 {post.tag}
               </span>
             )}
             <span>{formatDate(post.published_at ?? post.created_at)}</span>
           </div>
 
-          <h1 className="mt-4 font-display text-4xl font-bold leading-[1.1] tracking-[-0.02em] text-white lg:text-5xl">
+          <h1 className="mt-4 font-display text-4xl font-bold leading-[1.1] tracking-[-0.02em] text-[#1c1a14] lg:text-5xl">
             {title}
           </h1>
         </Reveal>
 
         {post.cover_url && (
           <Reveal variant="scale" delay={80}>
-            <div className="mt-10 overflow-hidden rounded-2xl border border-white/10">
+            <div className="mt-10 overflow-hidden rounded-md border border-[#ddd7c4]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={post.cover_url}
@@ -89,7 +89,7 @@ export default async function BlogPostPage({
             {paragraphs.map((p, i) => (
               <p
                 key={i}
-                className="whitespace-pre-line text-[17px] leading-[1.85] text-[#c3d0ca]"
+                className="whitespace-pre-line text-[17px] leading-[1.85] text-[#3a382f]"
               >
                 {p}
               </p>
@@ -97,10 +97,10 @@ export default async function BlogPostPage({
           </article>
         </Reveal>
 
-        <div className="mt-16 border-t border-white/[0.08] pt-8">
+        <div className="mt-16 border-t border-[#ddd7c4] pt-8">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#00926e] hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             {t('back')}

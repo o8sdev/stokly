@@ -1,27 +1,14 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import {
-  Calculator,
-  Layers,
-  ChefHat,
-  Smartphone,
-  BarChart3,
-  Languages,
-  ArrowRight,
-  Check,
-  Star,
-  ChevronDown,
-  type LucideIcon,
-} from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { Reveal } from '@/components/marketing/reveal'
 import { CountUp } from '@/components/marketing/count-up'
-import { ScrollProgress, Magnetic, HeroTilt, Gauge } from '@/components/marketing/fx'
+import { ScrollProgress, Magnetic } from '@/components/marketing/fx'
 import {
   MarketingAtmosphere,
   MarketingFooter,
 } from '@/components/marketing/shell'
 import {
-  HeroMock,
   MockDashboard,
   MockRecipe,
   MockInventory,
@@ -34,14 +21,14 @@ import {
 import { Faq, type FaqItem } from '@/components/marketing/faq'
 import { DemoForm } from '@/components/marketing/demo-form'
 
-const SERVICE_ICONS: LucideIcon[] = [
-  Calculator,
-  Layers,
-  ChefHat,
-  Smartphone,
-  BarChart3,
-  Languages,
-]
+/* "Kitchen ledger" landing — warm paper, ink type, hairline rules, mono
+   numerals. The hero artifact is a till receipt; steps hang as kitchen
+   tickets; features read like a menu index. One teal stamp accent. */
+
+const INK = '#1c1a14'
+const INK2 = '#5b574a'
+const INK3 = '#8e8a7b'
+const LINE = '#ddd7c4'
 
 export default async function LandingPage({
   params: { locale },
@@ -102,6 +89,11 @@ export default async function LandingPage({
     batchReceived: t('mock.received'),
     batchExpiry: t('mock.expiry'),
   }
+  const figures = [
+    t('receipt.fig_recipe'),
+    t('receipt.fig_inventory'),
+    t('receipt.fig_dashboard'),
+  ]
 
   return (
     <div className="mk-page relative min-h-screen overflow-clip font-sans">
@@ -115,149 +107,229 @@ export default async function LandingPage({
       </noscript>
 
       <MarketingAtmosphere />
-
       <ScrollProgress />
       <MarketingNav locale={locale} />
 
-      {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section className="relative px-5 pt-32 lg:px-8 lg:pt-44">
-        <div className="relative mx-auto max-w-3xl text-center">
-          <Reveal variant="blur">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-[#cdd9d3] backdrop-blur-sm">
-              <span className="animate-mk-pulse h-1.5 w-1.5 rounded-full bg-brand" />
-              {t('hero.badge')}
-            </span>
-          </Reveal>
-
-          <Reveal variant="blur" delay={90}>
-            <h1 className="mt-7 font-display text-[clamp(2.8rem,6.4vw,5rem)] font-bold leading-[1.02] tracking-[-0.025em] text-white">
-              {t('hero.title_lead')}{' '}
-              <span className="font-editorial italic font-medium mk-shimmer">
-                {t('hero.title_accent')}
-              </span>
-            </h1>
-          </Reveal>
-
-          <Reveal variant="blur" delay={170}>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#9fb2aa]">
-              {t('hero.subtitle')}
-            </p>
-          </Reveal>
-
-          <Reveal delay={250}>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Magnetic>
-                <a
-                  href="#demo"
-                  className="group inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-[#04231A] shadow-[0_16px_44px_-12px_rgba(0,200,150,0.65)] transition-colors hover:bg-brand-hover"
-                >
-                  {t('hero.cta_primary')}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </a>
-              </Magnetic>
-              <a
-                href="#product"
-                className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/12 bg-white/[0.03] px-6 text-sm font-semibold text-white transition-colors hover:bg-white/[0.07]"
+      {/* ── HERO — ledger spread: headline left, till receipt right ────── */}
+      <section className="relative px-5 pt-28 lg:px-8 lg:pt-36">
+        <div className="mx-auto grid max-w-6xl items-start gap-14 lg:grid-cols-[7fr_5fr] lg:gap-10">
+          <div className="pt-2 lg:pt-10">
+            <Reveal>
+              <p
+                className="font-mono text-[11px] font-semibold uppercase tracking-[0.24em]"
+                style={{ color: INK3 }}
               >
-                {t('hero.cta_features')}
-              </a>
-            </div>
-          </Reveal>
+                ✳ {t('hero.badge')}
+              </p>
+            </Reveal>
 
-          <Reveal delay={330}>
-            <div className="mt-7 flex items-center justify-center gap-3 text-sm text-[#9fb2aa]">
-              <span className="flex gap-0.5">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-[#F5B301] text-[#F5B301]" />
-                ))}
+            <Reveal delay={90}>
+              <h1
+                className="mt-6 font-display text-[clamp(2.9rem,6.5vw,5.2rem)] font-extrabold leading-[0.98] tracking-[-0.03em]"
+                style={{ color: INK }}
+              >
+                {t('hero.title_lead')}
+                <br />
+                <span className="font-editorial relative inline-block font-medium italic tracking-normal">
+                  {t('hero.title_accent')}
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full"
+                    viewBox="0 0 200 9"
+                    preserveAspectRatio="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M2 6.5 C 30 2.5, 60 6, 95 4 S 165 2.5, 198 6"
+                      fill="none"
+                      stroke="#00C896"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+              </h1>
+            </Reveal>
+
+            <Reveal delay={170}>
+              <p
+                className="mt-7 max-w-md text-lg leading-relaxed"
+                style={{ color: INK2 }}
+              >
+                {t('hero.subtitle')}
+              </p>
+            </Reveal>
+
+            <Reveal delay={250}>
+              <div className="mt-9 flex flex-wrap items-center gap-5">
+                <Magnetic>
+                  <a
+                    href="#demo"
+                    className="group inline-flex h-12 items-center gap-2 rounded-md bg-[#1c1a14] px-6 text-sm font-semibold text-[#f4f1e8] transition-colors hover:bg-[#00926e]"
+                  >
+                    {t('hero.cta_primary')}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </a>
+                </Magnetic>
+                <a
+                  href="#product"
+                  className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em] underline decoration-[#c9c2ab] decoration-2 underline-offset-[6px] transition-colors hover:decoration-[#1c1a14]"
+                  style={{ color: INK }}
+                >
+                  {t('hero.cta_features')}
+                </a>
+              </div>
+            </Reveal>
+
+            <Reveal delay={330}>
+              <p
+                className="mt-10 font-mono text-[12px] tracking-[0.06em]"
+                style={{ color: INK2 }}
+              >
+                <span style={{ color: '#b98a00' }}>★★★★★</span>{' '}
+                <span className="font-semibold" style={{ color: INK }}>
+                  {t('trust.rating')}
+                </span>{' '}
+                — {t('trust.count')}
+              </p>
+            </Reveal>
+          </div>
+
+          {/* Till receipt artifact */}
+          <Reveal delay={200} variant="scale" className="relative mx-auto w-full max-w-sm lg:mx-0">
+            {/* Blank sheet behind, slightly fanned */}
+            <div
+              className="absolute inset-0 -rotate-2 rounded-sm border bg-[#f7f5ec]"
+              style={{ borderColor: LINE }}
+              aria-hidden
+            />
+            <div className="mk-receipt relative rotate-[1.25deg] px-6 pb-7 pt-6 sm:px-7">
+              <div className="text-center">
+                <p className="font-display text-lg font-bold tracking-tight" style={{ color: INK }}>
+                  Stokly<span style={{ color: '#00926e' }}>*</span>
+                </p>
+                <p
+                  className="mt-1 font-mono text-[10px] uppercase tracking-[0.28em]"
+                  style={{ color: INK3 }}
+                >
+                  {t('receipt.title')}
+                </p>
+                <p className="mt-0.5 font-mono text-[10px] tabular-nums" style={{ color: INK3 }}>
+                  №&nbsp;0027 · 21:58
+                </p>
+              </div>
+
+              <div className="my-4 border-t border-dashed" style={{ borderColor: '#c9c2ab' }} />
+
+              <div className="space-y-2.5 font-mono text-[12.5px]" style={{ color: INK }}>
+                <ReceiptRow label={t('receipt.sales')} value="2 840 ₼" />
+                <ReceiptRow label={t('receipt.cogs')} value="886 ₼" />
+                <ReceiptRow label={t('receipt.food_cost')} value="31.2%" accent />
+                <ReceiptRow label={t('receipt.waste')} value="38 ₼" />
+                <ReceiptRow label={t('receipt.inventory')} value="9 850 ₼" />
+              </div>
+
+              <div className="my-4 border-t border-dashed" style={{ borderColor: '#c9c2ab' }} />
+
+              <div className="mk-lead font-mono text-[14px] font-semibold" style={{ color: INK }}>
+                <span>{t('receipt.profit')}</span>
+                <span className="mk-lead-dots" aria-hidden />
+                <span className="text-[17px] tabular-nums">1 954 ₼</span>
+              </div>
+
+              <div className="relative mt-6">
+                <div className="mk-barcode" aria-hidden />
+                <p
+                  className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.26em]"
+                  style={{ color: INK3 }}
+                >
+                  stokly · {t('receipt.note')}
+                </p>
+              </div>
+
+              {/* Stamp overlay — pressed over the barcode, like a till slip */}
+              <span className="mk-stamp absolute bottom-[44px] right-3 text-[12px]">
+                ✓ {t('receipt.stamp')}
               </span>
-              <span className="font-semibold text-white">{t('trust.rating')}</span>
-              <span className="text-[#3a4a44]">·</span>
-              <span>{t('trust.count')}</span>
             </div>
           </Reveal>
         </div>
 
-        {/* Hero product frame */}
-        <div className="relative mx-auto mt-16 max-w-4xl lg:mt-20">
-          <div
-            className="mk-glow absolute -inset-x-20 -bottom-16 top-10 -z-10"
-            aria-hidden
-          />
-          <div className="animate-mk-rise">
-            <HeroTilt>
-              <div className="mk-ring rounded-[26px]">
-                <div className="rounded-[26px] border border-white/10 bg-white/[0.03] p-2.5 backdrop-blur-sm sm:p-3">
-                  <HeroMock labels={dashboardLabels} />
-                </div>
-              </div>
-
-              {/* Floating food-cost gauge */}
-              <div className="mk-chip animate-mk-float absolute -left-6 -top-10 hidden items-center gap-3 p-3 lg:flex">
-                <Gauge value={28.4} label={t('hero.panel.food_cost')} />
-              </div>
-            </HeroTilt>
-          </div>
-        </div>
-
-        {/* Scroll cue */}
-        <Reveal delay={500} className="mt-14 flex flex-col items-center gap-2">
-          <div className="mk-scrollcue">
-            <span />
-          </div>
-          <span className="flex items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-[#6c7e77]">
-            {t('hero.scroll')}
-            <ChevronDown className="h-3 w-3" />
-          </span>
+        {/* Scroll note */}
+        <Reveal delay={420}>
+          <p
+            className="mx-auto mt-16 max-w-6xl font-mono text-[11px] uppercase tracking-[0.22em]"
+            style={{ color: INK3 }}
+          >
+            ↓ {t('hero.scroll')}
+          </p>
         </Reveal>
       </section>
 
-      {/* ── LOGO MARQUEE ─────────────────────────────────────────────── */}
-      <section className="relative mt-24 border-y border-white/[0.06] py-10">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#6c7e77]">
+      {/* ── NAME TICKER ─────────────────────────────────────────────────── */}
+      <section className="mt-14 border-y" style={{ borderColor: LINE }}>
+        <p
+          className="border-b py-2.5 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.26em]"
+          style={{ borderColor: LINE, color: INK3 }}
+        >
           {t('trust.logos_label')}
         </p>
-        <div className="mk-marquee-pause relative mt-7 overflow-hidden">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#070c0b] to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#070c0b] to-transparent" />
-          <div className="flex w-max animate-mk-marquee-slow items-center gap-16 pr-16">
+        <div className="mk-marquee-pause relative overflow-hidden py-5">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#f4f1e8] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#f4f1e8] to-transparent" />
+          <div className="flex w-max animate-mk-marquee-slow items-center gap-10 pr-10">
             {[...logos, ...logos].map((name, i) => (
-              <span
-                key={i}
-                className="font-display text-2xl font-semibold tracking-tight text-[#5d6f68] transition-colors hover:text-white"
-              >
-                {name}
+              <span key={i} className="flex items-center gap-10">
+                <span
+                  className="font-display text-xl font-semibold tracking-tight transition-colors hover:text-[#1c1a14]"
+                  style={{ color: INK3 }}
+                >
+                  {name}
+                </span>
+                <span aria-hidden style={{ color: '#c9c2ab' }}>
+                  ✳
+                </span>
               </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── PROBLEM ──────────────────────────────────────────────────── */}
-      <section className="relative py-24 lg:py-32">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <Kicker>{t('problem.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-5xl">
+      {/* ── № 01 · PROBLEM (the leak ledger) ────────────────────────────── */}
+      <section className="py-24 lg:py-32">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[5fr_7fr] lg:gap-16 lg:px-8">
+          <Reveal>
+            <SectionIndex no="01">{t('problem.kicker')}</SectionIndex>
+            <h2
+              className="mt-5 font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+              style={{ color: INK }}
+            >
               {t('problem.title')}
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-[#9fb2aa]">
+            <p className="mt-5 max-w-md text-lg leading-relaxed" style={{ color: INK2 }}>
               {t('problem.lead')}
             </p>
           </Reveal>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+
+          {/* The rows live inside Reveal wrappers, so per-row `last:` tricks
+              can't close the list — the container draws the bottom rule. */}
+          <div className="border-b lg:pt-2" style={{ borderColor: LINE }}>
             {points.map((p, i) => (
-              <Reveal key={p.title} delay={i * 100} variant="scale">
-                <div className="mk-card-d h-full p-7">
-                  <span className="font-mono text-3xl font-medium text-brand/40">
-                    0{i + 1}
+              <Reveal key={p.title} delay={i * 110}>
+                <div
+                  className="group grid grid-cols-[auto_1fr] gap-x-5 gap-y-1 border-t py-6 transition-colors hover:bg-[#efebe0]/60"
+                  style={{ borderColor: LINE }}
+                >
+                  <span className="font-mono text-sm font-semibold" style={{ color: '#c2462e' }}>
+                    ✗ 0{i + 1}
                   </span>
-                  <h3 className="mt-4 font-display text-xl font-semibold text-white">
-                    {p.title}
-                  </h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-[#9fb2aa]">
-                    {p.desc}
-                  </p>
+                  <div>
+                    <h3 className="font-display text-xl font-semibold" style={{ color: INK }}>
+                      {p.title}
+                    </h3>
+                    <p className="mt-1.5 text-[15px] leading-relaxed" style={{ color: INK2 }}>
+                      {p.desc}
+                    </p>
+                  </div>
                 </div>
               </Reveal>
             ))}
@@ -265,9 +337,13 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* ── PRODUCT SHOWCASES ────────────────────────────────────────── */}
-      <section id="product" className="scroll-mt-24 py-20 lg:py-28">
-        <div className="mx-auto max-w-7xl space-y-28 px-5 lg:px-8">
+      {/* ── № 02 · PRODUCT (framed exhibits) ────────────────────────────── */}
+      <section id="product" className="scroll-mt-24 pb-20 lg:pb-28">
+        <div className="mx-auto max-w-6xl space-y-24 px-5 lg:px-8">
+          <Reveal>
+            <SectionIndex no="02">{t('nav.services')}</SectionIndex>
+          </Reveal>
+
           {showcase.map((item, i) => {
             const reverse = i % 2 === 1
             const mock =
@@ -287,20 +363,32 @@ export default async function LandingPage({
                   variant={reverse ? 'right' : 'left'}
                   className={reverse ? 'lg:order-2' : ''}
                 >
-                  <Kicker>{item.kicker}</Kicker>
-                  <h2 className="mt-5 font-display text-3xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-[2.6rem]">
+                  <p
+                    className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em]"
+                    style={{ color: '#00926e' }}
+                  >
+                    {item.kicker}
+                  </p>
+                  <h2
+                    className="mt-4 font-display text-3xl font-bold leading-[1.1] tracking-[-0.02em] lg:text-[2.4rem]"
+                    style={{ color: INK }}
+                  >
                     {item.title}
                   </h2>
-                  <p className="mt-5 text-lg leading-relaxed text-[#9fb2aa]">
+                  <p className="mt-4 max-w-md text-lg leading-relaxed" style={{ color: INK2 }}>
                     {item.desc}
                   </p>
                   <ul className="mt-7 space-y-3">
                     {item.bullets.map((b) => (
                       <li
                         key={b}
-                        className="flex items-center gap-3 text-[15px] font-medium text-[#dbe6e1]"
+                        className="flex items-center gap-3 text-[15px] font-medium"
+                        style={{ color: INK }}
                       >
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand/15 text-brand ring-1 ring-brand/25">
+                        <span
+                          className="flex h-5 w-5 items-center justify-center rounded-[3px] border"
+                          style={{ borderColor: '#00926e', color: '#00926e' }}
+                        >
                           <Check className="h-3 w-3" />
                         </span>
                         {b}
@@ -308,18 +396,21 @@ export default async function LandingPage({
                     ))}
                   </ul>
                 </Reveal>
+
                 <Reveal
                   delay={120}
                   variant="scale"
                   className={reverse ? 'lg:order-1' : ''}
                 >
-                  <div className="relative">
-                    <div
-                      className="mk-glow absolute -inset-10 -z-10"
-                      aria-hidden
-                    />
+                  <figure className="mk-corners relative">
                     {mock}
-                  </div>
+                    <figcaption
+                      className="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.2em]"
+                      style={{ color: INK3 }}
+                    >
+                      {figures[i] ?? ''}
+                    </figcaption>
+                  </figure>
                 </Reveal>
               </div>
             )
@@ -327,64 +418,96 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* ── SERVICES ─────────────────────────────────────────────────── */}
-      <section className="relative py-24 lg:py-32">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <Kicker>{t('services.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-5xl">
-              {t('services.title')}
-            </h2>
-            <p className="mt-5 text-lg text-[#9fb2aa]">{t('services.lead')}</p>
+      {/* ── № 03 · SERVICES (menu index with dot leaders) ───────────────── */}
+      <section className="py-24 lg:py-32">
+        <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <Reveal>
+            <SectionIndex no="03">{t('services.kicker')}</SectionIndex>
+            <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
+              <h2
+                className="max-w-xl font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+                style={{ color: INK }}
+              >
+                {t('services.title')}
+              </h2>
+              <p className="max-w-sm text-base leading-relaxed" style={{ color: INK2 }}>
+                {t('services.lead')}
+              </p>
+            </div>
           </Reveal>
-          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {services.map((s, i) => {
-              const Icon = SERVICE_ICONS[i] ?? Calculator
-              return (
-                <Reveal key={s.title} delay={(i % 3) * 90} variant="scale">
-                  <div className="mk-card-d h-full p-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand ring-1 ring-brand/20 shadow-[0_0_30px_-8px_rgba(0,200,150,0.5)]">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="mt-5 font-display text-xl font-semibold text-white">
+
+          <div
+            className="mt-12 grid gap-x-14 border-b lg:grid-cols-2"
+            style={{ borderColor: LINE }}
+          >
+            {services.map((s, i) => (
+              <Reveal key={s.title} delay={(i % 2) * 90}>
+                <div
+                  className="border-t py-6 transition-colors hover:bg-[#efebe0]/60"
+                  style={{ borderColor: LINE }}
+                >
+                  <div className="mk-lead">
+                    <span className="font-mono text-sm font-semibold tabular-nums" style={{ color: INK3 }}>
+                      0{i + 1}.
+                    </span>
+                    <h3 className="font-display text-lg font-semibold" style={{ color: INK }}>
                       {s.title}
                     </h3>
-                    <p className="mt-2 text-[15px] leading-relaxed text-[#9fb2aa]">
-                      {s.desc}
-                    </p>
+                    <span className="mk-lead-dots" aria-hidden />
+                    <span className="font-mono text-xs" style={{ color: '#00926e' }}>
+                      ✓
+                    </span>
                   </div>
-                </Reveal>
-              )
-            })}
+                  <p className="mt-2 pl-9 text-[15px] leading-relaxed" style={{ color: INK2 }}>
+                    {s.desc}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS (stepper rail) ──────────────────────────────── */}
+      {/* ── № 04 · HOW IT WORKS (tickets on the kitchen rail) ───────────── */}
       <section id="how" className="scroll-mt-24 py-24 lg:py-32">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <Kicker>{t('how.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-5xl">
+        <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <Reveal>
+            <SectionIndex no="04">{t('how.kicker')}</SectionIndex>
+            <h2
+              className="mt-5 max-w-2xl font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+              style={{ color: INK }}
+            >
               {t('how.title')}
             </h2>
           </Reveal>
-          <div className="relative mx-auto mt-16 max-w-2xl">
+
+          {/* The rail */}
+          <div className="relative mt-16">
             <div
-              className="absolute bottom-3 left-4 top-3 w-px bg-gradient-to-b from-brand/60 via-brand/20 to-transparent"
+              className="absolute -top-4 left-2 right-2 hidden h-[3px] rounded-full md:block"
+              style={{ background: INK }}
               aria-hidden
             />
-            <div className="space-y-12">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {steps.map((step, i) => (
-                <Reveal key={step.no} delay={i * 120} variant="left">
-                  <div className="relative pl-16">
-                    <span className="absolute left-0 top-0 flex h-[34px] w-[34px] items-center justify-center rounded-full border border-brand/40 bg-[#0a1311] font-mono text-sm font-medium text-brand shadow-[0_0_22px_-4px_rgba(0,200,150,0.6)]">
-                      {step.no}
-                    </span>
-                    <h3 className="font-display text-2xl font-semibold text-white">
+                <Reveal key={step.no} delay={i * 110}>
+                  <div
+                    className={`mk-ticket ${i % 2 === 0 ? 'mk-ticket--a' : 'mk-ticket--b'} px-6 pb-7 pt-8`}
+                  >
+                    <p
+                      className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.24em]"
+                      style={{ color: INK3 }}
+                    >
+                      {t('receipt.ticket')} № {step.no}
+                    </p>
+                    <div
+                      className="my-4 border-t border-dashed"
+                      style={{ borderColor: '#c9c2ab' }}
+                    />
+                    <h3 className="font-display text-xl font-semibold leading-snug" style={{ color: INK }}>
                       {step.title}
                     </h3>
-                    <p className="mt-2 text-[15px] leading-relaxed text-[#9fb2aa]">
+                    <p className="mt-2 text-[14px] leading-relaxed" style={{ color: INK2 }}>
                       {step.desc}
                     </p>
                   </div>
@@ -395,59 +518,87 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* ── METRICS ──────────────────────────────────────────────────── */}
-      <section className="px-5 py-10 lg:px-8">
-        <div className="mk-ring relative mx-auto max-w-7xl overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.025] px-6 py-16">
-          <div className="mk-glow absolute -right-16 -top-16 h-72 w-72" aria-hidden />
-          <div className="mk-glow absolute -bottom-16 -left-16 h-72 w-72" aria-hidden />
-          <div className="relative grid grid-cols-2 gap-8 lg:grid-cols-4">
-            {metrics.map((m, i) => (
-              <Reveal key={m.label} delay={i * 90} className="text-center">
-                <div className="font-display text-5xl font-bold text-white lg:text-6xl">
+      {/* ── METRICS (counted in ink) ────────────────────────────────────── */}
+      <section className="border-y" style={{ borderColor: LINE }}>
+        <div className="mx-auto grid max-w-6xl grid-cols-2 lg:grid-cols-4">
+          {metrics.map((m, i) => (
+            <div
+              key={m.label}
+              className={`px-6 py-12 text-center ${i > 0 ? 'border-l' : ''} ${i >= 2 ? 'max-lg:border-t' : ''}`}
+              style={{ borderColor: LINE }}
+            >
+              <Reveal delay={i * 80}>
+                <div
+                  className="font-display text-5xl font-extrabold tracking-[-0.02em] lg:text-6xl"
+                  style={{ color: INK }}
+                >
                   <CountUp to={m.value} suffix={m.suffix} />
                 </div>
-                <p className="mt-3 text-sm text-[#9fb2aa]">{m.label}</p>
+                <p
+                  className="mt-3 font-mono text-[11px] uppercase tracking-[0.18em]"
+                  style={{ color: INK3 }}
+                >
+                  {m.label}
+                </p>
               </Reveal>
-            ))}
-          </div>
-          <p className="relative mt-10 text-center text-xs text-[#6c7e77]">
-            {t('metrics.note')}
-          </p>
+            </div>
+          ))}
         </div>
+        <p
+          className="border-t py-3 text-center font-mono text-[10px] tracking-[0.14em]"
+          style={{ borderColor: LINE, color: INK3 }}
+        >
+          {t('metrics.note')}
+        </p>
       </section>
 
-      {/* ── MISSION ──────────────────────────────────────────────────── */}
+      {/* ── № 05 · MISSION (editorial pull-quote) ───────────────────────── */}
       <section className="py-24 lg:py-32">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2 lg:px-8">
+        <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 lg:grid-cols-[7fr_5fr] lg:px-8">
           <Reveal variant="left">
-            <Kicker>{t('mission.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-3xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-4xl">
+            <SectionIndex no="05">{t('mission.kicker')}</SectionIndex>
+            <h2
+              className="mt-6 font-display text-3xl font-bold leading-[1.1] tracking-[-0.02em] lg:text-4xl"
+              style={{ color: INK }}
+            >
               {t('mission.title')}
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-[#9fb2aa]">
+            <p
+              className="font-editorial mt-6 max-w-lg text-xl italic leading-relaxed lg:text-2xl"
+              style={{ color: INK2 }}
+            >
               {t('mission.body')}
             </p>
           </Reveal>
-          <Reveal delay={120} variant="right">
-            <div className="mk-card-d relative overflow-hidden p-10">
-              <div className="mk-glow absolute -right-10 -top-10 h-52 w-52" aria-hidden />
-              <div className="relative font-display text-7xl font-bold mk-shimmer">
+          <Reveal delay={120} variant="scale">
+            <div className="mk-card-d relative p-10 text-center">
+              <div
+                className="font-display text-7xl font-extrabold tracking-[-0.03em]"
+                style={{ color: '#00926e' }}
+              >
                 {t('mission.stat_value')}
               </div>
-              <p className="relative mt-4 font-editorial text-xl italic leading-relaxed text-[#cdd9d3]">
+              <p
+                className="font-editorial mt-4 text-lg italic leading-relaxed"
+                style={{ color: INK2 }}
+              >
                 {t('mission.stat_label')}
               </p>
+              <span className="mk-stamp absolute -right-2 -top-3">stokly ✳ 2026</span>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────── */}
-      <section id="testimonials" className="scroll-mt-24 py-24 lg:py-32">
-        <div className="mx-auto mb-14 max-w-7xl px-5 lg:px-8">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <Kicker>{t('testimonials.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-5xl">
+      {/* ── № 06 · TESTIMONIALS ─────────────────────────────────────────── */}
+      <section id="testimonials" className="scroll-mt-24 pb-24 lg:pb-32">
+        <div className="mx-auto mb-12 max-w-6xl px-5 lg:px-8">
+          <Reveal>
+            <SectionIndex no="06">{t('testimonials.kicker')}</SectionIndex>
+            <h2
+              className="mt-5 max-w-2xl font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+              style={{ color: INK }}
+            >
               {t('testimonials.title')}
             </h2>
           </Reveal>
@@ -455,15 +606,18 @@ export default async function LandingPage({
         <Testimonials items={testimonials} />
       </section>
 
-      {/* ── DEMO ─────────────────────────────────────────────────────── */}
-      <section id="demo" className="scroll-mt-24 py-24 lg:py-32">
+      {/* ── № 07 · DEMO (order pad) ─────────────────────────────────────── */}
+      <section id="demo" className="scroll-mt-24 pb-24 lg:pb-32">
         <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 lg:grid-cols-2 lg:px-8">
           <Reveal variant="left">
-            <Kicker>{t('demo.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-5xl">
+            <SectionIndex no="07">{t('demo.kicker')}</SectionIndex>
+            <h2
+              className="mt-5 font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+              style={{ color: INK }}
+            >
               {t('demo.title')}
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-[#9fb2aa]">
+            <p className="mt-5 max-w-md text-lg leading-relaxed" style={{ color: INK2 }}>
               {t('demo.lead')}
             </p>
             <ul className="mt-8 space-y-3">
@@ -471,9 +625,13 @@ export default async function LandingPage({
                 (line, i) => (
                   <li
                     key={i}
-                    className="flex items-center gap-3 text-[15px] font-medium text-[#dbe6e1]"
+                    className="flex items-center gap-3 text-[15px] font-medium"
+                    style={{ color: INK }}
                   >
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand/15 text-brand ring-1 ring-brand/25">
+                    <span
+                      className="flex h-5 w-5 items-center justify-center rounded-[3px] border"
+                      style={{ borderColor: '#00926e', color: '#00926e' }}
+                    >
                       <Check className="h-3 w-3" />
                     </span>
                     {line}
@@ -482,59 +640,74 @@ export default async function LandingPage({
               )}
             </ul>
           </Reveal>
+
           <Reveal delay={120} variant="scale">
-            <div className="relative">
-              <div className="mk-glow absolute -inset-8 -z-10" aria-hidden />
-              <div className="rounded-3xl border border-[#e2e8ee] bg-white p-7 shadow-[0_50px_100px_-40px_rgba(0,0,0,0.85)] lg:p-8">
-                <DemoForm />
-              </div>
+            <div className="mk-receipt relative px-7 pb-8 pt-6 lg:px-8">
+              <p
+                className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em]"
+                style={{ color: INK3 }}
+              >
+                {t('demo.kicker')} — № 1
+              </p>
+              <div
+                className="my-5 border-t border-dashed"
+                style={{ borderColor: '#c9c2ab' }}
+              />
+              <DemoForm />
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── FAQ ──────────────────────────────────────────────────────── */}
-      <section id="faq" className="scroll-mt-24 py-24 lg:py-32">
+      {/* ── № 08 · FAQ ──────────────────────────────────────────────────── */}
+      <section id="faq" className="scroll-mt-24 pb-24 lg:pb-32">
         <div className="mx-auto max-w-3xl px-5 lg:px-8">
-          <Reveal className="mb-12 text-center">
-            <Kicker>{t('faq.kicker')}</Kicker>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.02em] text-white lg:text-5xl">
+          <Reveal>
+            <SectionIndex no="08">{t('faq.kicker')}</SectionIndex>
+            <h2
+              className="mt-5 font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+              style={{ color: INK }}
+            >
               {t('faq.title')}
             </h2>
           </Reveal>
-          <Reveal>
+          <Reveal delay={100} className="mt-10">
             <Faq items={faqItems} />
           </Reveal>
         </div>
       </section>
 
-      {/* ── FINAL CTA ────────────────────────────────────────────────── */}
-      <section className="px-5 pb-16 lg:px-8">
-        <div className="mk-ring relative mx-auto max-w-7xl overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0a1614] to-[#070c0b] px-6 py-24 text-center">
-          <div className="mk-blueprint absolute inset-0" aria-hidden />
-          <div
-            className="mk-glow absolute left-1/2 top-0 h-72 w-[720px] -translate-x-1/2"
-            aria-hidden
-          />
-          <div className="relative mx-auto max-w-2xl">
-            <Reveal variant="scale">
-              <h2 className="font-display text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-white lg:text-6xl">
-                {t('cta.title')}
-              </h2>
-              <p className="mt-5 text-lg text-[#9fb2aa]">{t('cta.subtitle')}</p>
-              <div className="mt-9 flex justify-center">
-                <Magnetic>
-                  <a
-                    href="#demo"
-                    className="group inline-flex items-center gap-2 rounded-xl bg-brand px-8 py-4 text-base font-semibold text-[#04231A] shadow-[0_18px_50px_-12px_rgba(0,200,150,0.7)] transition-colors hover:bg-brand-hover"
-                  >
-                    {t('cta.button')}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </a>
-                </Magnetic>
-              </div>
-            </Reveal>
-          </div>
+      {/* ── FINAL CTA — the ink slab ────────────────────────────────────── */}
+      <section className="px-5 pb-20 lg:px-8">
+        <div className="relative mx-auto max-w-6xl overflow-hidden rounded-md bg-[#16140e] px-6 py-20 text-center lg:py-24">
+          <span
+            className="mk-stamp absolute right-6 top-6 hidden sm:inline-block"
+            style={{ color: 'rgba(244,241,232,0.45)' }}
+          >
+            stokly ✳ {t('receipt.stamp')}
+          </span>
+          <Reveal variant="scale">
+            <h2 className="mx-auto max-w-2xl font-display text-4xl font-extrabold leading-[1.04] tracking-[-0.02em] text-[#f4f1e8] lg:text-6xl">
+              {t('cta.title')}
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-lg text-[#b9b4a3]">
+              {t('cta.subtitle')}
+            </p>
+            <div className="mt-9 flex justify-center">
+              <Magnetic>
+                <a
+                  href="#demo"
+                  className="group inline-flex items-center gap-2 rounded-md bg-[#00C896] px-8 py-4 text-base font-semibold text-[#14130e] transition-colors hover:bg-[#5ff5cb]"
+                >
+                  {t('cta.button')}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </a>
+              </Magnetic>
+            </div>
+            <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.26em] text-[#6f6a5b]">
+              * * * {t('receipt.note')} * * *
+            </p>
+          </Reveal>
         </div>
       </section>
 
@@ -543,11 +716,44 @@ export default async function LandingPage({
   )
 }
 
-function Kicker({ children }: { children: React.ReactNode }) {
+/* Section index header: "№ 01" + hairline rule. */
+function SectionIndex({
+  no,
+  children,
+}: {
+  no: string
+  children: React.ReactNode
+}) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/[0.07] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-brand">
-      <span className="h-1 w-1 rounded-full bg-brand" />
-      {children}
-    </span>
+    <div className="flex items-center gap-4">
+      <span className="shrink-0 font-mono text-[11px] font-semibold tracking-[0.22em] text-[#8e8a7b]">
+        № {no} — <span className="uppercase">{children}</span>
+      </span>
+      <span className="h-px flex-1 bg-[#ddd7c4]" aria-hidden />
+    </div>
+  )
+}
+
+/* One dotted-leader line on the hero receipt. */
+function ReceiptRow({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: string
+  accent?: boolean
+}) {
+  return (
+    <div className="mk-lead">
+      <span style={{ color: '#5b574a' }}>{label}</span>
+      <span className="mk-lead-dots" aria-hidden />
+      <span
+        className="font-semibold tabular-nums"
+        style={{ color: accent ? '#00926e' : '#1c1a14' }}
+      >
+        {value}
+      </span>
+    </div>
   )
 }

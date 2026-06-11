@@ -20,17 +20,17 @@ export function DemoForm() {
 
   if (state.ok) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 px-6 py-14 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-[#04231A]">
-          <Check className="h-6 w-6" />
-        </div>
-        <p className="text-lg font-semibold text-[#0d1b2a]">{t('success')}</p>
+      <div className="flex flex-col items-center justify-center gap-4 px-6 py-14 text-center">
+        <span className="mk-stamp !rotate-[-4deg] text-[13px]">
+          ✓ {t('success')}
+        </span>
+        <Check className="h-6 w-6 text-[#00926e]" />
       </div>
     )
   }
 
   const field =
-    'h-12 w-full rounded-xl border border-[#e2e8ee] bg-[#f8fafb] px-4 text-sm text-[#0d1b2a] placeholder:text-[#9aa7b4] transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/12'
+    'h-12 w-full rounded-[4px] border border-[#ddd7c4] bg-[#fbfaf5] px-4 text-sm text-[#1c1a14] placeholder:text-[#8e8a7b] transition-colors focus:border-[#1c1a14] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00C896]/25'
 
   return (
     <form action={formAction} className="space-y-3">
@@ -64,11 +64,11 @@ export function DemoForm() {
         aria-label={t('message')}
       />
       {state.error && (
-        <p className="text-sm text-[#E53E3E]">{t('error')}</p>
+        <p className="text-sm text-[#c2462e]">{t('error')}</p>
       )}
       <SubmitButton
         pendingText={t('sending')}
-        className="group h-12 w-full gap-2 rounded-xl"
+        className="group h-12 w-full gap-2 rounded-[4px] bg-[#1c1a14] text-[#f4f1e8] hover:bg-[#00926e]"
       >
         {t('submit')}
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

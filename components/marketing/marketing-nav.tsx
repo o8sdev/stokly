@@ -13,6 +13,8 @@ const SECTIONS = [
   { id: 'faq', key: 'faq' },
 ] as const
 
+// Paper nav: ink wordmark with a teal asterisk, mono uppercase section links,
+// solid-ink CTA. Gains a paper-glass background once scrolled.
 export function MarketingNav({ locale }: { locale: string }) {
   const t = useTranslations('landing.nav')
   const [scrolled, setScrolled] = useState(false)
@@ -40,50 +42,50 @@ export function MarketingNav({ locale }: { locale: string }) {
         scrolled ? 'mk-glass-dark' : 'border-b border-transparent'
       )}
     >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="animate-mk-pulse h-2.5 w-2.5 rounded-full bg-brand" />
-          <span className="font-display text-xl font-bold tracking-tight text-white">
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 lg:px-8">
+        <Link href="/" className="flex items-baseline gap-1">
+          <span className="font-display text-xl font-bold tracking-tight text-[#1c1a14]">
             Stokly
           </span>
+          <span className="text-lg leading-none text-[#00926e]">*</span>
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {SECTIONS.map((s) => (
             <a
               key={s.id}
               href={`/${locale}#${s.id}`}
-              className="text-sm font-medium text-[#9fb2aa] transition-colors hover:text-white"
+              className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5b574a] transition-colors hover:text-[#1c1a14]"
             >
               {t(s.key)}
             </a>
           ))}
           <Link
             href="/blog"
-            className="text-sm font-medium text-[#9fb2aa] transition-colors hover:text-white"
+            className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5b574a] transition-colors hover:text-[#1c1a14]"
           >
             {t('blog')}
           </Link>
         </div>
 
-        <div className="hidden items-center gap-1.5 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           <button
             onClick={switchLocale}
             disabled={pending}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold uppercase text-[#9fb2aa] transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#5b574a] transition-colors hover:bg-[#1c1a14]/5 hover:text-[#1c1a14]"
           >
             <Globe className="h-3.5 w-3.5" />
             {locale === 'az' ? 'RU' : 'AZ'}
           </button>
           <Link
             href="/app/login"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-[#cdd9d3] transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded px-3 py-2 text-sm font-semibold text-[#1c1a14] underline-offset-4 transition-colors hover:underline"
           >
             {t('login')}
           </Link>
           <a
             href={`/${locale}#demo`}
-            className="group inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-[#04231A] shadow-[0_10px_30px_-10px_rgba(0,200,150,0.6)] transition-colors hover:bg-brand-hover"
+            className="group inline-flex items-center gap-1.5 rounded-md bg-[#1c1a14] px-4 py-2 text-sm font-semibold text-[#f4f1e8] transition-colors hover:bg-[#00926e]"
           >
             {t('demo')}
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -92,7 +94,7 @@ export function MarketingNav({ locale }: { locale: string }) {
 
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex h-9 w-9 items-center justify-center rounded-md text-white md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-[#1c1a14] md:hidden"
           aria-label="Menu"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -100,14 +102,14 @@ export function MarketingNav({ locale }: { locale: string }) {
       </nav>
 
       {open && (
-        <div className="mk-glass-dark border-t border-white/10 px-5 py-4 md:hidden">
+        <div className="mk-glass-dark border-t border-[#ddd7c4] px-5 py-4 md:hidden">
           <div className="flex flex-col gap-1">
             {SECTIONS.map((s) => (
               <a
                 key={s.id}
                 href={`/${locale}#${s.id}`}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-[#cdd9d3] hover:bg-white/5 hover:text-white"
+                className="rounded-md px-3 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[#5b574a] hover:bg-[#1c1a14]/5 hover:text-[#1c1a14]"
               >
                 {t(s.key)}
               </a>
@@ -115,14 +117,14 @@ export function MarketingNav({ locale }: { locale: string }) {
             <Link
               href="/blog"
               onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-[#cdd9d3] hover:bg-white/5 hover:text-white"
+              className="rounded-md px-3 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[#5b574a] hover:bg-[#1c1a14]/5 hover:text-[#1c1a14]"
             >
               {t('blog')}
             </Link>
-            <div className="mt-2 flex items-center gap-2 border-t border-white/10 pt-3">
+            <div className="mt-2 flex items-center gap-2 border-t border-[#ddd7c4] pt-3">
               <button
                 onClick={switchLocale}
-                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold uppercase text-[#9fb2aa] hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-1.5 rounded px-3 py-2 font-mono text-[11px] font-semibold uppercase text-[#5b574a] hover:text-[#1c1a14]"
               >
                 <Globe className="h-3.5 w-3.5" />
                 {locale === 'az' ? 'RU' : 'AZ'}
@@ -130,14 +132,14 @@ export function MarketingNav({ locale }: { locale: string }) {
               <Link
                 href="/app/login"
                 onClick={() => setOpen(false)}
-                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white"
+                className="rounded-md border border-[#1c1a14]/25 px-3 py-2 text-sm font-semibold text-[#1c1a14]"
               >
                 {t('login')}
               </Link>
               <a
                 href={`/${locale}#demo`}
                 onClick={() => setOpen(false)}
-                className="flex-1 rounded-lg bg-brand px-3 py-2 text-center text-sm font-semibold text-[#04231A]"
+                className="flex-1 rounded-md bg-[#1c1a14] px-3 py-2 text-center text-sm font-semibold text-[#f4f1e8]"
               >
                 {t('demo')}
               </a>

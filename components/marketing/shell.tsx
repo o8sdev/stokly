@@ -1,70 +1,58 @@
 import { getTranslations } from 'next-intl/server'
 
-// Fixed atmosphere layer (drifting aurora + grain + blueprint) shared by the
-// landing and blog pages.
+// Fixed atmosphere layer: ruled ledger paper with a red margin line and a faint
+// static grain. Shared by the landing and blog pages.
 export function MarketingAtmosphere() {
-  return (
-    <div className="mk-atmos mk-noise" aria-hidden>
-      <div className="mk-blueprint absolute inset-0" />
-      <div className="mk-aurora mk-aurora--teal mk-drift-a absolute -top-44 left-[6%] h-[640px] w-[640px]" />
-      <div className="mk-aurora mk-aurora--cyan mk-drift-b absolute -top-10 right-[2%] h-[460px] w-[460px]" />
-      <div className="mk-aurora mk-aurora--amber mk-drift-c absolute bottom-[-12%] left-[24%] h-[520px] w-[520px]" />
-    </div>
-  )
+  return <div className="mk-atmos mk-noise" aria-hidden />
 }
 
+// Receipt-style footer: hairline rules, mono type, a thank-you line — the way a
+// till slip ends.
 export async function MarketingFooter({ locale }: { locale: string }) {
   const t = await getTranslations('landing')
   return (
-    <footer className="border-t border-white/[0.06] py-14">
-      <div className="mx-auto flex max-w-7xl flex-col gap-10 px-5 lg:flex-row lg:items-start lg:justify-between lg:px-8">
-        <div className="max-w-xs">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-brand" />
-            <span className="font-display text-xl font-bold text-white">
-              Stokly
-            </span>
+    <footer className="border-t border-[#ddd7c4]">
+      <div className="mx-auto max-w-6xl px-5 py-14 lg:px-8">
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+          <div className="max-w-xs">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-display text-2xl font-bold tracking-tight text-[#1c1a14]">
+                Stokly
+              </span>
+              <span className="text-[#00926e]">*</span>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-[#5b574a]">
+              {t('footer.tagline')}
+            </p>
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-[#9fb2aa]">
-            {t('footer.tagline')}
+
+          <div>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-[#8e8a7b]">
+              {t('footer.product')}
+            </p>
+            <div className="mt-4 flex flex-col gap-2.5">
+              <FooterLink href={`/${locale}#product`}>
+                {t('footer.links.services')}
+              </FooterLink>
+              <FooterLink href={`/${locale}#how`}>
+                {t('footer.links.how')}
+              </FooterLink>
+              <FooterLink href={`/${locale}/blog`}>{t('nav.blog')}</FooterLink>
+              <FooterLink href={`/${locale}#demo`}>
+                {t('footer.links.demo')}
+              </FooterLink>
+            </div>
+          </div>
+        </div>
+
+        {/* Till-slip sign-off */}
+        <div className="mt-12 border-t border-dashed border-[#c9c2ab] pt-6 text-center">
+          <p className="font-mono text-[11px] tracking-[0.18em] text-[#8e8a7b]">
+            * * * {t('footer.rights')} * * *
           </p>
         </div>
-        <div className="flex gap-16">
-          <FooterCol title={t('footer.product')}>
-            <FooterLink href={`/${locale}#product`}>
-              {t('footer.links.services')}
-            </FooterLink>
-            <FooterLink href={`/${locale}#how`}>{t('footer.links.how')}</FooterLink>
-            <FooterLink href={`/${locale}/blog`}>{t('nav.blog')}</FooterLink>
-            <FooterLink href={`/${locale}#demo`}>
-              {t('footer.links.demo')}
-            </FooterLink>
-          </FooterCol>
-        </div>
-      </div>
-      <div className="mx-auto mt-12 max-w-7xl px-5 lg:px-8">
-        <p className="border-t border-white/[0.06] pt-6 text-xs text-[#6c7e77]">
-          {t('footer.rights')}
-        </p>
       </div>
     </footer>
-  )
-}
-
-function FooterCol({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-[#6c7e77]">
-        {title}
-      </p>
-      <div className="mt-4 flex flex-col gap-2.5">{children}</div>
-    </div>
   )
 }
 
@@ -78,7 +66,7 @@ function FooterLink({
   return (
     <a
       href={href}
-      className="text-sm text-[#9fb2aa] transition-colors hover:text-white"
+      className="text-sm text-[#5b574a] underline-offset-4 transition-colors hover:text-[#1c1a14] hover:underline"
     >
       {children}
     </a>

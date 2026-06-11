@@ -438,106 +438,82 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   MARKETING — CINEMATIC DARK "CONTROL ROOM" v2
-   Warm-dark canvas · phosphor-teal data glow · amber heat accent · editorial
-   serif italics · drifting aurora + grain + blueprint grid · scroll motion.
-   All opt-in .mk-* classes; the app's themed surfaces are untouched.
+   MARKETING — "KITCHEN LEDGER" (paper edition)
+   Warm paper canvas · ink typography · hairline rules · mono numerals ·
+   receipt / order-ticket artifacts · one teal stamp accent, used sparingly.
+   The visual language of the restaurant back office itself. All opt-in
+   .mk-* classes; the app's themed surfaces are untouched.
    ════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --mk2-bg: #070c0b;
-  --mk2-bg-2: #050908;
-  --mk2-ink: #e9f2ee;
-  --mk2-ink-2: #9fb2aa;
-  --mk2-ink-3: #6c7e77;
-  --mk2-line: rgba(255, 255, 255, 0.08);
-  --mk2-line-2: rgba(255, 255, 255, 0.14);
-  --mk2-teal: #00c896;
-  --mk2-teal-bright: #5ff5cb;
-  --mk2-amber: #f0a35e;
+  --pp-bg: #f4f1e8; /* warm paper */
+  --pp-bg-2: #ece8db;
+  --pp-card: #fbfaf5; /* card paper */
+  --pp-ink: #1c1a14; /* writing ink */
+  --pp-ink-2: #5b574a;
+  --pp-ink-3: #8e8a7b;
+  --pp-line: #ddd7c4; /* hairline rule */
+  --pp-line-2: #c9c2ab;
+  --pp-teal: #00926e; /* stamp teal, legible on paper */
+  --pp-teal-bright: #00c896;
+  --pp-red: #c2462e; /* ledger margin red */
 }
 
 .mk-page {
-  background: var(--mk2-bg);
-  color: var(--mk2-ink);
+  background: var(--pp-bg);
+  color: var(--pp-ink);
+}
+.mk-page ::selection {
+  background: var(--pp-teal-bright);
+  color: #14130e;
 }
 .font-editorial {
   font-family: var(--font-editorial), Georgia, 'Times New Roman', serif;
 }
 
-/* ── Atmosphere (fixed, behind everything) ─────────────────────────────── */
+/* ── Atmosphere: ruled ledger paper + red margin line (fixed) ──────────── */
 .mk-atmos {
   position: fixed;
   inset: 0;
   z-index: -10;
-  overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(120% 75% at 50% -12%, rgba(0, 200, 150, 0.13), transparent 56%),
-    radial-gradient(90% 60% at 85% 8%, rgba(64, 196, 255, 0.06), transparent 60%),
-    linear-gradient(180deg, var(--mk2-bg) 0%, var(--mk2-bg-2) 100%);
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      rgba(28, 26, 20, 0.045) 31px,
+      rgba(28, 26, 20, 0.045) 32px
+    ),
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.5), transparent 60%),
+    var(--pp-bg);
 }
-.mk-aurora {
+/* Vertical red margin rule, like a ledger book. Hidden on small screens. */
+.mk-atmos::before {
+  content: '';
   position: absolute;
-  border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.55;
-  mix-blend-mode: screen;
-  will-change: transform;
+  top: 0;
+  bottom: 0;
+  left: clamp(16px, 4vw, 56px);
+  width: 1px;
+  background: rgba(194, 70, 46, 0.3);
 }
-.mk-aurora--teal {
-  background: radial-gradient(closest-side, rgba(0, 200, 150, 0.55), transparent 70%);
+@media (max-width: 640px) {
+  .mk-atmos::before {
+    display: none;
+  }
 }
-.mk-aurora--cyan {
-  background: radial-gradient(closest-side, rgba(56, 178, 255, 0.34), transparent 70%);
-}
-.mk-aurora--amber {
-  background: radial-gradient(closest-side, rgba(240, 163, 94, 0.26), transparent 70%);
-}
-@keyframes mk-drift-a {
-  0%, 100% { transform: translate(-8%, -6%) scale(1); }
-  50% { transform: translate(9%, 7%) scale(1.22); }
-}
-@keyframes mk-drift-b {
-  0%, 100% { transform: translate(7%, 5%) scale(1.12); }
-  50% { transform: translate(-9%, -7%) scale(0.92); }
-}
-@keyframes mk-drift-c {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-7%, 9%) scale(1.18); }
-}
-.mk-drift-a { animation: mk-drift-a 22s ease-in-out infinite; }
-.mk-drift-b { animation: mk-drift-b 28s ease-in-out infinite; }
-.mk-drift-c { animation: mk-drift-c 34s ease-in-out infinite; }
-
-/* Blueprint grid + grain layered into atmosphere. */
-.mk-blueprint {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 60px 60px;
-  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, #000 30%, transparent 80%);
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, #000 30%, transparent 80%);
-}
+/* Paper grain — static, very subtle. */
 .mk-noise::after {
   content: '';
   position: absolute;
-  inset: -50%;
+  inset: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: mk-noise 0.6s steps(3) infinite;
-}
-@keyframes mk-noise {
-  0% { transform: translate(0, 0); }
-  33% { transform: translate(-3%, 2%); }
-  66% { transform: translate(2%, -2%); }
-  100% { transform: translate(0, 0); }
 }
 
-/* ── Scroll progress bar (top) ─────────────────────────────────────────── */
+/* ── Scroll progress bar (top) — a sliding ink rule ────────────────────── */
 .mk-progress {
   position: fixed;
   top: 0;
@@ -547,148 +523,151 @@
   z-index: 60;
   transform-origin: left;
   transform: scaleX(0);
-  background: linear-gradient(90deg, var(--mk2-teal), var(--mk2-teal-bright));
-  box-shadow: 0 0 12px rgba(0, 200, 150, 0.7);
+  background: var(--pp-ink);
 }
 
-/* ── Dark glass nav ────────────────────────────────────────────────────── */
+/* ── Paper glass nav (class name kept for nav/blog compatibility) ──────── */
 .mk-glass-dark {
-  background: rgba(7, 12, 11, 0.72);
-  backdrop-filter: saturate(160%) blur(18px);
-  -webkit-backdrop-filter: saturate(160%) blur(18px);
-  border-bottom: 1px solid var(--mk2-line);
+  background: rgba(244, 241, 232, 0.86);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--pp-line);
 }
 
-/* ── Rotating conic border glow (hero frame / feature cards) ───────────── */
-.mk-ring {
-  position: relative;
-  isolation: isolate;
-}
-/* Animate only the gradient ANGLE (via @property) so the border shape stays put
-   — rotating the pseudo-element itself would sweep its corners out of frame.
-   Degrades to a static conic border where @property is unsupported. */
-@property --mk-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-.mk-ring::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(
-    from var(--mk-angle),
-    transparent 0 58%,
-    rgba(0, 200, 150, 0.65) 72%,
-    rgba(95, 245, 203, 0.95) 80%,
-    rgba(0, 200, 150, 0.4) 86%,
-    transparent 94%
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: mk-ring-spin 7s linear infinite;
-  z-index: -1;
-}
-@keyframes mk-ring-spin {
-  to { --mk-angle: 360deg; }
-}
-
-/* ── Dark card + hover glow ────────────────────────────────────────────── */
+/* ── Paper card (sharp corners — print, not pill) ──────────────────────── */
 .mk-card-d {
   position: relative;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
-  border: 1px solid var(--mk2-line);
-  border-radius: 20px;
+  background: var(--pp-card);
+  border: 1px solid var(--pp-line);
+  border-radius: 4px;
   transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.4s ease,
-    box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .mk-card-d:hover {
-  transform: translateY(-5px);
-  border-color: rgba(0, 200, 150, 0.4);
+  transform: translateY(-2px);
+  border-color: var(--pp-ink);
+  box-shadow: 0 14px 30px -18px rgba(28, 26, 20, 0.35);
+}
+
+/* ── Receipt artifact ──────────────────────────────────────────────────── */
+.mk-receipt {
+  position: relative;
+  background: #fffef9;
+  border: 1px solid var(--pp-line);
+  border-bottom: none;
   box-shadow:
-    0 30px 60px -34px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(0, 200, 150, 0.12),
-    0 -1px 30px -10px rgba(0, 200, 150, 0.25) inset;
+    0 1px 2px rgba(28, 26, 20, 0.06),
+    0 26px 50px -24px rgba(28, 26, 20, 0.4);
 }
-
-/* Floating glass data chip around the hero. */
-.mk-chip {
-  background: rgba(10, 18, 16, 0.78);
-  border: 1px solid var(--mk2-line-2);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 24px 48px -22px rgba(0, 0, 0, 0.8);
+/* Torn / perforated bottom edge (zigzag). */
+.mk-receipt::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: -1px;
+  right: -1px;
+  height: 9px;
+  background: linear-gradient(-45deg, transparent 6px, #fffef9 0) 0 0 / 14px 9px repeat-x,
+    linear-gradient(45deg, transparent 6px, #fffef9 0) 7px 0 / 14px 9px repeat-x;
+  filter: drop-shadow(0 2px 2px rgba(28, 26, 20, 0.08));
 }
-
-/* ── Editorial shimmer accent (animated gradient sweep on text) ────────── */
-.mk-shimmer {
-  background: linear-gradient(
-    100deg,
-    var(--mk2-teal) 0%,
-    var(--mk2-teal-bright) 28%,
-    #ffffff 46%,
-    var(--mk2-teal-bright) 64%,
-    var(--mk2-teal) 100%
-  );
-  background-size: 220% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  animation: mk-shimmer 6s linear infinite;
-}
-@keyframes mk-shimmer {
-  to { background-position: 220% center; }
-}
-
-/* ── Scroll cue (mouse + bouncing dot) ─────────────────────────────────── */
-.mk-scrollcue {
-  width: 22px;
-  height: 36px;
-  border: 1.5px solid var(--mk2-line-2);
-  border-radius: 12px;
+/* Dotted "menu leader" between a label and its value. */
+.mk-lead {
   display: flex;
-  justify-content: center;
-  padding-top: 7px;
+  align-items: baseline;
+  gap: 0.6rem;
 }
-.mk-scrollcue span {
-  width: 3px;
-  height: 7px;
-  border-radius: 2px;
-  background: var(--mk2-teal);
-  animation: mk-scrolldot 1.7s ease-in-out infinite;
+.mk-lead::before {
+  content: none;
 }
-@keyframes mk-scrolldot {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { transform: translateY(9px); opacity: 0.15; }
-  100% { transform: translateY(0); opacity: 0; }
+.mk-lead > .mk-lead-dots {
+  flex: 1;
+  border-bottom: 2px dotted var(--pp-line-2);
+  transform: translateY(-3px);
+  min-width: 16px;
+}
+/* Barcode strip. */
+.mk-barcode {
+  height: 30px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--pp-ink) 0 2px,
+    transparent 2px 4px,
+    var(--pp-ink) 4px 5px,
+    transparent 5px 9px,
+    var(--pp-ink) 9px 12px,
+    transparent 12px 14px,
+    var(--pp-ink) 14px 15px,
+    transparent 15px 19px
+  );
+  opacity: 0.82;
 }
 
-/* ── How-it-works progress rail ────────────────────────────────────────── */
-.mk-rail {
-  position: absolute;
-  left: 15px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: var(--mk2-line);
-  overflow: hidden;
+/* ── Rubber stamp ──────────────────────────────────────────────────────── */
+.mk-stamp {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  color: var(--pp-teal);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transform: rotate(-7deg);
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0.18'/%3E%3C/filter%3E%3Crect width='120' height='120' fill='%23000' filter='url(%23r)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0.18'/%3E%3C/filter%3E%3Crect width='120' height='120' fill='%23000' filter='url(%23r)'/%3E%3C/svg%3E");
 }
-.mk-rail-fill {
+.mk-stamp--red {
+  color: var(--pp-red);
+}
+
+/* ── Order ticket (how-it-works) ───────────────────────────────────────── */
+.mk-ticket {
+  position: relative;
+  background: var(--pp-card);
+  border: 1px solid var(--pp-line);
+  border-radius: 3px;
+  box-shadow: 0 10px 24px -16px rgba(28, 26, 20, 0.35);
+  /* Punch hole at the top, like a docket on a kitchen rail. */
+  -webkit-mask: radial-gradient(circle 6px at 50% 12px, transparent 97%, #000 100%);
+  mask: radial-gradient(circle 6px at 50% 12px, transparent 97%, #000 100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mk-ticket--a {
+  transform: rotate(-1.1deg);
+}
+.mk-ticket--b {
+  transform: rotate(0.9deg);
+}
+.mk-ticket:hover {
+  transform: rotate(0deg) translateY(-3px);
+}
+
+/* ── Technical-drawing corner ticks for framed mockups ─────────────────── */
+.mk-corners::before,
+.mk-corners::after {
+  content: '';
   position: absolute;
-  inset: 0 0 auto 0;
-  width: 100%;
-  background: linear-gradient(180deg, var(--mk2-teal), var(--mk2-teal-bright));
-  box-shadow: 0 0 10px rgba(0, 200, 150, 0.6);
-  transition: height 0.2s linear;
+  width: 14px;
+  height: 14px;
+  border-color: var(--pp-ink-3);
+  border-style: solid;
+}
+.mk-corners::before {
+  top: -7px;
+  left: -7px;
+  border-width: 1px 0 0 1px;
+}
+.mk-corners::after {
+  bottom: -7px;
+  right: -7px;
+  border-width: 0 1px 1px 0;
 }
 
 /* ── Reveal variants (extend base .mk-reveal) ──────────────────────────── */
