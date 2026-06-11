@@ -103,6 +103,8 @@ export async function saveDailySalesBatch(
 export interface SalesItemInput {
   recipe_id: string
   quantity: number
+  // Comp / staff meal: consumes stock like a sale but earns no revenue.
+  is_comp?: boolean
 }
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -124,14 +126,19 @@ export async function saveDailySalesItems(
   if (!dateRe.test(date)) return { error: 'validation' }
   const note = (payload.note ?? '').trim() || null
 
-  // Validate + merge duplicate rows, dropping zero quantities.
-  const merged = new Map<string, number>()
+  // Validate + merge duplicate rows, dropping zero quantities. Paid and comp
+  // lines of the SAME recipe stay separate (comps earn no revenue).
+  const merged = new Map<string, { recipe_id: string; qty: number; is_comp: boolean }>()
   for (const it of payload.items ?? []) {
     if (!uuidRe.test(it.recipe_id)) return { error: 'validation' }
     const q = qtySchema.safeParse(it.quantity)
     if (!q.success) return { error: 'validation' }
     if (q.data > 0) {
-      merged.set(it.recipe_id, (merged.get(it.recipe_id) ?? 0) + q.data)
+      const isComp = it.is_comp === true
+      const key = `${it.recipe_id}|${isComp ? 1 : 0}`
+      const cur = merged.get(key)
+      if (cur) cur.qty += q.data
+      else merged.set(key, { recipe_id: it.recipe_id, qty: q.data, is_comp: isComp })
     }
   }
 
@@ -149,7 +156,8 @@ export async function saveDailySalesItems(
 
   // Snapshot sale prices server-side — never trust client-supplied prices, and
   // confirm every recipe belongs to this tenant.
-  const recipeIds = [...merged.keys()]
+  const lines = [...merged.values()]
+  const recipeIds = [...new Set(lines.map((l) => l.recipe_id))]
   const priceById = new Map<string, number>()
   if (recipeIds.length > 0) {
     const { data: recs } = await supabase
@@ -161,8 +169,10 @@ export async function saveDailySalesItems(
     for (const r of recs ?? []) priceById.set(r.id, Number(r.sale_price ?? 0))
   }
 
-  const revenue = [...merged.entries()].reduce(
-    (sum, [id, qty]) => sum + qty * (priceById.get(id) ?? 0),
+  // Comps consume stock but earn nothing — only paid lines count as revenue.
+  const revenue = lines.reduce(
+    (sum, l) =>
+      sum + (l.is_comp ? 0 : l.qty * (priceById.get(l.recipe_id) ?? 0)),
     0
   )
 
@@ -190,13 +200,16 @@ export async function saveDailySalesItems(
     .delete()
     .eq('daily_sales_id', header.id)
 
-  if (merged.size > 0) {
-    const itemRows = [...merged.entries()].map(([recipe_id, quantity]) => ({
+  if (lines.length > 0) {
+    const itemRows = lines.map((l) => ({
       tenant_id: ctx.tenantId,
       daily_sales_id: header.id,
-      recipe_id,
-      quantity,
-      unit_price: priceById.get(recipe_id) ?? 0,
+      recipe_id: l.recipe_id,
+      quantity: l.qty,
+      // Comp lines keep the menu price snapshot so their "lost revenue" is
+      // visible in reporting, even though they add nothing to total_amount.
+      unit_price: priceById.get(l.recipe_id) ?? 0,
+      is_comp: l.is_comp,
     }))
     const { error: itemErr } = await supabase
       .from('daily_sales_items')

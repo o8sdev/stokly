@@ -146,6 +146,7 @@ export interface Database {
           recipe_id: string
           quantity: number
           unit_price: number
+          is_comp: boolean
           created_at: string
         }
         Insert: {
@@ -155,6 +156,7 @@ export interface Database {
           recipe_id: string
           quantity: number
           unit_price?: number
+          is_comp?: boolean
           created_at?: string
         }
         Update: Partial<

@@ -53,17 +53,19 @@ export default async function SalesDatePage({
     .maybeSingle()
   const existing = sale as DailySale | null
 
-  let initialItems: { recipe_id: string; quantity: number }[] = []
+  let initialItems: { recipe_id: string; quantity: number; is_comp: boolean }[] =
+    []
   const status = existing?.status ?? 'draft'
   const locked = status === 'confirmed'
   if (existing) {
     const { data: items } = await supabase
       .from('daily_sales_items')
-      .select('recipe_id, quantity')
+      .select('recipe_id, quantity, is_comp')
       .eq('daily_sales_id', existing.id)
     initialItems = (items ?? []).map((i) => ({
       recipe_id: i.recipe_id,
       quantity: Number(i.quantity),
+      is_comp: i.is_comp === true,
     }))
   }
 

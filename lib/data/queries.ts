@@ -789,6 +789,8 @@ export async function getSalesMix(
     .from('daily_sales_items')
     .select('recipe_id, quantity')
     .in('daily_sales_id', ids)
+    // Sales mix = PAID units; comps are consumption, not sales.
+    .eq('is_comp', false)
   for (const it of items ?? []) {
     mix.set(it.recipe_id, (mix.get(it.recipe_id) ?? 0) + Number(it.quantity))
   }

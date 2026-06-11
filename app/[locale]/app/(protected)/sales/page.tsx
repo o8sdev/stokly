@@ -11,7 +11,7 @@ import {
 import { SalesDayActions } from '@/components/sales/sales-day-actions'
 import { NeedsInitialCount } from '@/components/sales/needs-count-guard'
 import { DailySalesForm } from '@/components/sales/daily-sales-form'
-import { EmptyState } from '@/components/ui/stokly-theme'
+import { EmptyState, MetricCard } from '@/components/ui/stokly-theme'
 import { Link } from '@/lib/i18n/navigation'
 import { formatMoney, formatDate } from '@/lib/utils'
 import type { DailySale } from '@/types/database'
@@ -54,15 +54,17 @@ export default async function SalesPage({
     .eq('sale_date', today)
     .maybeSingle()
   const todayRow = todaySale as DailySale | null
-  let todayItems: { recipe_id: string; quantity: number }[] = []
+  let todayItems: { recipe_id: string; quantity: number; is_comp: boolean }[] =
+    []
   if (todayRow) {
     const { data: items } = await supabase
       .from('daily_sales_items')
-      .select('recipe_id, quantity')
+      .select('recipe_id, quantity, is_comp')
       .eq('daily_sales_id', todayRow.id)
     todayItems = (items ?? []).map((i) => ({
       recipe_id: i.recipe_id,
       quantity: Number(i.quantity),
+      is_comp: i.is_comp === true,
     }))
   }
 
@@ -81,9 +83,67 @@ export default async function SalesPage({
     .limit(60)
   const rows = (data as DailySale[] | null) ?? []
 
+  // This month at a glance: revenue, recorded days (+ daily average) and the
+  // value of comp / staff meals — kept clearly apart from real revenue.
+  const firstOfMonth = `${today.slice(0, 7)}-01`
+  const { data: monthDaysData } = await supabase
+    .from('daily_sales')
+    .select('id, total_amount')
+    .eq('tenant_id', ctx.tenantId)
+    .gte('sale_date', firstOfMonth)
+    .lte('sale_date', today)
+  const monthDays = monthDaysData ?? []
+  const monthRevenue = monthDays.reduce(
+    (sum, d) => sum + Number(d.total_amount ?? 0),
+    0
+  )
+  let monthCompValue = 0
+  if (monthDays.length > 0) {
+    const { data: compItems } = await supabase
+      .from('daily_sales_items')
+      .select('quantity, unit_price')
+      .in(
+        'daily_sales_id',
+        monthDays.map((d) => d.id)
+      )
+      .eq('is_comp', true)
+    monthCompValue = (compItems ?? []).reduce(
+      (sum, i) => sum + Number(i.quantity) * Number(i.unit_price ?? 0),
+      0
+    )
+  }
+  const monthAvg = monthDays.length > 0 ? monthRevenue / monthDays.length : 0
+
   return (
     <div>
       <PageHeader title={t('sales.title')} description={t('sales.subtitle')} />
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard
+          label={t('sales.month_revenue')}
+          value={monthRevenue.toFixed(2)}
+          unit="AZN"
+        />
+        <MetricCard
+          label={t('sales.month_days')}
+          value={monthDays.length}
+          sub={
+            <span className="text-muted-foreground">
+              {t('sales.month_avg', { amount: monthAvg.toFixed(2) })}
+            </span>
+          }
+        />
+        <MetricCard
+          label={t('sales.month_comp')}
+          value={monthCompValue.toFixed(2)}
+          unit="AZN"
+          sub={
+            <span className="text-muted-foreground">
+              {t('sales.month_comp_hint')}
+            </span>
+          }
+        />
+      </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,34rem)_1fr]">
         <div>
