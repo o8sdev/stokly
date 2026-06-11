@@ -4,16 +4,18 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
+  ReferenceLine,
   CartesianGrid,
   type TooltipProps,
 } from 'recharts'
 
-// Daily sales bar chart for the owner's overview. Bars use the brand colour via
-// the `fill-primary` utility (theme-aware); a literal fill is kept as a fallback
-// so bars are never invisible if the utility isn't generated.
+// Daily sales bar chart for the owner's overview. The best day is highlighted
+// in a deeper teal and the dashed line marks the period average — so a glance
+// answers "how does today compare".
 function fmt(n: number): string {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
@@ -37,6 +39,13 @@ export function SalesTrendChart({
 }) {
   // Show MM-DD so windows that cross a month boundary stay readable.
   const rows = data.map((d) => ({ label: d.date.slice(5), amount: d.amount }))
+  const nonZero = rows.filter((r) => r.amount > 0)
+  const avg =
+    nonZero.length > 0
+      ? nonZero.reduce((s, r) => s + r.amount, 0) / nonZero.length
+      : 0
+  const max = Math.max(0, ...rows.map((r) => r.amount))
+
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={rows} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
@@ -66,13 +75,32 @@ export function SalesTrendChart({
           content={<ChartTooltip />}
           cursor={{ fill: 'rgba(100,116,139,0.08)' }}
         />
+        {avg > 0 && (
+          <ReferenceLine
+            y={avg}
+            stroke="#64748b"
+            strokeDasharray="4 4"
+            strokeOpacity={0.6}
+          />
+        )}
         <Bar
           dataKey="amount"
-          className="fill-primary"
           fill="hsl(165 100% 39%)"
           radius={[3, 3, 0, 0]}
           maxBarSize={36}
-        />
+          animationDuration={700}
+        >
+          {rows.map((r, i) => (
+            <Cell
+              key={i}
+              fill={
+                r.amount === max && max > 0
+                  ? 'hsl(165 100% 27%)'
+                  : 'hsl(165 100% 39%)'
+              }
+            />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   )

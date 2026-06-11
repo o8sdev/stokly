@@ -744,6 +744,10 @@
   },
   "dashboard": {
     "title": "Панель",
+    "greeting_morning": "Доброе утро",
+    "greeting_day": "Добрый день",
+    "greeting_evening": "Добрый вечер",
+    "streak_n": "{count} дн. подряд с записями",
     "avg_food_cost": "Средняя себестоимость",
     "inventory_value": "Стоимость склада",
     "low_stock_count": "Низкий остаток",

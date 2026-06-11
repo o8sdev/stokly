@@ -235,6 +235,28 @@ export async function getOverview(
   }
 }
 
+// Consecutive days with a sales record, counting back from today (or from
+// yesterday if today isn't entered yet — the evening isn't over). The streak is
+// the dashboard's habit hook: skip a day and it resets.
+export async function getSalesStreak(tenantId: string): Promise<number> {
+  const supabase = createClient()
+  const today = todayStr()
+  const { data } = await supabase
+    .from('daily_sales')
+    .select('sale_date')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', addDays(today, -90))
+    .lte('sale_date', today)
+  const have = new Set((data ?? []).map((r) => String(r.sale_date)))
+  let cur = have.has(today) ? today : addDays(today, -1)
+  let streak = 0
+  while (have.has(cur) && streak < 90) {
+    streak++
+    cur = addDays(cur, -1)
+  }
+  return streak
+}
+
 // ── Overview detail panels ────────────────────────────────────────────────
 // Top-list aggregations for the range: best-selling dishes (by paid revenue),
 // where the money went (purchase spend per supplier), where it leaked (waste per

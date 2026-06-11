@@ -296,6 +296,16 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Dashboard engagement pass (no migration)
+The owner dashboard got the "want to open it every morning" layer: a client-side **time-of-day
+greeting** with the business name + a **sales-recording streak chip** (🔥 `{n} gün ardıcıl qeydiyyat`,
+shown from 2+; `getSalesStreak` counts consecutive `daily_sales` days back from today/yesterday,
+90-day cap). KPI values **count up** on load (`AnimatedNumber`, hydration-safe deterministic
+formatting, honors reduced-motion); KPI cards lift on hover; the sales trend chart gained a dashed
+**period-average reference line** + a deeper-teal **best-day bar**; danger attention chips pulse.
+Files: `components/dashboard/{greeting,animated-number,sales-trend-chart,overview-panels}.tsx`,
+dashboard page, `overview.ts` (+`getSalesStreak`), `dashboard.greeting_*`/`streak_n` i18n (az/ru).
+
 ### Done — Owner's overview, Phase 1: period KPI band + daily sales trend (no migration)
 The tenant **dashboard** is now the owner's at-a-glance command center. A period selector
 (7 gün / 30 gün / Bu ay / Keçən ay, default Bu ay) drives a 6-KPI band — **Gəlir, Yemək dəyəri %,

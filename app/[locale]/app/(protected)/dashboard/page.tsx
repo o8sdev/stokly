@@ -25,6 +25,7 @@ import {
 import {
   getOverview,
   getOverviewPanels,
+  getSalesStreak,
   resolveRange,
   RANGE_PRESETS,
   type RangePreset,
@@ -61,10 +62,9 @@ import {
   OverviewPanels,
   AttentionStrip,
 } from '@/components/dashboard/overview-panels'
+import { DashboardGreeting } from '@/components/dashboard/greeting'
+import { AnimatedNumber } from '@/components/dashboard/animated-number'
 import { getLastCountInfo } from '@/lib/data/counts'
-
-const fmtMoney = (n: number): string =>
-  n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 // % change vs the previous period; null when there's no baseline to compare to.
 const pctChange = (cur: number, prev: number): number | null =>
@@ -112,9 +112,10 @@ export default async function DashboardPage({
     ? (searchParams.range as RangePreset)
     : 'this_month'
   const range = resolveRange(preset)
-  const [overview, panels] = await Promise.all([
+  const [overview, panels, streak] = await Promise.all([
     getOverview(ctx.tenantId, range, { movements, ingredients }),
     getOverviewPanels(ctx.tenantId, range.from, range.to),
+    getSalesStreak(ctx.tenantId),
   ])
   const cur = overview.current
   const prev = overview.previous
@@ -237,6 +238,8 @@ export default async function DashboardPage({
         </div>
       )}
 
+      <DashboardGreeting businessName={tenant?.name ?? null} streak={streak} />
+
       <PageHeader
         title={t('dashboard.title')}
         action={
@@ -273,11 +276,12 @@ export default async function DashboardPage({
         <RangeSelector />
       </div>
 
-      {/* Owner KPI band — period-scoped, with deltas vs the previous period. */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {/* Owner KPI band — period-scoped, with deltas vs the previous period.
+          Values count up on load; cards lift on hover. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>*]:transition-all [&>*]:duration-300 [&>*:hover]:-translate-y-0.5 [&>*:hover]:shadow-md">
         <MetricCard
           label={t('overview.revenue')}
-          value={fmtMoney(cur.revenue)}
+          value={<AnimatedNumber to={cur.revenue} />}
           unit="AZN"
           icon={<Receipt className="h-4 w-4" />}
           sub={deltaPct(cur.revenue, prev.revenue, true)}
@@ -304,28 +308,28 @@ export default async function DashboardPage({
         />
         <MetricCard
           label={t('overview.gross_profit')}
-          value={fmtMoney(cur.grossProfit)}
+          value={<AnimatedNumber to={cur.grossProfit} />}
           unit="AZN"
           icon={<TrendingUp className="h-4 w-4" />}
           sub={deltaPct(cur.grossProfit, prev.grossProfit, true)}
         />
         <MetricCard
           label={t('overview.purchases')}
-          value={fmtMoney(cur.purchases)}
+          value={<AnimatedNumber to={cur.purchases} />}
           unit="AZN"
           icon={<ShoppingCart className="h-4 w-4" />}
           sub={deltaNeutral(cur.purchases, prev.purchases)}
         />
         <MetricCard
           label={t('overview.waste')}
-          value={fmtMoney(cur.wasteValue)}
+          value={<AnimatedNumber to={cur.wasteValue} />}
           unit="AZN"
           icon={<Trash2 className="h-4 w-4" />}
           sub={deltaPct(cur.wasteValue, prev.wasteValue, false)}
         />
         <MetricCard
           label={t('overview.inventory_value')}
-          value={fmtMoney(cur.inventoryValue)}
+          value={<AnimatedNumber to={cur.inventoryValue} />}
           unit="AZN"
           icon={<Wallet className="h-4 w-4" />}
           sub={

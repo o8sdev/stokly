@@ -744,6 +744,10 @@
   },
   "dashboard": {
     "title": "İdarə paneli",
+    "greeting_morning": "Sabahınız xeyir",
+    "greeting_day": "Gününüz xeyir",
+    "greeting_evening": "Axşamınız xeyir",
+    "streak_n": "{count} gün ardıcıl qeydiyyat",
     "avg_food_cost": "Orta yemək dəyəri",
     "inventory_value": "Anbar dəyəri",
     "low_stock_count": "Az stok",

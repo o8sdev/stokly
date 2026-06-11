@@ -193,12 +193,18 @@ export async function AttentionStrip({
               key={c.key}
               href={c.href}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all hover:-translate-y-0.5',
                 c.danger
                   ? 'bg-red-50 text-red-700 hover:bg-red-100'
                   : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
               )}
             >
+              {c.danger && (
+                <span className="relative flex h-2 w-2" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+                </span>
+              )}
               {c.icon}
               {c.label}
             </Link>
