@@ -192,6 +192,14 @@ export default async function AdminTenantDetailPage({
     body: n.body,
   }))
 
+  const trialEndsMs = tenant.trial_ends_at
+    ? new Date(tenant.trial_ends_at).getTime()
+    : null
+  const trialDaysLeft =
+    trialEndsMs != null ? Math.ceil((trialEndsMs - now) / DAY) : null
+  // Trial window is only meaningful before conversion to a paid/active plan.
+  const showTrial = trialEndsMs != null && tenant.status !== 'active'
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -238,11 +246,45 @@ export default async function AdminTenantDetailPage({
           name: tenant.name,
           status: tenant.status,
           plan_tier: tenant.plan_tier,
+          trial_ends_at: tenant.trial_ends_at,
         }}
         locale={locale}
         plans={plans}
         canManage={canManage}
       />
+
+      {(showTrial || tenant.suspended_at) && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+            {t('lifecycle')}
+          </span>
+          {showTrial && (
+            <span className="text-slate-300">
+              {t('trial_ends')}:{' '}
+              <span className="text-white">{formatDate(tenant.trial_ends_at)}</span>{' '}
+              <span
+                className={
+                  trialDaysLeft != null && trialDaysLeft < 0
+                    ? 'text-[#F08C8C]'
+                    : 'text-slate-400'
+                }
+              >
+                (
+                {trialDaysLeft != null && trialDaysLeft >= 0
+                  ? t('days_left', { days: trialDaysLeft })
+                  : t('expired_ago', { days: Math.abs(trialDaysLeft ?? 0) })}
+                )
+              </span>
+            </span>
+          )}
+          {tenant.suspended_at && (
+            <span className="text-slate-300">
+              {t('suspended_on')}:{' '}
+              <span className="text-white">{formatDate(tenant.suspended_at)}</span>
+            </span>
+          )}
+        </div>
+      )}
 
       <TenantDetailTabs
         locale={locale}

@@ -68,6 +68,7 @@ export default async function AdminTenantsPage({
       slug: tn.slug,
       status: tn.status,
       plan_tier: tn.plan_tier,
+      trial_ends_at: tn.trial_ends_at,
       planLabel: planName(plans, tn.plan_tier, locale),
       planColor: planColor(tn.plan_tier),
       created_at: tn.created_at,

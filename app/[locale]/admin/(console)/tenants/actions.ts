@@ -8,6 +8,7 @@ import { IMPERSONATION_COOKIE } from '@/lib/auth/tenant'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logAdminAction } from '@/lib/admin/audit'
+import type { TenantStatus } from '@/types/database'
 
 export interface TenantActionResult {
   ok?: boolean
@@ -45,12 +46,33 @@ export async function changePlan(
   const supabase = createClient()
   const { data: current } = await supabase
     .from('tenants')
-    .select('plan_tier, status')
+    .select('plan_tier, status, trial_ends_at')
     .eq('id', tenantId)
     .maybeSingle()
 
-  const patch: { plan_tier: string; status?: 'active' } = { plan_tier: planKey }
-  if (planKey !== 'trial' && current?.status === 'trial') patch.status = 'active'
+  const patch: {
+    plan_tier: string
+    status?: TenantStatus
+    suspended_at?: null
+    trial_ends_at?: string
+  } = { plan_tier: planKey }
+
+  if (planKey !== 'trial') {
+    // Moving to a paid plan fully activates the tenant from ANY status
+    // (suspended, churned, trial) — "set tier → Standart" = activate.
+    patch.status = 'active'
+    patch.suspended_at = null
+  } else {
+    // Downgrade to trial → keep a coherent, live trial window.
+    patch.status = 'trial'
+    patch.suspended_at = null
+    const end = current?.trial_ends_at ? new Date(current.trial_ends_at) : null
+    if (!end || end.getTime() < Date.now()) {
+      const seed = new Date()
+      seed.setDate(seed.getDate() + 14)
+      patch.trial_ends_at = seed.toISOString()
+    }
+  }
 
   await supabase.from('tenants').update(patch).eq('id', tenantId)
   await supabase.rpc('log_activity', {
@@ -67,29 +89,60 @@ export async function changePlan(
   revalidatePath(`/${locale}/admin/tenants`)
 }
 
-export async function extendTrial(
+// Set / extend / grant a trial. Accepts either a relative `days` or an absolute
+// `ends_at` date. Relative math anchors on max(now, current end) so extending an
+// already-lapsed trial always lands in the future. Always (re)sets status='trial'
+// and clears any suspension — so this doubles as "grant/revive a trial" from any
+// status (suspended ex-trial, churned, etc.).
+export async function setTrialPeriod(
   locale: string,
-  tenantId: string,
-  days: number
-): Promise<void> {
-  if (!(await ensureSuper(locale))) return
+  _prev: TenantActionResult,
+  formData: FormData
+): Promise<TenantActionResult> {
+  if (!(await ensureSuper(locale))) return { error: 'forbidden' }
+  const tenantId = String(formData.get('tenant_id') ?? '')
+  if (!tenantId) return { error: 'validation' }
+  const endsAtRaw = String(formData.get('ends_at') ?? '').trim()
+  const daysRaw = String(formData.get('days') ?? '').trim()
+
   const supabase = createClient()
-  const { data: t } = await supabase
-    .from('tenants')
-    .select('trial_ends_at')
-    .eq('id', tenantId)
-    .maybeSingle()
-  const base = t?.trial_ends_at ? new Date(t.trial_ends_at) : new Date()
-  base.setDate(base.getDate() + days)
+  let newEnd: Date
+  if (endsAtRaw) {
+    // Inclusive through the chosen day; reject anything already past.
+    newEnd = new Date(`${endsAtRaw}T23:59:59Z`)
+    if (Number.isNaN(newEnd.getTime()) || newEnd.getTime() < Date.now()) {
+      return { error: 'validation' }
+    }
+  } else {
+    const days = Number(daysRaw)
+    if (!Number.isFinite(days) || days <= 0) return { error: 'validation' }
+    const { data: t } = await supabase
+      .from('tenants')
+      .select('trial_ends_at')
+      .eq('id', tenantId)
+      .maybeSingle()
+    const existing = t?.trial_ends_at ? new Date(t.trial_ends_at) : null
+    const base =
+      existing && existing.getTime() > Date.now() ? existing : new Date()
+    base.setDate(base.getDate() + days)
+    newEnd = base
+  }
+
   await supabase
     .from('tenants')
-    .update({ trial_ends_at: base.toISOString(), status: 'trial' })
+    .update({
+      trial_ends_at: newEnd.toISOString(),
+      status: 'trial',
+      suspended_at: null,
+    })
     .eq('id', tenantId)
   await logAdminAction('trial_extended', {
     targetTenantId: tenantId,
-    details: { days },
+    details: { ends_at: newEnd.toISOString() },
   })
   revalidatePath(`/${locale}/admin/tenants/${tenantId}`)
+  revalidatePath(`/${locale}/admin/tenants`)
+  return { ok: true }
 }
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────

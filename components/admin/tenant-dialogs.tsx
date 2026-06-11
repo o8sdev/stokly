@@ -16,12 +16,14 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import {
   changePlan,
   recordPayment,
+  setTrialPeriod,
   addNote,
   resetTenantPassword,
   hardDeleteTenant,
   type TenantActionResult,
 } from '@/app/[locale]/admin/(console)/tenants/actions'
 import type { Plan } from '@/types/database'
+import { formatDate } from '@/lib/utils'
 
 export const FIELD =
   'h-10 w-full rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-slate-500 focus:border-brand focus:outline-none'
@@ -166,6 +168,101 @@ export function RecordPaymentDialog({
               {t('cancel')}
             </button>
             <SubmitButton className="h-9">{t('save')}</SubmitButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Set / extend / grant a trial: quick +14/+30, a custom day count, or an exact
+// end date. The day and date inputs clear each other so exactly one is submitted;
+// the action prefers the date. Doubles as "Grant trial" on a non-trial tenant.
+export function TrialDialog({
+  open,
+  onOpenChange,
+  locale,
+  tenantId,
+  currentEnd,
+  isTrial,
+}: BaseProps & { currentEnd: string | null; isTrial: boolean }) {
+  const t = useTranslations('admin.tenant_detail')
+  const [state, action] = useFormState<TenantActionResult, FormData>(
+    setTrialPeriod.bind(null, locale),
+    {}
+  )
+  const [days, setDays] = React.useState('14')
+  const [endsAt, setEndsAt] = React.useState('')
+  React.useEffect(() => {
+    if (state.ok) onOpenChange(false)
+  }, [state.ok, onOpenChange])
+
+  const today = new Date().toISOString().slice(0, 10)
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{isTrial ? t('extend_trial') : t('grant_trial')}</DialogTitle>
+          {currentEnd && (
+            <DialogDescription>
+              {t('trial_ends')}: {formatDate(currentEnd)}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+        <form action={action} className="space-y-3">
+          <input type="hidden" name="tenant_id" value={tenantId} />
+          <div className="flex gap-2">
+            {[14, 30].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => {
+                  setDays(String(n))
+                  setEndsAt('')
+                }}
+                className={BTN_GHOST}
+              >
+                +{n}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL}>{t('trial_custom_days')}</label>
+              <input
+                name="days"
+                type="number"
+                min="1"
+                value={days}
+                onChange={(e) => {
+                  setDays(e.target.value)
+                  setEndsAt('')
+                }}
+                className={FIELD + ' font-mono'}
+              />
+            </div>
+            <div>
+              <label className={LABEL}>{t('trial_set_date')}</label>
+              <input
+                name="ends_at"
+                type="date"
+                min={today}
+                value={endsAt}
+                onChange={(e) => {
+                  setEndsAt(e.target.value)
+                  setDays('')
+                }}
+                className={FIELD}
+              />
+            </div>
+          </div>
+          {state.error && <p className="text-xs text-[#F08C8C]">{t('trial_error')}</p>}
+          <DialogFooter>
+            <button type="button" onClick={() => onOpenChange(false)} className={BTN_GHOST}>
+              {t('cancel')}
+            </button>
+            <SubmitButton className="h-9">{t('apply')}</SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

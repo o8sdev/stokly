@@ -26,6 +26,7 @@ import {
 import {
   ChangePlanDialog,
   RecordPaymentDialog,
+  TrialDialog,
   AddNoteDialog,
   PasswordResetDialog,
   ConfirmActionDialog,
@@ -38,7 +39,6 @@ import {
   suspendTenant,
   reactivateTenant,
   softDeleteTenant,
-  extendTrial,
 } from '@/app/[locale]/admin/(console)/tenants/actions'
 import type { Plan, TenantStatus } from '@/types/database'
 
@@ -48,6 +48,7 @@ export interface TenantControlTarget {
   name: string
   status: TenantStatus
   plan_tier: string
+  trial_ends_at: string | null
 }
 
 type DialogKind =
@@ -80,7 +81,8 @@ export function TenantControls({
   const [, start] = React.useTransition()
   const exportHref = `/api/admin/tenants/${tenant.id}/export`
   const isTrial = tenant.status === 'trial'
-  const isSuspended = tenant.status === 'suspended'
+  // Blocked = no app access; reactivate / record-payment / grant-trial revives it.
+  const isBlocked = tenant.status === 'suspended' || tenant.status === 'churned'
 
   const dialogs = (
     <>
@@ -112,13 +114,13 @@ export function TenantControls({
         locale={locale}
         tenantId={tenant.id}
       />
-      <ConfirmActionDialog
+      <TrialDialog
         open={dialog === 'extend'}
         onOpenChange={(o) => setDialog(o ? 'extend' : null)}
-        title={t('extend_trial')}
-        description={t('extend_trial_desc')}
-        confirmLabel={t('extend_14')}
-        onConfirm={() => extendTrial(locale, tenant.id, 14)}
+        locale={locale}
+        tenantId={tenant.id}
+        currentEnd={tenant.trial_ends_at}
+        isTrial={isTrial}
       />
       <ConfirmActionDialog
         open={dialog === 'suspend'}
@@ -187,6 +189,12 @@ export function TenantControls({
                 <ArrowUpDown className="h-4 w-4" /> {t('change_plan')}
               </DropdownMenuItem>
             )}
+            {canManage && (
+              <DropdownMenuItem onSelect={() => setDialog('extend')}>
+                <CalendarPlus className="h-4 w-4" />{' '}
+                {isTrial ? t('extend_trial') : t('grant_trial')}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onSelect={() => setDialog('payment')}>
               <Wallet className="h-4 w-4" /> {t('record_payment')}
             </DropdownMenuItem>
@@ -204,7 +212,7 @@ export function TenantControls({
             {canManage && (
               <>
                 <DropdownMenuSeparator />
-                {isSuspended ? (
+                {isBlocked ? (
                   <DropdownMenuItem onSelect={() => setDialog('reactivate')}>
                     <Play className="h-4 w-4" /> {t('reactivate')}
                   </DropdownMenuItem>
@@ -241,9 +249,9 @@ export function TenantControls({
             {t('change_plan')}
           </button>
         )}
-        {canManage && isTrial && (
+        {canManage && (
           <button type="button" onClick={() => setDialog('extend')} className={BTN_GHOST}>
-            {t('extend_trial')}
+            {isTrial ? t('extend_trial') : t('grant_trial')}
           </button>
         )}
         <button type="button" onClick={() => setDialog('note')} className={BTN_GHOST}>
@@ -259,7 +267,7 @@ export function TenantControls({
           <Download className="mr-1.5 h-4 w-4" /> {t('export')}
         </a>
         {canManage &&
-          (isSuspended ? (
+          (isBlocked ? (
             <button type="button" onClick={() => setDialog('reactivate')} className={BTN_GHOST}>
               {t('reactivate')}
             </button>

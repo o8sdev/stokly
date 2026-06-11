@@ -19,6 +19,7 @@ export interface TenantRow {
   slug: string
   status: TenantStatus
   plan_tier: string
+  trial_ends_at: string | null
   planLabel: string
   planColor: string
   created_at: string
@@ -277,6 +278,7 @@ export function TenantsTable({
                         name: r.name,
                         status: r.status,
                         plan_tier: r.plan_tier,
+                        trial_ends_at: r.trial_ends_at,
                       }}
                       locale={locale}
                       plans={plans}

@@ -275,6 +275,26 @@ npm run lint        # next lint
 
 ## 7. Status / changelog
 
+### Done — Admin total control over the tenant lifecycle
+The platform admin can now drive every real-world transition from `/admin/tenants/[id]`,
+with full visibility — closing the gaps left after the trial-suspend work. App-layer only
+(no migration); admin writes use the migration-008 RLS override.
+- **Visibility:** a Lifecycle panel on the tenant page shows **trial end + days-left /
+  "expired N days ago"** and the **suspended-on** date (data was already on the row).
+- **Flexible trial** (`setTrialPeriod`, replaces the fixed `extendTrial`): quick +14/+30,
+  custom days, or an exact end date; relative math anchors on **max(now, current end)** so
+  extending a lapsed trial always lands in the future; always (re)sets `status='trial'` +
+  clears `suspended_at`, so it doubles as **Grant/revive trial** from any status. New
+  `TrialDialog`; the control is always shown ("Extend trial" / "Grant trial").
+- **Tier swap = real activation** (`changePlan`): moving to a paid plan sets `active` +
+  clears `suspended_at` from **any** status (suspended tenant → Standart = back in);
+  downgrade to trial seeds a fresh end date if missing/past.
+- **Reach any transition:** reactivate offered for suspended/churned, suspend for
+  active/trial, in both the detail action bar and the tenants-list row menu (threaded
+  `trial_ends_at` through `TenantRow`). `recordPayment` still reactivates via the 042 trigger.
+- Bilingual `admin.tenant_detail.*` keys. Verified: typecheck+lint+build green; BEGIN/ROLLBACK
+  sanity on the net writes (expired-trial extend → live trial; suspended → Standart → active).
+
 ### Done — Two-plan subscription + trial → auto-suspend → pay-to-reactivate
 Collapsed the 5-tier ladder to just **`trial` + `normal` (Standart, 99₼/mo)**, both
 including **every** feature — the feature-flag infra stays (gates are now always-true
