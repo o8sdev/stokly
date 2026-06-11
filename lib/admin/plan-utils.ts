@@ -45,9 +45,11 @@ export function prevTier(plans: Plan[], key: string): Plan | undefined {
   return i > 0 ? ladder[i - 1] : undefined
 }
 
-// Distinct chart/badge colour per plan tier (donut + badges).
+// Distinct chart/badge colour per plan tier (donut + badges). Two active plans
+// now (trial + normal); the legacy tiers are kept for any historical display.
 export const PLAN_COLORS: Record<string, string> = {
   trial: '#94A3B8',
+  normal: '#00C896',
   starter: '#38BDF8',
   professional: '#00C896',
   growth: '#A78BFA',

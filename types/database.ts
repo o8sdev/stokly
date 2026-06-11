@@ -36,12 +36,7 @@ export type TenantStatus =
 
 // plan_tier is a text FK → public.plans(key). These are the seeded defaults;
 // admins may add more plans, so the column type stays `string`.
-export type PlanKey =
-  | 'trial'
-  | 'starter'
-  | 'professional'
-  | 'growth'
-  | 'enterprise'
+export type PlanKey = 'trial' | 'normal'
 
 export type PaymentMethod = 'bank_transfer' | 'cash' | 'other'
 
