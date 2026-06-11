@@ -291,8 +291,13 @@ rolling range; no new costing logic, no migration.
   (Recharts bar, brand `fill-primary`). Dashboard renders the band + trend above the existing
   operational widgets (recent movements / low stock / expiry). Old 4-metric row removed (subsumed).
 - **i18n:** new `overview.*` namespace (az/ru). Verified green (typecheck/lint/build); dashboard is
-  auth-gated so not previewable headless. Next: Phase 2 (top dishes, supplier spend, waste-by-reason,
-  attention strip), then filterable/sortable/paginated explorers (sales/purchases/waste/counts).
+  auth-gated so not previewable headless.
+- **Phase 2 (shipped):** three drill-down panels under the trend — **top dishes by paid revenue**
+  (daily_sales_items × unit_price, comps excluded), **spend by supplier** (aggregated getPurchaseLog),
+  **waste by reason** (aggregated getWasteLog, reversed excluded) — plus a clickable **attention
+  strip** (low stock, expiring, oversold/negative, missing-sales days). New `getOverviewPanels` +
+  `components/dashboard/overview-panels.tsx`. Next: filterable/sortable/paginated explorers
+  (sales/purchases/waste/counts), then a finances summary.
 
 ### Done — Stocked preps (Yarımfabrikat): correct two-stage production (migration 048)
 Preps now consume **raw at production** and deduct as **their own stock at sale** (not exploded to

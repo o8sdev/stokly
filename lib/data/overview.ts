@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { deriveStockLevelsAsOf } from '@/lib/calculations/stock-level'
 import { computePeriodReport } from '@/lib/calculations/period-report'
 import type { Ingredient, StockMovement } from '@/types/database'
+import { getPurchaseLog, getWasteLog } from '@/lib/data/queries'
 
 // ── Owner's overview ──────────────────────────────────────────────────────
 // A period-scoped command center. It reruns the same usage/variance math as the
@@ -229,5 +230,146 @@ export async function getOverview(
       prevSales
     ),
     dailySales,
+  }
+}
+
+// ── Overview detail panels ────────────────────────────────────────────────
+// Top-list aggregations for the range: best-selling dishes (by paid revenue),
+// where the money went (purchase spend per supplier), where it leaked (waste per
+// reason), plus how many days in the window have no sales recorded yet.
+
+export interface TopDish {
+  recipeId: string
+  name: string
+  units: number
+  revenue: number
+}
+
+export interface NamedValue {
+  name: string | null
+  value: number
+}
+
+export interface OverviewPanelsData {
+  topDishes: TopDish[]
+  supplierSpend: NamedValue[]
+  wasteByReason: NamedValue[]
+  missingSalesDays: number
+}
+
+// Best-selling dishes by PAID revenue (Σ qty × unit_price, comps excluded).
+async function topDishesInRange(
+  supabase: SB,
+  tenantId: string,
+  from: string,
+  to: string,
+  limit: number
+): Promise<TopDish[]> {
+  const { data: sales } = await supabase
+    .from('daily_sales')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', from)
+    .lte('sale_date', to)
+  const ids = (sales ?? []).map((r) => r.id)
+  if (ids.length === 0) return []
+
+  const { data: items } = await supabase
+    .from('daily_sales_items')
+    .select('recipe_id, quantity, unit_price, is_comp')
+    .in('daily_sales_id', ids)
+    .eq('is_comp', false)
+
+  const agg = new Map<string, { units: number; revenue: number }>()
+  for (const it of items ?? []) {
+    const q = Number(it.quantity)
+    const p = Number(it.unit_price ?? 0)
+    const cur = agg.get(it.recipe_id) ?? { units: 0, revenue: 0 }
+    cur.units += q
+    cur.revenue += q * p
+    agg.set(it.recipe_id, cur)
+  }
+  if (agg.size === 0) return []
+
+  const { data: recs } = await supabase
+    .from('recipes')
+    .select('id, name')
+    .eq('tenant_id', tenantId)
+    .in('id', [...agg.keys()])
+  const nameMap = new Map((recs ?? []).map((r) => [r.id, r.name]))
+
+  return [...agg.entries()]
+    .map(([recipeId, v]) => ({
+      recipeId,
+      name: nameMap.get(recipeId) ?? '—',
+      units: round2(v.units),
+      revenue: round2(v.revenue),
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, limit)
+}
+
+function topByValue(
+  pairs: Iterable<[string, number]>,
+  limit: number
+): NamedValue[] {
+  return [...pairs]
+    .map(([k, value]) => ({ name: k || null, value: round2(value) }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, limit)
+}
+
+// Days in [from, to] with no daily_sales row. Today is excluded when it's the
+// window end (sales for the current day may not be entered yet).
+async function missingSalesDays(
+  supabase: SB,
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<number> {
+  const today = todayStr()
+  const end = to >= today ? addDays(today, -1) : to
+  if (ms(end) < ms(from)) return 0
+  const { data } = await supabase
+    .from('daily_sales')
+    .select('sale_date')
+    .eq('tenant_id', tenantId)
+    .gte('sale_date', from)
+    .lte('sale_date', end)
+  const have = new Set((data ?? []).map((r) => String(r.sale_date)))
+  return enumerateDates(from, end).filter((d) => !have.has(d)).length
+}
+
+export async function getOverviewPanels(
+  tenantId: string,
+  from: string,
+  to: string
+): Promise<OverviewPanelsData> {
+  const supabase = createClient()
+  const [topDishes, purchaseLog, wasteLog, missing] = await Promise.all([
+    topDishesInRange(supabase, tenantId, from, to, 5),
+    getPurchaseLog(tenantId, from, to),
+    getWasteLog(tenantId, from, to),
+    missingSalesDays(supabase, tenantId, from, to),
+  ])
+
+  const spend = new Map<string, number>()
+  for (const e of purchaseLog) {
+    const k = e.supplier_name ?? ''
+    spend.set(k, (spend.get(k) ?? 0) + e.value)
+  }
+
+  const waste = new Map<string, number>()
+  for (const e of wasteLog) {
+    if (e.reversed) continue // a later adjustment undid it — not a real loss
+    const k = e.category_name ?? ''
+    waste.set(k, (waste.get(k) ?? 0) + e.value)
+  }
+
+  return {
+    topDishes,
+    supplierSpend: topByValue(spend, 6),
+    wasteByReason: topByValue(waste, 6),
+    missingSalesDays: missing,
   }
 }

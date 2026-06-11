@@ -14,7 +14,20 @@
     "pts": "p.",
     "as_of": "{date} tarixinə",
     "daily_sales": "Günlük satış",
-    "no_sales": "Bu dövr üçün satış qeydə alınmayıb"
+    "no_sales": "Bu dövr üçün satış qeydə alınmayıb",
+    "top_dishes_title": "Ən çox satılanlar (gəlirə görə)",
+    "units_sold": "{count} satıldı",
+    "supplier_spend": "Təchizatçı üzrə xərc",
+    "waste_by_reason": "Səbəbə görə itki",
+    "no_data": "Məlumat yoxdur",
+    "no_supplier": "Təchizatçısız",
+    "uncategorized": "Kateqoriyasız",
+    "attention": "Diqqət tələb edir",
+    "low_stock_n": "{count} az qalıb",
+    "expiring_n": "{count} tezliklə bitir",
+    "oversold_n": "{count} mənfi stok",
+    "missing_sales_n": "{count} gün satışsız",
+    "all_good": "Hər şey qaydasındadır"
   },
   "suspended": {
     "title": "Sınaq müddəti bitdi",

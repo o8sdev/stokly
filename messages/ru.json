@@ -14,7 +14,20 @@
     "pts": "п.",
     "as_of": "на {date}",
     "daily_sales": "Продажи по дням",
-    "no_sales": "За этот период продажи не зафиксированы"
+    "no_sales": "За этот период продажи не зафиксированы",
+    "top_dishes_title": "Самые продаваемые (по выручке)",
+    "units_sold": "{count} продано",
+    "supplier_spend": "Расходы по поставщикам",
+    "waste_by_reason": "Потери по причинам",
+    "no_data": "Нет данных",
+    "no_supplier": "Без поставщика",
+    "uncategorized": "Без категории",
+    "attention": "Требует внимания",
+    "low_stock_n": "{count} заканчивается",
+    "expiring_n": "{count} скоро истекает",
+    "oversold_n": "{count} перерасход",
+    "missing_sales_n": "{count} дн. без продаж",
+    "all_good": "Всё в порядке"
   },
   "suspended": {
     "title": "Пробный период истёк",

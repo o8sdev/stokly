@@ -24,6 +24,7 @@ import {
 } from '@/lib/data/queries'
 import {
   getOverview,
+  getOverviewPanels,
   resolveRange,
   RANGE_PRESETS,
   type RangePreset,
@@ -56,6 +57,10 @@ import { GettingStarted } from '@/components/dashboard/getting-started'
 import { CountReminder } from '@/components/dashboard/count-reminder'
 import { RangeSelector } from '@/components/dashboard/range-selector'
 import { SalesTrendChart } from '@/components/dashboard/sales-trend-chart'
+import {
+  OverviewPanels,
+  AttentionStrip,
+} from '@/components/dashboard/overview-panels'
 import { getLastCountInfo } from '@/lib/data/counts'
 
 const fmtMoney = (n: number): string =>
@@ -107,15 +112,18 @@ export default async function DashboardPage({
     ? (searchParams.range as RangePreset)
     : 'this_month'
   const range = resolveRange(preset)
-  const overview = await getOverview(ctx.tenantId, range, {
-    movements,
-    ingredients,
-  })
+  const [overview, panels] = await Promise.all([
+    getOverview(ctx.tenantId, range, { movements, ingredients }),
+    getOverviewPanels(ctx.tenantId, range.from, range.to),
+  ])
   const cur = overview.current
   const prev = overview.previous
 
   const stockLevels = deriveAllStockLevels(movements)
   const ingredientById = new Map(ingredients.map((i) => [i.id, i]))
+
+  // Oversold (negative on-hand) ingredients — a missed transfer/count, flagged loud.
+  const oversoldCount = [...stockLevels.values()].filter((v) => v < -1e-9).length
 
   // Low-stock list for the operational widget.
   const lowStockAll = ingredients
@@ -339,6 +347,21 @@ export default async function DashboardPage({
           )}
         </div>
       </StoklyCard>
+
+      {/* Detail panels: best sellers, supplier spend, waste by reason. */}
+      <div className="mt-4">
+        <OverviewPanels data={panels} />
+      </div>
+
+      {/* Attention strip — things to act on now. */}
+      <div className="mt-4">
+        <AttentionStrip
+          lowStock={lowStockAll.length}
+          expiring={expiryRows.length}
+          oversold={oversoldCount}
+          missingSales={panels.missingSalesDays}
+        />
+      </div>
 
       {/* Two-column: movements (2) + right stack (low stock + expiry) */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
