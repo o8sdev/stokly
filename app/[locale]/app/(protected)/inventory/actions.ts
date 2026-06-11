@@ -41,6 +41,15 @@ export async function submitStockCount(
   const parsed = stockCountSchema.safeParse(parseJson(formData))
   if (!parsed.success) return { error: 'validation' }
 
+  // Stamp the count at end-of-day of the chosen business date so the absolute
+  // count sorts after that day's deltas (deriveStockLevel orders by created_at).
+  // Blank/missing → server default now().
+  const cd = parsed.data.count_date
+  const createdAt =
+    cd && /^\d{4}-\d{2}-\d{2}$/.test(cd)
+      ? new Date(`${cd}T23:59:59Z`).toISOString()
+      : null
+
   const rows: MovementInsert[] = parsed.data.lines.map((line) => ({
     tenant_id: ctx.tenantId,
     ingredient_id: line.ingredient_id,
@@ -48,14 +57,15 @@ export async function submitStockCount(
     quantity: line.quantity,
     is_absolute: true,
     recorded_by: ctx.userId,
+    ...(createdAt ? { created_at: createdAt } : {}),
   }))
 
   const supabase = createClient()
   const { error } = await supabase.from('stock_movements').insert(rows)
   if (error) return { error: 'generic' }
 
-  // Close the period (last count → today) and generate its stored report.
-  const periodId = await createPeriodForCount(ctx.tenantId, ctx.userId)
+  // Close the period (last count → the counted business date) and build its report.
+  const periodId = await createPeriodForCount(ctx.tenantId, ctx.userId, cd)
 
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/reports/period`)

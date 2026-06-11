@@ -382,12 +382,26 @@ export async function generatePeriodReport(
 // Returns the new period id (or null on failure).
 export async function createPeriodForCount(
   tenantId: string,
-  userId: string
+  userId: string,
+  countDate?: string
 ): Promise<string | null> {
   const supabase = createClient()
   const prev = await getLastCountPeriod(supabase, tenantId)
   const periodStart = prev?.period_end ?? (await getOpeningDate(supabase, tenantId))
-  const periodEnd = todayStr()
+  // Honor the user's business date when valid (strictly after the prior period
+  // and not in the future); else fall back to today. counted_at drives the
+  // report's closing snapshot, so it must match the count movement's end-of-day
+  // stamp (set in submitStockCount).
+  const today = todayStr()
+  const useDate =
+    countDate &&
+    /^\d{4}-\d{2}-\d{2}$/.test(countDate) &&
+    countDate > periodStart &&
+    countDate <= today
+      ? countDate
+      : today
+  const periodEnd = useDate
+  const countedAt = `${useDate}T23:59:59Z`
   const daysInPeriod = daysBetween(periodStart, periodEnd)
 
   const { data, error } = await supabase
@@ -397,6 +411,7 @@ export async function createPeriodForCount(
       period_start: periodStart,
       period_end: periodEnd,
       days_in_period: daysInPeriod,
+      counted_at: countedAt,
       recorded_by: userId,
     })
     .select('id')

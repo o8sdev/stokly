@@ -9,6 +9,7 @@ import { submitStockCount } from '@/app/[locale]/app/(protected)/inventory/actio
 import type { InventoryActionResult } from '@/app/[locale]/app/(protected)/inventory/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn, formatQuantity } from '@/lib/utils'
 
@@ -30,6 +31,9 @@ export function StockCountForm({
   const [query, setQuery] = useState('')
   // Map ingredientId -> counted value string.
   const [counts, setCounts] = useState<Record<string, string>>({})
+  const [countDate, setCountDate] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  )
 
   const action = submitStockCount.bind(null, locale)
   const [state, formAction] = useFormState<InventoryActionResult, FormData>(
@@ -46,6 +50,7 @@ export function StockCountForm({
   const payload = useMemo(
     () =>
       JSON.stringify({
+        count_date: countDate,
         lines: Object.entries(counts)
           .filter(([, v]) => v !== '' && Number.isFinite(Number(v)))
           .map(([ingredient_id, v]) => ({
@@ -53,7 +58,7 @@ export function StockCountForm({
             quantity: Number(v),
           })),
       }),
-    [counts]
+    [counts, countDate]
   )
 
   const filledCount = Object.values(counts).filter((v) => v !== '').length
@@ -74,6 +79,17 @@ export function StockCountForm({
       <p className="text-sm text-muted-foreground">
         {t('inventory.count_help')}
       </p>
+
+      <div className="space-y-2">
+        <Label htmlFor="count_date">{t('inventory.count_date')}</Label>
+        <Input
+          id="count_date"
+          type="date"
+          value={countDate}
+          onChange={(e) => setCountDate(e.target.value)}
+          className="w-auto"
+        />
+      </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

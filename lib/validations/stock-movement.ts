@@ -9,6 +9,8 @@ export const stockCountLineSchema = z.object({
 
 export const stockCountSchema = z.object({
   lines: z.array(stockCountLineSchema).min(1, 'min_one_line'),
+  // Business date the count was taken (yyyy-mm-dd). Blank/missing → server now().
+  count_date: z.string().optional(),
 })
 
 // Delivery: per-line ingredient + received quantity + unit cost paid +
