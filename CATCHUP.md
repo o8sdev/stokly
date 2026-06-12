@@ -296,6 +296,29 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — E2E business-logic verification through the REAL UI + 3 fixes (no migration)
+`scripts/e2e-verify.ts` drives a FRESH tenant with puppeteer through every flow like a user
+(51 assertions vs hand-computed numbers, DOM + SQL cross-checked; screenshots in
+`social-shots/e2e/`): login/onboarding → 5 ingredients (form) → şüşə→l ×0.75 conversion (panel) →
+day-0 count (pre-count gate ✓ → lands on its period report ✓) → delivery (+batches, last-price
+cost refresh ✓) → prep recipe **2000 q + 500 q → 10 porsiya** (live cost 17.70 ✓ q→kq conversions ✓)
+→ İstehsal (template auto-fills **2 / 0.5 kq base units** ✓, rolled-up 1.77 ₼/porsiya ✓) → dishes
+(prep×1 wrapper + **Sezar with prep×0.5 + raw lines incl. 20 ml→l**, live 2.92 ✓) → sales confirm
+(preview shows PREP −4, **no raw toyuq** ✓; levels 6/13/3.7/0.94/1.96 ✓; batches==derived ✓) →
+waste → inventory page + dashboard (45.00 ✓) → **void** (full restoration ✓) → re-sell incl. the
+prep **sold DIRECTLY ×2** → prep 3, raw untouched, day 61.00 ✓. ALL CHECKS PASSED.
+Fixes shipped from findings:
+1. **Day-0 trap:** the baseline count was stamped end-of-day, erasing ALL same-day activity
+   recorded after it (delivery +5 vanished from derived). Baseline (first) count now stamps at
+   NOW (= opening stock); later counts keep end-of-day closing semantics.
+2. **Preps sellable directly (the nuggets case):** sale price enabled for Yarımfabrikat; sales
+   pickers include preps with a price; `computeTheoreticalUsage` deducts a directly-sold stocked
+   prep's produced ingredient 1:1 (no raw recursion, no serving-size division).
+3. **İstehsal required fields:** output + quantity now `required` (empty submit previously failed
+   only with a generic server error).
+Open findings (not fixed): fresh tenants have ZERO waste categories and no UI to create them
+(e2e had to seed one); İstehsal's ÇIXIM % mixes units (porsiya out / kq in → 400%) — cosmetic.
+
 ### Done — Brand: Stokly ✳ logo suite + favicon/OG + Instagram handoff kit (no migration)
 The de-facto asterisk identity is now a real logo: **`components/brand/logo.tsx`** — `StoklyMark`
 (six rounded spokes, 8° hand-stamp tilt, drawn as paths not a font glyph) + `StoklyLogo` lockup

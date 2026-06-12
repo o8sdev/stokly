@@ -38,7 +38,9 @@ export default async function SalesDatePage({
   const supabase = createClient()
   const recipes = await getRecipes(ctx.tenantId)
   const menuItems: MenuItem[] = recipes
-    .filter((r) => !r.is_sub_recipe)
+    // Dishes always; a PREP (Yarımfabrikat) joins the menu once it has a sale
+    // price — sold directly, it deducts its own produced stock (no raw).
+    .filter((r) => !r.is_sub_recipe || (r.sale_price ?? 0) > 0)
     .map((r) => ({
       id: r.id,
       name: (locale === 'ru' ? r.name_ru : r.name_az) || r.name,

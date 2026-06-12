@@ -91,11 +91,21 @@ export function computeTheoreticalUsage(
   const ctx = buildResolveContext(ingredients, recipes, recipeIngredients)
   const acc = new Map<string, number>()
   for (const item of soldItems) {
+    const recipe = ctx.recipes.get(item.recipe_id)
+    if (recipe?.produced_ingredient_id) {
+      // A STOCKED prep sold directly as a menu item (e.g. a portion of nuggets):
+      // its raw was consumed at production, so the sale deducts the prep's own
+      // stock 1:1 — one sold unit is one serving-unit of the produced good.
+      acc.set(
+        recipe.produced_ingredient_id,
+        (acc.get(recipe.produced_ingredient_id) ?? 0) + item.quantity
+      )
+      continue
+    }
     // A recipe's lines describe ONE BATCH; serving_size says how many servings
     // that batch makes, and a sold unit is one serving. Normalize here so a
     // 4-serving dish sold once consumes a quarter of the batch — matching how
     // cost-per-serving (and the menu price) are presented.
-    const recipe = ctx.recipes.get(item.recipe_id)
     const size =
       recipe?.serving_size && recipe.serving_size > 0 ? recipe.serving_size : 1
     explode(item.recipe_id, item.quantity / size, ctx, acc, new Set())

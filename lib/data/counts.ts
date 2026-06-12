@@ -493,7 +493,10 @@ export async function createPeriodForCount(
       ? countDate
       : today
   const periodEnd = useDate
-  const countedAt = `${useDate}T23:59:59Z`
+  // Baseline (first-ever) count = OPENING stock → stamp at now, matching the
+  // count movements, so same-day activity recorded afterwards stays additive.
+  // Subsequent counts = end-of-day closing truth.
+  const countedAt = prev ? `${useDate}T23:59:59Z` : new Date().toISOString()
   const daysInPeriod = daysBetween(periodStart, periodEnd)
 
   const { data, error } = await supabase

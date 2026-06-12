@@ -43,10 +43,19 @@ export async function submitStockCount(
 
   // Stamp the count at end-of-day of the chosen business date so the absolute
   // count sorts after that day's deltas (deriveStockLevel orders by created_at).
-  // Blank/missing → server default now().
+  // EXCEPT the very first (baseline) count: it establishes OPENING stock, so it
+  // is stamped at NOW — otherwise every delivery/production/sale recorded later
+  // the same day would sort before the 23:59 absolute and be silently erased
+  // from derived levels until midnight (the day-0 onboarding trap).
+  const supabase = createClient()
+  const { count: prevPeriods } = await supabase
+    .from('count_periods')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', ctx.tenantId)
+  const isBaseline = (prevPeriods ?? 0) === 0
   const cd = parsed.data.count_date
   const createdAt =
-    cd && /^\d{4}-\d{2}-\d{2}$/.test(cd)
+    !isBaseline && cd && /^\d{4}-\d{2}-\d{2}$/.test(cd)
       ? new Date(`${cd}T23:59:59Z`).toISOString()
       : null
 
@@ -60,7 +69,6 @@ export async function submitStockCount(
     ...(createdAt ? { created_at: createdAt } : {}),
   }))
 
-  const supabase = createClient()
   const { error } = await supabase.from('stock_movements').insert(rows)
   if (error) return { error: 'generic' }
 

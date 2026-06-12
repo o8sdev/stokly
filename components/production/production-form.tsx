@@ -179,6 +179,7 @@ export function ProductionForm({
             id="output"
             value={outputId}
             onChange={(e) => setOutputId(e.target.value)}
+            required
             className={selectCls.replace('h-9', 'h-[38px]')}
           >
             <option value="">{t('recipes.select_ingredient')}</option>
@@ -196,7 +197,8 @@ export function ProductionForm({
             type="number"
             inputMode="decimal"
             step="0.001"
-            min="0"
+            min="0.001"
+            required
             value={outputQty}
             onChange={(e) => changeOutputQty(e.target.value)}
             className="text-right font-mono tabular-nums"

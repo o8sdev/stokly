@@ -494,12 +494,14 @@ export function RecipeForm({
 
         {/* Sticky summary + actions */}
         <div className="space-y-3">
+          {/* Preps may carry a sale price too — a priced Yarımfabrikat (e.g. a
+              portion of nuggets) becomes sellable directly from the sales page,
+              deducting its own produced stock. */}
           <RecipeCostSummary
             totalCost={totalCost}
             servingSize={parsedServing}
             salePrice={salePrice}
             onSalePriceChange={setSalePrice}
-            disabled={isSubRecipe}
           />
           {state.error && (
             <p className="text-sm text-destructive">
