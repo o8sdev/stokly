@@ -30,5 +30,18 @@ export async function POST(req: Request) {
     .lt('trial_ends_at', nowIso)
     .select('id')
 
-  return NextResponse.json({ ...result, suspended: suspended?.length ?? 0 })
+  // Paid-lifecycle sweep (migration 049): suspend active paid accounts whose
+  // payment coverage lapsed past the grace window, and flip long-suspended
+  // accounts with no payment since suspension to churned. Any later payment
+  // reactivates either state via on_payment_recorded.
+  const { data: sweep } = await supabase.rpc('subscription_sweep', {
+    p_paid_grace_days: 7,
+    p_churn_after_days: 30,
+  })
+
+  return NextResponse.json({
+    ...result,
+    suspended: suspended?.length ?? 0,
+    ...(typeof sweep === 'object' && sweep !== null ? sweep : {}),
+  })
 }

@@ -296,6 +296,24 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Admin lifecycle gaps closed: paid expiry, auto-churn, payment dedupe (migration 049)
+The three real holes from the admin business-logic audit are fixed — **migration 049 applied live**:
+- **`subscription_sweep(p_paid_grace_days=7, p_churn_after_days=30)`** (SECURITY DEFINER; service_role
+  or platform admin): (1) ACTIVE tenants on a paid plan whose latest payment coverage
+  (`max(coalesce(period_end, paid_at::date))`) lapsed > grace days → **suspended** + `payment_overdue`
+  notification (tenants with NO payments are left alone — manual arrangements); (2) tenants
+  **suspended > 30 days with no payment since** → **churned** (+ new `auto_churned` notification
+  type) — `churned` is no longer a ghost state. Any payment still reactivates (042 trigger).
+  Wired into the cron route after the trial sweep.
+- **Payment replay guard:** unique partial index on `manual_payments(tenant_id, reference)` —
+  a double-entered transfer can't double-count MRR or re-fire the upgrade trigger.
+- **True MRR:** `getMRRMetrics` now spreads each payment evenly across the months of its
+  [period_start, period_end] (24-month cap), instead of spiking the banking month.
+- **Impersonation TTL:** god-mode cookie expires after 4 h.
+- **Verified live (BEGIN/ROLLBACK, impersonated admin):** lapsed-paid → suspended ✓; 40-day
+  suspended → churned ✓; payment after churn → active ✓; duplicate reference rejected ✓; second
+  sweep idempotent ✓. First real cron run affects **0** current tenants (checked).
+
 ### Done — Correctness sweep: ingredients, recipes/preps, unit conversions (no migration)
 Audited the whole add-ingredient → build-recipe → sell pipeline; six bugs found and fixed, proven
 by `scripts/calc-audit.ts` (21 assertions against the REAL calc modules — run

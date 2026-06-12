@@ -37,14 +37,32 @@ export async function getMRRMetrics(): Promise<MrrMetrics> {
   const supabase = createClient()
   const { data } = await supabase
     .from('manual_payments')
-    .select('amount, period_start, paid_at')
+    .select('amount, period_start, period_end, paid_at')
 
+  // True MRR, not cash collected: a payment covering [period_start, period_end]
+  // is recognised evenly across every month it spans, so a 3-month prepayment
+  // contributes a third per month instead of spiking its banking month.
+  // Payments without period dates fall back to their paid month. Spans are
+  // capped at 24 months as a bad-data guard.
   const buckets = new Map<string, number>()
   for (const p of data ?? []) {
-    const d = new Date(p.period_start ?? p.paid_at)
-    if (Number.isNaN(d.getTime())) continue
-    const key = monthKey(d)
-    buckets.set(key, (buckets.get(key) ?? 0) + Number(p.amount))
+    const amount = Number(p.amount)
+    if (!Number.isFinite(amount)) continue
+    const start = new Date(p.period_start ?? p.paid_at)
+    if (Number.isNaN(start.getTime())) continue
+    const end = p.period_end ? new Date(p.period_end) : start
+    const months: string[] = []
+    let cur = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
+    const last = Number.isNaN(end.getTime()) ? cur : end
+    for (let i = 0; i < 24 && cur.getTime() <= last.getTime(); i++) {
+      months.push(monthKey(cur))
+      cur = new Date(Date.UTC(cur.getUTCFullYear(), cur.getUTCMonth() + 1, 1))
+    }
+    if (months.length === 0) months.push(monthKey(start))
+    const share = amount / months.length
+    for (const key of months) {
+      buckets.set(key, (buckets.get(key) ?? 0) + share)
+    }
   }
 
   const now = new Date()

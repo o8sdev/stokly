@@ -1083,6 +1083,10 @@ export interface Database {
           payment_status: string
         }[]
       }
+      subscription_sweep: {
+        Args: { p_paid_grace_days?: number; p_churn_after_days?: number }
+        Returns: Json
+      }
       admin_onboarding_progress: {
         Args: { p_ids: string[] }
         Returns: {

@@ -32,6 +32,9 @@ export async function enterTenant(locale: string, tenantId: string): Promise<voi
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
+    // God-mode expires on its own — an admin who walks away doesn't stay
+    // logged into a customer's restaurant indefinitely.
+    maxAge: 60 * 60 * 4,
   })
   redirect(`/${locale}/app/dashboard`)
 }
