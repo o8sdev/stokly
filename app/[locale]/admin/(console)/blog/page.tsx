@@ -77,10 +77,16 @@ export default async function AdminBlogPage({
                         'inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ' +
                         (p.status === 'published'
                           ? 'bg-brand/15 text-brand'
-                          : 'bg-white/10 text-slate-400')
+                          : p.status === 'archived'
+                            ? 'bg-amber-500/15 text-amber-400'
+                            : 'bg-white/10 text-slate-400')
                       }
                     >
-                      {p.status === 'published' ? t('published') : t('draft')}
+                      {p.status === 'published'
+                        ? t('published')
+                        : p.status === 'archived'
+                          ? t('archived')
+                          : t('draft')}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-400">

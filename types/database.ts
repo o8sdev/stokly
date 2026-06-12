@@ -258,7 +258,7 @@ export interface Database {
           body_ru: string | null
           cover_url: string | null
           tag: string | null
-          status: 'draft' | 'published'
+          status: 'draft' | 'published' | 'archived'
           published_at: string | null
           created_by: string | null
           created_at: string
@@ -275,7 +275,7 @@ export interface Database {
           body_ru?: string | null
           cover_url?: string | null
           tag?: string | null
-          status?: 'draft' | 'published'
+          status?: 'draft' | 'published' | 'archived'
           published_at?: string | null
           created_by?: string | null
           created_at?: string

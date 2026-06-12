@@ -45,6 +45,7 @@ export function BlogForm({
           >
             <option value="draft">{t('draft')}</option>
             <option value="published">{t('published')}</option>
+            <option value="archived">{t('archived')}</option>
           </select>
         </div>
         <div className="space-y-1.5">

@@ -42,7 +42,7 @@ interface Fields {
   body_ru: string
   cover_url: string
   tag: string
-  status: 'draft' | 'published'
+  status: 'draft' | 'published' | 'archived'
 }
 
 function readFields(formData: FormData): Fields {
@@ -56,10 +56,12 @@ function readFields(formData: FormData): Fields {
     body_ru: String(formData.get('body_ru') ?? '').trim(),
     cover_url: String(formData.get('cover_url') ?? '').trim(),
     tag: String(formData.get('tag') ?? '').trim(),
-    status:
-      String(formData.get('status') ?? 'draft') === 'published'
-        ? 'published'
-        : 'draft',
+    // 'archived' unpublishes without deleting: the public site only shows
+    // status='published', so archiving hides a post; re-publishing restores it.
+    status: ((): Fields['status'] => {
+      const s = String(formData.get('status') ?? 'draft')
+      return s === 'published' || s === 'archived' ? s : 'draft'
+    })(),
   }
 }
 

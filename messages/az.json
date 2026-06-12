@@ -653,6 +653,7 @@
       "col_date": "Tarix",
       "draft": "Qaralama",
       "published": "Dərc olunub",
+      "archived": "Arxivləndi",
       "publish": "Dərc et",
       "unpublish": "Geri götür",
       "delete": "Sil",

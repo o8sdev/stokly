@@ -296,6 +296,21 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — DB review hardening (migration 050, applied live)
+Full 14-table review against the live schema (all "text" status columns turned out to be
+**text + CHECK** — values are DB-enforced everywhere; pattern kept deliberately over enums).
+Two real fixes shipped:
+- **blog_posts `archived`** added to the status CHECK — a published post can now be unpublished
+  without deletion (public pages filter `status='published'`, so archived auto-hides; re-publish
+  restores). Editor select + admin list badge + `admin.blog.archived` i18n (az/ru); BlogPost type widened.
+- **daily_sales_items UNIQUE now (daily_sales_id, recipe_id, is_comp)** — was (day, recipe), which
+  made a dish either ALL paid or ALL comp per day; "3 sold + 1 staff meal" of the same dish is now
+  representable (UI entry for split lines is a future follow-up; aggregations already sum correctly).
+Notable non-changes (deliberate): production_runs.storage_location is a vestigial free-text column
+(locations now route via location_id) — left in place; count_periods allows same-day duplicate
+periods (correction flow) — left; tenant roles owner/manager/staff + platform super/readonly are
+already CHECK-constrained.
+
 ### Done — E2E business-logic verification through the REAL UI + 3 fixes (no migration)
 `scripts/e2e-verify.ts` drives a FRESH tenant with puppeteer through every flow like a user
 (51 assertions vs hand-computed numbers, DOM + SQL cross-checked; screenshots in
