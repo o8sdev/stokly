@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { getPeriod } from '@/lib/data/counts'
 import { PageHeader } from '@/components/layout/page-header'
+import { EmailReportButton } from '@/components/reports/email-report-button'
 import { PeriodReportView } from '@/components/reports/period-report-view'
 
 export default async function PeriodReportPage({
@@ -19,7 +20,10 @@ export default async function PeriodReportPage({
 
   return (
     <div>
-      <PageHeader title={t('report_period.title')} />
+      <PageHeader
+        title={t('report_period.title')}
+        action={<EmailReportButton locale={locale} periodId={period.id} />}
+      />
       <PeriodReportView locale={locale} period={period} />
     </div>
   )

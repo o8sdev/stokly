@@ -31,6 +31,7 @@ export function RecipeListTable({
   const [filter, setFilter] = useState<Filter>('all')
   // '' = all sections; 'none' = uncategorised; otherwise a category id.
   const [category, setCategory] = useState('')
+  const [query, setQuery] = useState('')
 
   const categoryName = useMemo(
     () => new Map(categories.map((c) => [c.id, c.name])),
@@ -43,8 +44,17 @@ export function RecipeListTable({
     if (filter === 'sub') r = r.filter((x) => x.is_sub_recipe)
     if (category === 'none') r = r.filter((x) => !x.category_id)
     else if (category) r = r.filter((x) => x.category_id === category)
+    const q = query.trim().toLowerCase()
+    if (q) {
+      r = r.filter(
+        (x) =>
+          x.name.toLowerCase().includes(q) ||
+          (x.name_az ?? '').toLowerCase().includes(q) ||
+          (x.name_ru ?? '').toLowerCase().includes(q)
+      )
+    }
     return r
-  }, [rows, filter, category])
+  }, [rows, filter, category, query])
 
   const filters: { key: Filter; label: string }[] = [
     { key: 'all', label: t('filter_all') },
@@ -54,8 +64,14 @@ export function RecipeListTable({
 
   return (
     <div className="space-y-4">
-      {/* Segmented filter + menu-section filter */}
+      {/* Search + segmented filter + menu-section filter */}
       <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('search_placeholder')}
+          className="flex h-9 w-full max-w-[220px] rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+        />
         <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
           {filters.map((f) => (
             <button

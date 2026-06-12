@@ -855,6 +855,7 @@
     "kind_example": "Yemək = müştəriyə satılır. Yarımfabrikat = sous, xəmir kimi daxili komponent — birbaşa satılmır, yeməklərin içində istifadə olunur.",
     "kind_hint": "Yarımfabrikat menyuda satılmır; onu yeməyin tərkibində komponent kimi seçirsiniz (məs. pomidor sousu → makaron yeməyində).",
     "line_kind_hint": "İnqrediyent = xammal (un, ət). Yarımfabrikat = əvvəlcədən hazırladığınız komponent (sous, xəmir).",
+    "search_placeholder": "Resept axtar...",
     "unit_error": "Resept sətirlərindən birinin vahidi inqrediyentin baza vahidinə çevrilmir. İnqrediyent səhifəsində çevrilmə təyin edin.",
     "in_use_error": "Bu yarımfabrikat başqa reseptlərdə istifadə olunur — əvvəlcə onu həmin reseptlərdən çıxarın, sonra adi reseptə çevirin.",
     "stocked": "Anbarda saxlanılır (Yarımfabrikat)",
@@ -1082,6 +1083,11 @@
     "save_all": "Bütün günləri yadda saxla"
   },
   "report_period": {
+    "email_send": "E-poçtuma göndər",
+    "email_sending": "Göndərilir…",
+    "email_sent": "Göndərildi ✓",
+    "email_error": "Göndərmək alınmadı",
+    "email_not_configured": "E-poçt qoşulmayıb (RESEND_API_KEY)",
     "turnover": "Dövriyyə",
     "days_on_hand": "Stok gün sayı",
     "waste_percent": "İtki %",

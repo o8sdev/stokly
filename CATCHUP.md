@@ -296,6 +296,27 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Tenant polish batch: feedback, create-time conversions, tables, import, e-mail reports (no migration)
+- **SubmitButton** now shows a spinner during every save (global; pairs with the existing
+  pendingText). Forms that stay in place keep their inline ✓/error states.
+- **Unit conversions at CREATE:** the new-ingredient form has a conversions editor (rows are
+  serialized into a hidden `conversions` field; `createIngredient` upserts them with the insert) —
+  no more "save first, then add conversions".
+- **Tables:** recipes + inventory gained name search (recipes keeps type/category filters);
+  ingredients list got client pagination (50/row pages). Deep browsing stays in `/app/data/*`.
+- **Import fixed + proven:** `normalizeUnit` now accepts the app's own label format ("Litr (l)",
+  "Kiloqram (kq)", bare "litr/грамм") and yield strips a trailing `%` ("90%" was rejected while the
+  header says "(%)"). Round-trip test `scripts/verify-import.ts` (xlsx → parser → mapped rows,
+  comma decimals, bad-row rejection) — ALL PASS.
+- **E-mail reports to the owner:** `sendEmail` (Resend) in lib/email/notify.ts +
+  `emailPeriodReport` action + an **"E-poçtuma göndər"** button on the period report (spinner,
+  sent ✓ / error / "RESEND_API_KEY not configured" states). Owner gets period results by mail even
+  when managers run the dashboard. Set `RESEND_API_KEY` (+ verified sender) in prod.
+- **Counting re-verified end-to-end:** e2e extended with a SECOND (closing) count — 58 assertions
+  ALL PASS: period chaining, non-baseline counts stamped end-of-day, report usage math (romaine
+  0.5 kq = 0.3 sold + 0.2 shrink), derived levels follow the absolute count. Noted by design:
+  same-day periods have no sales window (theoretical variance engages across days).
+
 ### Done — Dashboard UX: streamed, decluttered, habit-first (no migration)
 The owner dashboard now **streams**: the shell (hero greeting + quick actions + range selector)
 paints from 4 cheap lookups; the KPI band, panels and ops widgets arrive via three `<Suspense>`

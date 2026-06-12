@@ -47,6 +47,7 @@ export function InventoryTable({
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   // 'all' = whole business; a location name = that location's stock only.
   const [loc, setLoc] = useState<string>('all')
+  const [query, setQuery] = useState('')
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -75,7 +76,7 @@ export function InventoryTable({
     return 'ok'
   }
 
-  const filtered =
+  const byLoc =
     loc === 'all'
       ? rows
       : rows.filter(
@@ -83,9 +84,21 @@ export function InventoryTable({
             locQty(r) !== 0 ||
             r.batches.some((b) => b.location_name === loc)
         )
+  const q = query.trim().toLowerCase()
+  const filtered = q
+    ? byLoc.filter((r) => r.name.toLowerCase().includes(q))
+    : byLoc
 
   return (
     <>
+      <div className="mb-3">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('ingredients.search_placeholder')}
+          className="flex h-9 w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+        />
+      </div>
       {locations.length > 1 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

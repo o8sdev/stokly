@@ -17,6 +17,32 @@ export interface DemoLead {
   message: string
 }
 
+// Generic transactional send (same Resend transport). Returns false when the
+// transport isn't configured or the API rejects — callers surface that to the
+// user instead of failing silently.
+export async function sendEmail(opts: {
+  to: string
+  subject: string
+  html: string
+}): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return false
+  const from = process.env.DEMO_FROM_EMAIL || 'Stokly <onboarding@resend.dev>'
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to: [opts.to], subject: opts.subject, html: opts.html }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 export async function sendDemoEmail(lead: DemoLead): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const to = process.env.DEMO_NOTIFY_EMAIL

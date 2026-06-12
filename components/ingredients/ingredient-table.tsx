@@ -28,6 +28,8 @@ export function IngredientTable({
 }) {
   const t = useTranslations()
   const [query, setQuery] = useState('')
+  const [page, setPage] = useState(0)
+  const PAGE = 50
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -39,6 +41,10 @@ export function IngredientTable({
         (r.name_ru ?? '').toLowerCase().includes(q)
     )
   }, [rows, query])
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE))
+  const clamped = Math.min(page, pageCount - 1)
+  const pageRows = filtered.slice(clamped * PAGE, clamped * PAGE + PAGE)
 
   function stockStatus(row: IngredientWithStock): StockStatus {
     if (row.currentStock < 0) return 'negative'
@@ -64,7 +70,7 @@ export function IngredientTable({
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setPage(0) }}
           placeholder={t('ingredients.search_placeholder')}
           className="pl-9"
         />
@@ -97,7 +103,7 @@ export function IngredientTable({
             { label: t('common.actions'), align: 'right' },
           ]}
         >
-          {filtered.map((row) => {
+          {pageRows.map((row) => {
             const status = stockStatus(row)
             return (
               <TableRow key={row.id}>
@@ -159,6 +165,29 @@ export function IngredientTable({
             )
           })}
         </DataTable>
+      )}
+      {pageCount > 1 && (
+        <div className="mt-3 flex items-center justify-end gap-3 text-sm">
+          <button
+            type="button"
+            disabled={clamped === 0}
+            onClick={() => setPage(clamped - 1)}
+            className="rounded-md border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ‹
+          </button>
+          <span className="tabular-nums text-muted-foreground">
+            {clamped + 1} / {pageCount}
+          </span>
+          <button
+            type="button"
+            disabled={clamped >= pageCount - 1}
+            onClick={() => setPage(clamped + 1)}
+            className="rounded-md border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ›
+          </button>
+        </div>
       )}
     </div>
   )

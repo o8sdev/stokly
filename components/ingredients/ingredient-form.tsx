@@ -45,6 +45,15 @@ export function IngredientForm({
     ingredient?.is_produced ?? false
   )
 
+  // NEW ingredients can define pack/alt unit conversions right away (e.g.
+  // "1 şüşə = 0.75 l") instead of only after saving — rows are serialized into
+  // a hidden field and inserted with the ingredient. Edits keep the dedicated
+  // panel on the detail page (it manages existing rows).
+  const [baseUnit, setBaseUnit] = useState(ingredient?.unit ?? '')
+  const [convRows, setConvRows] = useState<{ unit: string; factor: string }[]>(
+    []
+  )
+
   // Preserve a legacy/free-text unit (e.g. imported "kg") as an extra option so
   // editing never silently drops it.
   const knownUnits: string[] = UNIT_OPTIONS.map((o) => o.value)
@@ -95,6 +104,7 @@ export function IngredientForm({
             name="unit"
             required
             defaultValue={ingredient?.unit ?? ''}
+            onChange={(e) => setBaseUnit(e.target.value)}
             className="mt-auto flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
           >
             <option value="" disabled>
@@ -254,6 +264,78 @@ export function IngredientForm({
           </div>
         )}
       </div>
+
+      {!isEdit && (
+        <div className="space-y-2 rounded-xl border border-border bg-secondary/30 p-4">
+          <div className="flex items-center gap-1.5">
+            <Label>{t('ingredients.conversions_title')}</Label>
+            <FieldHint text={t('ingredients.conversions_help', { base: baseUnit || '—' })} />
+          </div>
+          {convRows.map((r, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="font-mono text-xs text-muted-foreground">1</span>
+              <select
+                value={r.unit}
+                onChange={(e) =>
+                  setConvRows((rows) =>
+                    rows.map((x, j) => (j === i ? { ...x, unit: e.target.value } : x))
+                  )
+                }
+                aria-label={t('ingredients.conversions_unit')}
+                className="flex h-9 w-32 rounded-md border border-input bg-card px-2 text-sm"
+              >
+                <option value="">{t('ingredients.select_unit')}</option>
+                {UNIT_OPTIONS.filter((o) => o.value !== baseUnit).map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {t(`ingredients.units.${o.key}`)}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-muted-foreground">=</span>
+              <Input
+                type="number"
+                inputMode="decimal"
+                step="0.000001"
+                min="0"
+                value={r.factor}
+                onChange={(e) =>
+                  setConvRows((rows) =>
+                    rows.map((x, j) => (j === i ? { ...x, factor: e.target.value } : x))
+                  )
+                }
+                aria-label={t('ingredients.conversions_factor', { base: baseUnit || '—' })}
+                className="h-9 w-28 text-right font-mono tabular-nums"
+              />
+              <span className="text-sm text-muted-foreground">{baseUnit || '—'}</span>
+              <button
+                type="button"
+                onClick={() => setConvRows((rows) => rows.filter((_, j) => j !== i))}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={t('ingredients.conversions_remove')}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setConvRows((rows) => [...rows, { unit: '', factor: '' }])}
+          >
+            + {t('ingredients.conversions_add')}
+          </Button>
+          <input
+            type="hidden"
+            name="conversions"
+            value={JSON.stringify(
+              convRows
+                .filter((r) => r.unit && Number(r.factor) > 0)
+                .map((r) => ({ unit: r.unit, factor: Number(r.factor) }))
+            )}
+          />
+        </div>
+      )}
 
       {state.error && (
         <p className="text-sm text-destructive">{t('common.error')}</p>

@@ -86,9 +86,29 @@ const UNIT_MAP: Record<string, string> = {
   box: 'qutu',
 }
 
+// Full unit LABELS as the app's own selects display them ("Litr (l)") — people
+// copy these into spreadsheets, so the importer must accept them too.
+const LABEL_MAP: Record<string, string> = {
+  kiloqram: 'kq',
+  qram: 'q',
+  litr: 'l',
+  millilitr: 'ml',
+  килограмм: 'kq',
+  грамм: 'q',
+  литр: 'l',
+  миллилитр: 'ml',
+  штука: 'ədəd',
+}
+
 export function normalizeUnit(raw: string): string | null {
   const key = raw.trim().toLowerCase()
-  return UNIT_MAP[key] ?? null
+  if (UNIT_MAP[key]) return UNIT_MAP[key]
+  // "Litr (l)" / "Kiloqram (kq)" → take the short unit inside the parentheses.
+  const paren = key.match(/\(([^)]+)\)\s*$/)
+  if (paren && UNIT_MAP[paren[1].trim()]) return UNIT_MAP[paren[1].trim()]
+  // Bare label without parentheses ("litr", "грамм").
+  const word = key.replace(/\s*\(.*$/, '').trim()
+  return LABEL_MAP[word] ?? null
 }
 
 // Validate a single draft row. Error/warning values are message CODES that the
@@ -118,7 +138,8 @@ export function validateDraft(draft: DraftRow): ValidatedRow {
 
   let yieldFraction: number | undefined
   if (draft.yield.trim() !== '') {
-    const v = Number(draft.yield.replace(',', '.'))
+    // The column header says "(%)", so people type "90%" — strip the sign.
+    const v = Number(draft.yield.replace(',', '.').replace(/%\s*$/, ''))
     if (!Number.isFinite(v) || v < 1 || v > 100) errors.yield = 'invalid_yield'
     else yieldFraction = Math.round((v / 100) * 10000) / 10000
   }

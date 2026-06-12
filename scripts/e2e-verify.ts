@@ -865,6 +865,77 @@ async function main() {
   check('S14 dashboard revenue 61.00', dash14.includes('61.00'), true)
   await shot(page, '14-dashboard-final')
 
+  // S15 · SECOND (closing) count — the full count cycle
+  console.log('\n═══ S15 · Closing count: shrink variance + period chaining ═══')
+  await goto(page, '/az/app/inventory/count')
+  // Non-baseline gate still asks for readiness — click through if shown.
+  const hasGate = await page.evaluate(() => document.body.innerText.includes('Sayımı başlat'))
+  if (hasGate) {
+    await page.evaluate(() => (document.querySelector('input[type="checkbox"]') as HTMLInputElement)?.click())
+    await sleep(200)
+    await clickByText(page, 'button', 'Sayımı başlat')
+  }
+  await page.waitForSelector('#count_date', { timeout: 30000 })
+  const COUNTS2: Record<string, string> = {
+    'Toyuq filesi': '13',
+    'Çörək qırıntısı': '3.5',
+    'Romain salatı': '3.5', // 0.2 kq shrink vs derived 3.7 → variance line
+    Parmezan: '0.94',
+    'Zeytun yağı': '1.96',
+    'Toyuq naqqeti': '3', // the prep counts as stock too — exact
+  }
+  for (const [name, qty] of Object.entries(COUNTS2)) {
+    const done = await page.evaluate(
+      (nm, v) => {
+        const candidates = (Array.from(document.querySelectorAll('div,li,tr')) as HTMLElement[])
+          .filter(
+            (r) =>
+              r.textContent?.includes(nm) &&
+              r.querySelectorAll('input[inputmode="decimal"]').length === 1
+          )
+          .sort((a, b) => (a.textContent?.length ?? 0) - (b.textContent?.length ?? 0))
+        const input = candidates[0]?.querySelector('input[inputmode="decimal"]') as HTMLInputElement | null
+        if (!input) return false
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')!.set!
+        setter.call(input, v)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+        return true
+      },
+      name,
+      qty
+    )
+    if (!done) failures.push(`S15: count input for ${name} not found`)
+  }
+  await submitFormOf(page, '#count_date')
+  await waitPath(page, '/reports/period/')
+  await sleep(1500)
+  await shot(page, '15-period2-report')
+
+  const { data: periods2 } = await db
+    .from('count_periods')
+    .select('id, counted_at, report_data')
+    .eq('tenant_id', T)
+    .order('created_at', { ascending: true })
+  check('S15 two count periods exist', periods2?.length ?? 0, 2)
+  const p2 = periods2![1]
+  check('S15 closing count stamped END-OF-DAY (non-baseline)', String(p2.counted_at).includes('23:59:59'), true)
+  const rd = p2.report_data as {
+    sales_total: number
+    closing_value: number
+    lines: { name: string; usage_qty: number; usage_value: number }[]
+  } | null
+  check('S15 report generated', rd != null, true)
+  if (rd) {
+    note(`period-2 sales_total = ${rd.sales_total} (two counts on ONE day ⇒ no sales window by design)`) 
+    const rom = rd.lines.find((l) => l.name === 'Romain salatı')
+    // usage = opening 4 − closing 3.5 = 0.5 kq (0.3 sold + 0.2 shrink); the
+    // theoretical split engages only when the period spans sales days.
+    check('S15 romaine usage 0.5 kq (0.3 sold + 0.2 shrink)', rom?.usage_qty ?? 0, 0.5)
+    check('S15 romaine usage value 0.5×6', rom?.usage_value ?? 0, 3)
+  }
+  const lv15 = await derived()
+  check('S15 derived romaine = counted 3.5', lv15.get((await ingByName('Romain salatı')).id) ?? 0, 3.5)
+
   console.log('\n═══ RESULT ═══')
   if (failures.length === 0) console.log('ALL CHECKS PASSED')
   else {

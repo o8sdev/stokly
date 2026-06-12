@@ -50,23 +50,54 @@ export async function createIngredient(
   if (!parsed.success) return { error: 'validation' }
 
   const supabase = createClient()
-  const { error } = await supabase.from('ingredients').insert({
-    tenant_id: ctx.tenantId,
-    name: parsed.data.name,
-    name_az: parsed.data.name_az || null,
-    name_ru: parsed.data.name_ru || null,
-    unit: parsed.data.unit,
-    cost_per_unit: parsed.data.cost_per_unit,
-    yield_percent: parsed.data.yield_percent,
-    supplier_id: parsed.data.supplier_id ?? null,
-    low_stock_threshold: parsed.data.low_stock_threshold ?? null,
-    par_level: parsed.data.par_level ?? null,
-    is_produced: parsed.data.is_produced,
-    default_shelf_life_days: parsed.data.default_shelf_life_days ?? null,
-    storage_location: parsed.data.storage_location ?? null,
-  })
+  const { data: created, error } = await supabase
+    .from('ingredients')
+    .insert({
+      tenant_id: ctx.tenantId,
+      name: parsed.data.name,
+      name_az: parsed.data.name_az || null,
+      name_ru: parsed.data.name_ru || null,
+      unit: parsed.data.unit,
+      cost_per_unit: parsed.data.cost_per_unit,
+      yield_percent: parsed.data.yield_percent,
+      supplier_id: parsed.data.supplier_id ?? null,
+      low_stock_threshold: parsed.data.low_stock_threshold ?? null,
+      par_level: parsed.data.par_level ?? null,
+      is_produced: parsed.data.is_produced,
+      default_shelf_life_days: parsed.data.default_shelf_life_days ?? null,
+      storage_location: parsed.data.storage_location ?? null,
+    })
+    .select('id')
+    .single()
 
-  if (error) return { error: 'generic' }
+  if (error || !created) return { error: 'generic' }
+
+  // Pack/alt unit conversions defined right in the create form (B4): insert
+  // alongside the ingredient so "1 şüşə = 0.75 l" works from day one.
+  try {
+    const raw = String(formData.get('conversions') ?? '[]')
+    const rows = (JSON.parse(raw) as { unit: string; factor: number }[])
+      .filter(
+        (r) =>
+          r.unit &&
+          r.unit !== parsed.data.unit &&
+          Number.isFinite(r.factor) &&
+          r.factor > 0
+      )
+      .map((r) => ({
+        tenant_id: ctx.tenantId,
+        ingredient_id: created.id,
+        unit: r.unit,
+        factor_to_base: r.factor,
+      }))
+    if (rows.length > 0) {
+      await supabase
+        .from('ingredient_unit_conversions')
+        .upsert(rows, { onConflict: 'ingredient_id,unit' })
+    }
+  } catch {
+    // best-effort: a malformed conversions payload never blocks the create
+  }
 
   revalidatePath(`/${locale}/app/ingredients`)
   // First ingredient satisfies an onboarding step — invalidate the dashboard so
