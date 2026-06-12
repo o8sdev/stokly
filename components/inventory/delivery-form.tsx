@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { Plus, Trash2 } from 'lucide-react'
@@ -19,6 +19,7 @@ import {
   isPriceOutlier,
   type PriceStat,
 } from '@/lib/calculations/price-variance'
+import { allowedUnitsFor, toBaseUnit } from '@/lib/constants/units'
 
 interface LocationOption {
   id: string
@@ -30,6 +31,9 @@ interface Line {
   key: string
   ingredient_id: string
   quantity: string
+  // Unit the quantity + price are ENTERED in ('' = the ingredient's base
+  // unit). Pack units convert to base on submit: qty×factor, cost÷factor.
+  unit: string
   unit_cost: string
   expiry_date: string
   supplier_lot: string
@@ -42,6 +46,7 @@ const blankLine = (): Line => ({
   key: newKey(),
   ingredient_id: '',
   quantity: '',
+  unit: '',
   unit_cost: '',
   expiry_date: '',
   supplier_lot: '',
@@ -80,6 +85,7 @@ export function DeliveryForm({
         key: newKey(),
         ingredient_id: l.ingredient_id,
         quantity: l.quantity > 0 ? String(l.quantity) : '',
+        unit: opt?.unit ?? '',
         unit_cost: opt ? String(opt.cost_per_unit) : '',
         expiry_date: '',
         supplier_lot: '',
@@ -112,9 +118,31 @@ export function DeliveryForm({
     const opt = ingredients.find((i) => i.id === id)
     patch(key, {
       ingredient_id: id,
+      unit: opt?.unit ?? '',
       unit_cost: opt ? String(opt.cost_per_unit) : '',
       supplier_id: opt?.supplier_id ?? '',
     })
+  }
+
+  // 1 entered-unit = `factor` base units (1 when entering in the base unit).
+  const lineFactor = useCallback(
+    (l: Line): number => {
+      const opt = ingredients.find((i) => i.id === l.ingredient_id)
+      if (!opt || !l.unit || l.unit === opt.unit) return 1
+      const f = toBaseUnit(1, l.unit, opt.unit, opt.unit_conversions)
+      return f > 0 ? f : 1
+    },
+    [ingredients]
+  )
+
+  // Switching the entry unit re-prefills the price AS that unit's pack price
+  // (base cost × factor) so the typed number always matches the invoice line.
+  function changeUnit(key: string, unit: string) {
+    const l = lines.find((x) => x.key === key)
+    const opt = ingredients.find((i) => i.id === l?.ingredient_id)
+    if (!l || !opt) return
+    const f = unit && unit !== opt.unit ? toBaseUnit(1, unit, opt.unit, opt.unit_conversions) : 1
+    patch(key, { unit, unit_cost: String(Math.round(opt.cost_per_unit * f * 10000) / 10000) })
   }
 
   const total = useMemo(
@@ -134,16 +162,19 @@ export function DeliveryForm({
         notes,
         lines: lines
           .filter((l) => l.ingredient_id && l.quantity !== '')
-          .map((l) => ({
-            ingredient_id: l.ingredient_id,
-            quantity: Number(l.quantity),
-            unit_cost: l.unit_cost === '' ? 0 : Number(l.unit_cost),
-            expiry_date: l.expiry_date,
-            supplier_lot: l.supplier_lot,
-            supplier_id: l.supplier_id,
-          })),
+          .map((l) => {
+            const f = lineFactor(l)
+            return {
+              ingredient_id: l.ingredient_id,
+              quantity: Number(l.quantity) * f,
+              unit_cost: l.unit_cost === '' ? 0 : Number(l.unit_cost) / f,
+              expiry_date: l.expiry_date,
+              supplier_lot: l.supplier_lot,
+              supplier_id: l.supplier_id,
+            }
+          }),
       }),
-    [locationId, notes, lines]
+    [locationId, notes, lines, lineFactor]
   )
 
   const selectCls =
@@ -177,7 +208,7 @@ export function DeliveryForm({
       <div className="space-y-2">
         {lines.map((line) => {
           const stat = priceStats?.[line.ingredient_id]
-          const typedCost = Number(line.unit_cost)
+          const typedCost = Number(line.unit_cost) / lineFactor(line)
           const variance = priceVariance(typedCost, stat?.avg_cost ?? null)
           const outlier =
             line.unit_cost !== '' &&
@@ -187,7 +218,7 @@ export function DeliveryForm({
             key={line.key}
             className="space-y-2 rounded-lg border border-border p-3"
           >
-            <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-[1fr_104px_104px_150px_40px]">
+            <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-[1fr_96px_92px_104px_150px_40px]">
               <div className="col-span-2 space-y-1 md:col-span-1">
                 <Label className="text-xs">
                   {t('inventory.delivery')} — {t('recipes.line_ingredient')}
@@ -218,6 +249,30 @@ export function DeliveryForm({
                   onChange={(e) => patch(line.key, { quantity: e.target.value })}
                   className="text-right font-mono tabular-nums"
                 />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t('recipes.line_unit')}</Label>
+                {(() => {
+                  const opt = ingredients.find((i) => i.id === line.ingredient_id)
+                  const allowed = opt
+                    ? allowedUnitsFor(opt.unit, opt.unit_conversions)
+                    : []
+                  return (
+                    <select
+                      value={line.unit || opt?.unit || ''}
+                      onChange={(e) => changeUnit(line.key, e.target.value)}
+                      disabled={!opt || allowed.length <= 1}
+                      aria-label={t('recipes.line_unit')}
+                      className={selectCls}
+                    >
+                      {allowed.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
+                  )
+                })()}
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">
@@ -257,6 +312,22 @@ export function DeliveryForm({
               </Button>
             </div>
 
+            {(() => {
+              const opt = ingredients.find((i) => i.id === line.ingredient_id)
+              const f = lineFactor(line)
+              if (!opt || f === 1 || !(Number(line.quantity) > 0)) return null
+              const baseQty = Math.round(Number(line.quantity) * f * 1000) / 1000
+              const baseCost =
+                line.unit_cost === ''
+                  ? null
+                  : Math.round((Number(line.unit_cost) / f) * 10000) / 10000
+              return (
+                <p className="font-mono text-xs text-muted-foreground">
+                  = {baseQty} {opt.unit}
+                  {baseCost != null && ` · ${baseCost} AZN/${opt.unit}`}
+                </p>
+              )
+            })()}
             {stat && line.ingredient_id && (
               <div className="flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="text-muted-foreground">

@@ -68,6 +68,58 @@ export function toBaseUnit(
   return qty
 }
 
+// Every unit that can express a quantity of an ingredient: its base unit, the
+// rest of its metric family, and its custom pack conversions. Pickers use this
+// so an unconvertible unit can't be selected in the first place.
+export function allowedUnitsFor(
+  baseUnit: string,
+  factors?: Record<string, number> | null
+): string[] {
+  const out: string[] = [baseUnit]
+  const fam = unitFamily(baseUnit)
+  if (fam) {
+    for (const u of ['kq', 'q', 'l', 'ml']) {
+      if (u !== baseUnit && unitFamily(u) === fam) out.push(u)
+    }
+  }
+  for (const u of Object.keys(factors ?? {})) {
+    if (!out.includes(u)) out.push(u)
+  }
+  return out
+}
+
+// One-tap package presets for the conversion editors — the packaging sizes
+// Azerbaijani HoReCa actually buys in. Factors are converted into the
+// ingredient's own base unit (e.g. şüşə 0.75 l → 750 for an ml-based item).
+export interface PackPreset {
+  unit: string
+  factor: number
+  label: string
+}
+const RAW_PRESETS: { unit: string; qty: number; in: string }[] = [
+  { unit: 'şüşə', qty: 0.33, in: 'l' },
+  { unit: 'şüşə', qty: 0.5, in: 'l' },
+  { unit: 'şüşə', qty: 0.75, in: 'l' },
+  { unit: 'şüşə', qty: 1, in: 'l' },
+  { unit: 'qutu', qty: 5, in: 'l' },
+  { unit: 'bağlama', qty: 10, in: 'kq' },
+  { unit: 'bağlama', qty: 25, in: 'kq' },
+]
+export function packPresetsFor(baseUnit: string): PackPreset[] {
+  const out: PackPreset[] = []
+  for (const p of RAW_PRESETS) {
+    if (p.unit === baseUnit) continue
+    const f = convertUnit(p.qty, p.in, baseUnit)
+    if (f == null || f <= 0) continue
+    out.push({
+      unit: p.unit,
+      factor: Math.round(f * 1e6) / 1e6,
+      label: `${p.unit} ${p.qty} ${p.in}`,
+    })
+  }
+  return out
+}
+
 // Whether a line unit has a defined path to the base (same unit, metric family,
 // or a per-ingredient factor). Used to reject unconvertible lines at save time.
 export function isConvertible(

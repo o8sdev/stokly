@@ -149,6 +149,43 @@ export async function setIngredientConversion(
   return { ok: true }
 }
 
+// Plain-args variant for inline use (e.g. the recipe editor's "+ conversion"
+// popover) — same validation and write as setIngredientConversion.
+export async function addIngredientConversion(
+  locale: string,
+  ingredientId: string,
+  unit: string,
+  factor: number
+): Promise<ActionResult> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const u = unit.trim()
+  if (!u || !Number.isFinite(factor) || factor <= 0) {
+    return { error: 'validation' }
+  }
+  const supabase = createClient()
+  const { data: ing } = await supabase
+    .from('ingredients')
+    .select('unit')
+    .eq('id', ingredientId)
+    .eq('tenant_id', ctx.tenantId)
+    .maybeSingle()
+  if (!ing) return { error: 'validation' }
+  if (ing.unit === u) return { error: 'same_unit' }
+  const { error } = await supabase.from('ingredient_unit_conversions').upsert(
+    {
+      tenant_id: ctx.tenantId,
+      ingredient_id: ingredientId,
+      unit: u,
+      factor_to_base: factor,
+    },
+    { onConflict: 'ingredient_id,unit' }
+  )
+  if (error) return { error: 'generic' }
+  revalidatePath(`/${locale}/app/ingredients/${ingredientId}`)
+  return { ok: true }
+}
+
 export async function removeIngredientConversion(
   locale: string,
   ingredientId: string,

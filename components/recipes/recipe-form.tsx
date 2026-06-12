@@ -15,6 +15,7 @@ import {
   updateRecipe,
   type RecipeActionResult,
 } from '@/app/[locale]/app/(protected)/recipes/actions'
+import { addIngredientConversion } from '@/app/[locale]/app/(protected)/ingredients/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -103,6 +104,28 @@ export function RecipeForm({
     recipe ? recipe.produced_ingredient_id != null : true
   )
 
+  // Pack conversions added inline from the line editor this session — merged
+  // into the options so costs + unit pickers update without a reload.
+  const [extraConv, setExtraConv] = useState<Record<string, Record<string, number>>>({})
+  const effectiveIngredientOptions = useMemo(
+    () =>
+      ingredientOptions.map((o) =>
+        extraConv[o.id]
+          ? { ...o, unit_conversions: { ...(o.unit_conversions ?? {}), ...extraConv[o.id] } }
+          : o
+      ),
+    [ingredientOptions, extraConv]
+  )
+  async function addConversion(ingredientId: string, unit: string, factor: number) {
+    const res = await addIngredientConversion(locale, ingredientId, unit, factor)
+    if (!res.ok) return false
+    setExtraConv((prev) => ({
+      ...prev,
+      [ingredientId]: { ...(prev[ingredientId] ?? {}), [unit]: factor },
+    }))
+    return true
+  }
+
   // Line state, seeded from existing recipe lines on edit.
   const [lines, setLines] = useState<EditorLine[]>(() => {
     if (!existingLines) return []
@@ -175,7 +198,7 @@ export function RecipeForm({
       const qty = Number(line.quantity)
       if (!Number.isFinite(qty) || qty <= 0) return sum
       if (line.kind === 'ingredient') {
-        const opt = ingredientOptions.find((o) => o.id === line.sourceId)
+        const opt = effectiveIngredientOptions.find((o) => o.id === line.sourceId)
         if (!opt) return sum
         const override = line.yieldOverride
           ? Number(line.yieldOverride) / 100
@@ -186,7 +209,7 @@ export function RecipeForm({
           qty,
           line.unit || opt.unit,
           opt.unit,
-          opt.unit_conversions
+          opt.unit_conversions // already merged with session-added conversions
         )
         return sum + ingredientLineCost(baseQty, opt.cost_per_unit, yieldPercent)
       }
@@ -194,7 +217,7 @@ export function RecipeForm({
       if (!sub) return sum
       return sum + qty * sub.unitCost
     }, 0)
-  }, [lines, ingredientOptions, subRecipeOptions])
+  }, [lines, effectiveIngredientOptions, subRecipeOptions])
 
   // Serialised payload validated by the server action.
   const payload = useMemo(
@@ -473,12 +496,13 @@ export function RecipeForm({
             </h2>
             <RecipeIngredientsEditor
               lines={lines}
-              ingredientOptions={ingredientOptions}
+              ingredientOptions={effectiveIngredientOptions}
               subRecipeOptions={subRecipeOptions}
               onChange={patchLine}
               onRemove={removeLine}
               onAddIngredient={addIngredient}
               onAddSubRecipe={addSubRecipe}
+              onAddConversion={addConversion}
             />
           </div>
 

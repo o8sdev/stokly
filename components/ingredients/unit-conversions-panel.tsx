@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { UNIT_OPTIONS } from '@/lib/constants/units'
+import { UNIT_OPTIONS, packPresetsFor } from '@/lib/constants/units'
 
 // B4: manage how an ingredient's pack/alt units convert to its base (stock) unit,
 // e.g. "1 şüşə = 750 ml". The cost/usage calc + recipe-line validation use these.
@@ -20,11 +20,14 @@ export function UnitConversionsPanel({
   locale,
   ingredientId,
   baseUnit,
+  unitCost = 0,
   conversions,
 }: {
   locale: string
   ingredientId: string
   baseUnit: string
+  // Cost per base unit — powers the live "≈ X AZN per pack" sanity preview.
+  unitCost?: number
   conversions: { unit: string; factor_to_base: number }[]
 }) {
   const t = useTranslations('ingredients')
@@ -33,6 +36,10 @@ export function UnitConversionsPanel({
     {}
   )
   const [, start] = React.useTransition()
+  // Controlled drafts (name attrs still post via the form action) so we can
+  // render the live price preview + one-tap presets.
+  const [draftUnit, setDraftUnit] = React.useState('')
+  const [draftFactor, setDraftFactor] = React.useState('')
 
   // Only offer units not already defined and not the base unit itself.
   const taken = new Set([baseUnit, ...conversions.map((c) => c.unit)])
@@ -46,6 +53,27 @@ export function UnitConversionsPanel({
           {t('conversions_help', { base: baseUnit })}
         </p>
       </div>
+
+      {packPresetsFor(baseUnit).filter((pz) => !taken.has(pz.unit)).length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">{t('conversions_presets')}</span>
+          {packPresetsFor(baseUnit)
+            .filter((pz) => !taken.has(pz.unit))
+            .map((pz) => (
+              <button
+                key={pz.label}
+                type="button"
+                onClick={() => {
+                  setDraftUnit(pz.unit)
+                  setDraftFactor(String(pz.factor))
+                }}
+                className="rounded-md border border-border bg-card px-2 py-0.5 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+              >
+                {pz.label}
+              </button>
+            ))}
+        </div>
+      )}
 
       {conversions.length > 0 && (
         <ul className="space-y-1.5">
@@ -88,7 +116,8 @@ export function UnitConversionsPanel({
               id="conv_unit"
               name="unit"
               required
-              defaultValue=""
+              value={draftUnit}
+              onChange={(e) => setDraftUnit(e.target.value)}
               className="flex h-[38px] w-36 rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
             >
               <option value="" disabled>
@@ -112,12 +141,20 @@ export function UnitConversionsPanel({
               step="0.000001"
               min="0"
               required
+              value={draftFactor}
+              onChange={(e) => setDraftFactor(e.target.value)}
               className="w-32 text-right font-mono tabular-nums"
             />
           </div>
           <SubmitButton className="h-[38px]">
             {t('conversions_add')}
           </SubmitButton>
+          {Number(draftFactor) > 0 && draftUnit && (
+            <span className="pb-2 font-mono text-xs text-primary">
+              1 {draftUnit} = {draftFactor} {baseUnit}
+              {unitCost > 0 && ` ≈ ${(Number(draftFactor) * unitCost).toFixed(2)} AZN`}
+            </span>
+          )}
         </form>
       ) : (
         <p className="text-xs text-muted-foreground">

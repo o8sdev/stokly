@@ -196,10 +196,9 @@ async function setLineUnit(page: Page, value: string, nth = -1) {
   const ok = await page.evaluate(
     (v, n) => {
       const selects = (Array.from(document.querySelectorAll('form select')) as HTMLSelectElement[]).filter(
-        (s) =>
-          s.id !== 'serving_unit' &&
-          Array.from(s.options).some((o) => o.value === 'q') &&
-          Array.from(s.options).some((o) => o.value === 'kq')
+        // Line-unit selects are scoped per ingredient now; their unique marker
+        // is the "+ add conversion" option.
+        (s) => Array.from(s.options).some((o) => o.value === '__add')
       )
       const sel = n === -1 ? selects.at(-1) : selects[n]
       if (!sel) return false
@@ -217,10 +216,9 @@ async function setLineUnit(page: Page, value: string, nth = -1) {
   const took = await page.evaluate(
     (v, n) => {
       const selects = (Array.from(document.querySelectorAll('form select')) as HTMLSelectElement[]).filter(
-        (s) =>
-          s.id !== 'serving_unit' &&
-          Array.from(s.options).some((o) => o.value === 'q') &&
-          Array.from(s.options).some((o) => o.value === 'kq')
+        // Line-unit selects are scoped per ingredient now; their unique marker
+        // is the "+ add conversion" option.
+        (s) => Array.from(s.options).some((o) => o.value === '__add')
       )
       const sel = n === -1 ? selects.at(-1) : selects[n]
       return sel?.value === v

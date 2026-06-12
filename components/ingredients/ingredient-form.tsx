@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { FieldHint } from '@/components/ui/field-hint'
-import { UNIT_OPTIONS } from '@/lib/constants/units'
+import { UNIT_OPTIONS, packPresetsFor } from '@/lib/constants/units'
 
 export function IngredientForm({
   locale,
@@ -50,6 +50,9 @@ export function IngredientForm({
   // a hidden field and inserted with the ingredient. Edits keep the dedicated
   // panel on the detail page (it manages existing rows).
   const [baseUnit, setBaseUnit] = useState(ingredient?.unit ?? '')
+  const [costVal, setCostVal] = useState(
+    ingredient ? String(ingredient.cost_per_unit) : ''
+  )
   const [convRows, setConvRows] = useState<{ unit: string; factor: string }[]>(
     []
   )
@@ -126,6 +129,7 @@ export function IngredientForm({
           <Input
             id="cost_per_unit"
             name="cost_per_unit"
+            onChange={(e) => setCostVal(e.target.value)}
             type="number"
             step="0.0001"
             min="0"
@@ -307,6 +311,11 @@ export function IngredientForm({
                 className="h-9 w-28 text-right font-mono tabular-nums"
               />
               <span className="text-sm text-muted-foreground">{baseUnit || '—'}</span>
+              {Number(r.factor) > 0 && Number(costVal) > 0 && (
+                <span className="font-mono text-xs text-primary">
+                  ≈ {(Number(r.factor) * Number(costVal)).toFixed(2)} AZN
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => setConvRows((rows) => rows.filter((_, j) => j !== i))}
@@ -317,6 +326,28 @@ export function IngredientForm({
               </button>
             </div>
           ))}
+          {baseUnit && packPresetsFor(baseUnit).length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">
+                {t('ingredients.conversions_presets')}
+              </span>
+              {packPresetsFor(baseUnit).map((pz) => (
+                <button
+                  key={pz.label}
+                  type="button"
+                  onClick={() =>
+                    setConvRows((rows) => [
+                      ...rows.filter((r) => r.unit || r.factor),
+                      { unit: pz.unit, factor: String(pz.factor) },
+                    ])
+                  }
+                  className="rounded-md border border-border bg-card px-2 py-0.5 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                >
+                  {pz.label}
+                </button>
+              ))}
+            </div>
+          )}
           <Button
             type="button"
             variant="outline"

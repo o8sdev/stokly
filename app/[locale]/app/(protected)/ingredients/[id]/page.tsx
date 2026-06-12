@@ -47,6 +47,7 @@ export default async function EditIngredientPage({
         locale={locale}
         ingredientId={ingredient.id}
         baseUnit={ingredient.unit}
+        unitCost={ingredient.cost_per_unit}
         conversions={conversions}
       />
     </div>

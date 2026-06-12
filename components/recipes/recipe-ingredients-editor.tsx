@@ -12,7 +12,14 @@ import { Input } from '@/components/ui/input'
 import { FieldHint } from '@/components/ui/field-hint'
 import { MonoValue } from '@/components/ui/stokly-theme'
 import { ingredientLineCost } from '@/lib/calculations/food-cost'
-import { UNIT_OPTIONS, UNIT_VALUES, toBaseUnit } from '@/lib/constants/units'
+import { useState } from 'react'
+import {
+  UNIT_OPTIONS,
+  UNIT_VALUES,
+  toBaseUnit,
+  allowedUnitsFor,
+  packPresetsFor,
+} from '@/lib/constants/units'
 
 export function RecipeIngredientsEditor({
   lines,
@@ -22,6 +29,7 @@ export function RecipeIngredientsEditor({
   onRemove,
   onAddIngredient,
   onAddSubRecipe,
+  onAddConversion,
 }: {
   lines: EditorLine[]
   ingredientOptions: IngredientOption[]
@@ -30,9 +38,19 @@ export function RecipeIngredientsEditor({
   onRemove: (key: string) => void
   onAddIngredient: () => void
   onAddSubRecipe: () => void
+  // Persist a new pack conversion for an ingredient (server action) and merge
+  // it into the options; resolves false on failure.
+  onAddConversion: (
+    ingredientId: string,
+    unit: string,
+    factor: number
+  ) => Promise<boolean>
 }) {
   const t = useTranslations('recipes')
   const tUnits = useTranslations('ingredients.units')
+  // Inline "+ new conversion" popover, keyed by line. unit/factor are drafts;
+  // busy/err drive the save button state.
+  const [conv, setConv] = useState<Record<string, { unit: string; factor: string; busy?: boolean; err?: boolean }>>({})
 
   function lineCost(line: EditorLine): number {
     const qty = Number(line.quantity)
@@ -157,19 +175,34 @@ export function RecipeIngredientsEditor({
             {line.kind === 'ingredient' ? (
               <select
                 value={line.unit}
-                onChange={(e) => onChange(line.key, { unit: e.target.value })}
+                onChange={(e) => {
+                  if (e.target.value === '__add') {
+                    setConv((c) => ({ ...c, [line.key]: { unit: '', factor: '' } }))
+                    return
+                  }
+                  onChange(line.key, { unit: e.target.value })
+                }}
                 aria-label={t('line_unit')}
                 className="flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
               >
                 <option value="">{t('line_unit')}</option>
-                {line.unit && !UNIT_VALUES.includes(line.unit) && (
-                  <option value={line.unit}>{line.unit}</option>
-                )}
-                {UNIT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {tUnits(o.key)}
-                  </option>
-                ))}
+                {line.unit &&
+                  opt &&
+                  !allowedUnitsFor(opt.unit, opt.unit_conversions).includes(line.unit) && (
+                    <option value={line.unit}>{line.unit}</option>
+                  )}
+                {(opt
+                  ? allowedUnitsFor(opt.unit, opt.unit_conversions)
+                  : UNIT_VALUES
+                ).map((u) => {
+                  const known = UNIT_OPTIONS.find((o) => o.value === u)
+                  return (
+                    <option key={u} value={u}>
+                      {known ? tUnits(known.key) : u}
+                    </option>
+                  )
+                })}
+                {opt && <option value="__add">{t('add_conversion_option')}</option>}
               </select>
             ) : (
               // Locked to the prep's serving unit — the quantity means
@@ -224,6 +257,113 @@ export function RecipeIngredientsEditor({
             >
               <Trash2 className="h-4 w-4" />
             </Button>
+
+            {/* Inline "+ conversion" popover: define a pack unit without
+                leaving the recipe. Live price preview catches a backwards
+                factor instantly (an absurd pack price is self-evident). */}
+            {opt && conv[line.key] && (
+              <div className="col-span-2 rounded-lg border border-primary/30 bg-primary/[0.04] p-3 md:col-span-7">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">1</span>
+                  <select
+                    value={conv[line.key].unit}
+                    onChange={(e) =>
+                      setConv((c) => ({ ...c, [line.key]: { ...c[line.key], unit: e.target.value, err: false } }))
+                    }
+                    aria-label={t('line_unit')}
+                    className="flex h-9 w-32 rounded-md border border-input bg-card px-2 text-sm"
+                  >
+                    <option value="">{t('line_unit')}</option>
+                    {UNIT_OPTIONS.filter(
+                      (o) => !allowedUnitsFor(opt.unit, opt.unit_conversions).includes(o.value)
+                    ).map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {tUnits(o.key)}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-muted-foreground">=</span>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.000001"
+                    min="0"
+                    value={conv[line.key].factor}
+                    onChange={(e) =>
+                      setConv((c) => ({ ...c, [line.key]: { ...c[line.key], factor: e.target.value, err: false } }))
+                    }
+                    className="h-9 w-28 text-right font-mono tabular-nums"
+                  />
+                  <span className="text-sm text-muted-foreground">{opt.unit}</span>
+                  {Number(conv[line.key].factor) > 0 && (
+                    <span className="font-mono text-xs text-primary">
+                      ≈ {(Number(conv[line.key].factor) * opt.cost_per_unit).toFixed(2)} AZN
+                    </span>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={
+                      conv[line.key].busy ||
+                      !conv[line.key].unit ||
+                      !(Number(conv[line.key].factor) > 0)
+                    }
+                    onClick={async () => {
+                      const d = conv[line.key]
+                      setConv((c) => ({ ...c, [line.key]: { ...d, busy: true, err: false } }))
+                      const ok = await onAddConversion(opt.id, d.unit, Number(d.factor))
+                      if (ok) {
+                        onChange(line.key, { unit: d.unit })
+                        setConv((c) => {
+                          const next = { ...c }
+                          delete next[line.key]
+                          return next
+                        })
+                      } else {
+                        setConv((c) => ({ ...c, [line.key]: { ...d, busy: false, err: true } }))
+                      }
+                    }}
+                  >
+                    {conv[line.key].busy ? '…' : t('conversion_save')}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setConv((c) => {
+                        const next = { ...c }
+                        delete next[line.key]
+                        return next
+                      })
+                    }
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    ✕
+                  </button>
+                  {conv[line.key].err && (
+                    <span className="text-xs text-destructive">{t('conversion_error')}</span>
+                  )}
+                </div>
+                {packPresetsFor(opt.unit).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {packPresetsFor(opt.unit).map((pz) => (
+                      <button
+                        key={pz.label}
+                        type="button"
+                        onClick={() =>
+                          setConv((c) => ({
+                            ...c,
+                            [line.key]: { unit: pz.unit, factor: String(pz.factor) },
+                          }))
+                        }
+                        className="rounded-md border border-border bg-card px-2 py-0.5 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                      >
+                        {pz.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )
       })}

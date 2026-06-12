@@ -296,6 +296,24 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Unit-conversion UX 1–5 (no migration)
+1. **Scoped unit pickers:** recipe-line unit selects offer ONLY units valid for the chosen
+   ingredient (`allowedUnitsFor` = base + metric family + pack conversions) — the save-time
+   `unit_error` became unreachable.
+2. **Inline "+ conversion":** a "__add" option in the line-unit select opens an in-place popover
+   (unit, factor, save) backed by the new `addIngredientConversion` plain-args action; the form
+   merges the new factor into its options instantly (`extraConv` state in recipe-form).
+3. **Live price preview** everywhere a factor is typed (popover, ingredient detail panel — new
+   `unitCost` prop —, create-form rows): `1 şüşə = 0.75 l ≈ 9.00 AZN` — a backwards factor shows an
+   absurd pack price immediately.
+4. **Pack presets** (`packPresetsFor`): one-tap chips (şüşə 0.33/0.5/0.75/1 l, qab 5 l, bağlama
+   10/25 kq) converted into the ingredient's own base unit, shown in all three conversion editors.
+5. **Buy in pack units:** delivery lines gained a unit select (base + conversions); qty+price are
+   entered per pack, converted on submit (qty×factor, price÷factor) with a live "= 1.5 l ·
+   12 AZN/l" hint; the price-variance chip compares per-BASE cost. RUNTIME-PROVEN: bought 2 şüşə
+   of e2e olive oil → stored movement exactly +1.5 l @ 12 AZN/l. Full e2e (58 checks) re-run green;
+   the driver's line-unit targeting now keys on the `__add` marker.
+
 ### Done — Tenant polish batch: feedback, create-time conversions, tables, import, e-mail reports (no migration)
 - **SubmitButton** now shows a spinner during every save (global; pairs with the existing
   pendingText). Forms that stay in place keep their inline ✓/error states.
