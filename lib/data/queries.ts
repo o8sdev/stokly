@@ -430,7 +430,9 @@ export async function getWasteLog(
 
   return (wasteRes.data ?? []).map((w) => {
     const ing = ingMap.get(w.ingredient_id)
-    const qty = Number(w.quantity)
+    // Waste movements are stored as negative stock deltas; the log shows the
+    // magnitude (how much was lost), so abs both the quantity and the value.
+    const qty = Math.abs(Number(w.quantity))
     const cost = Number(w.unit_cost ?? 0)
     return {
       id: w.id,

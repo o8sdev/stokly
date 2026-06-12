@@ -33,3 +33,4 @@ supabase/.temp
 
 # local editor / agent settings (machine-specific)
 .claude/settings.local.json
+social-shots/
