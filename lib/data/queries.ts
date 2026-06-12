@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import type {
   Ingredient,
@@ -28,9 +29,9 @@ const round3 = (n: number): number => Math.round(n * 1000) / 1000
 // All loaders take an explicit tenantId (resolved via requireTenant) so the
 // tenant scope is always server-controlled. RLS provides defence in depth.
 
-export async function getIngredients(
+export const getIngredients = cache(async (
   tenantId: string
-): Promise<IngredientWithConversions[]> {
+): Promise<IngredientWithConversions[]> => {
   const supabase = createClient()
   const { data } = await supabase
     .from('ingredients')
@@ -56,7 +57,7 @@ export async function getIngredients(
     ...i,
     unit_conversions: byIngredient.get(i.id) ?? null,
   }))
-}
+})
 
 // Stocked preps (Yarımfabrikat) summary for the production page: on-hand,
 // cost/serving, last production yield, and nearest expiry of the prep's stock.
@@ -281,7 +282,7 @@ export async function getLocationsInUse(
   return used
 }
 
-export async function getRecipes(tenantId: string): Promise<Recipe[]> {
+export const getRecipes = cache(async (tenantId: string): Promise<Recipe[]> => {
   const supabase = createClient()
   const { data } = await supabase
     .from('recipes')
@@ -289,7 +290,7 @@ export async function getRecipes(tenantId: string): Promise<Recipe[]> {
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true })
   return data ?? []
-}
+})
 
 export async function getRecipe(
   tenantId: string,
@@ -307,9 +308,9 @@ export async function getRecipe(
 
 // All recipe_ingredient lines for the tenant's recipes. recipe_ingredients
 // has no tenant_id column, so we scope through the recipes table.
-export async function getRecipeIngredients(
+export const getRecipeIngredients = cache(async (
   tenantId: string
-): Promise<RecipeIngredient[]> {
+): Promise<RecipeIngredient[]> => {
   const supabase = createClient()
   const { data: recipes } = await supabase
     .from('recipes')
@@ -322,7 +323,7 @@ export async function getRecipeIngredients(
     .select('*')
     .in('recipe_id', ids)
   return data ?? []
-}
+})
 
 export async function getRecipeLines(
   recipeId: string
@@ -335,9 +336,9 @@ export async function getRecipeLines(
   return data ?? []
 }
 
-export async function getStockMovements(
+export const getStockMovements = cache(async (
   tenantId: string
-): Promise<StockMovement[]> {
+): Promise<StockMovement[]> => {
   const supabase = createClient()
   const { data } = await supabase
     .from('stock_movements')
@@ -345,7 +346,7 @@ export async function getStockMovements(
     .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false })
   return data ?? []
-}
+})
 
 export async function getRecentMovements(
   tenantId: string,
@@ -569,9 +570,9 @@ export async function getPurchaseLog(
 // All active batches for the tenant, ordered FIFO (oldest received first).
 // SUM(quantity_remaining) per ingredient must equal deriveStockLevel() — see
 // the invariant note in lib/calculations/stock-level.ts.
-export async function getActiveBatches(
+export const getActiveBatches = cache(async (
   tenantId: string
-): Promise<IngredientBatch[]> {
+): Promise<IngredientBatch[]> => {
   const supabase = createClient()
   const { data } = await supabase
     .from('ingredient_batches')
@@ -580,7 +581,7 @@ export async function getActiveBatches(
     .eq('status', 'active')
     .order('received_date', { ascending: true })
   return (data ?? []) as IngredientBatch[]
-}
+})
 
 // The global quick-start catalog (not tenant-scoped; public read).
 // Full library, unfiltered — for the system-admin catalog page.
@@ -607,7 +608,7 @@ export async function getCommonLibrary(): Promise<GlobalIngredient[]> {
   return data ?? []
 }
 
-export async function getTenant(tenantId: string): Promise<Tenant | null> {
+export const getTenant = cache(async (tenantId: string): Promise<Tenant | null> => {
   const supabase = createClient()
   const { data } = await supabase
     .from('tenants')
@@ -615,7 +616,7 @@ export async function getTenant(tenantId: string): Promise<Tenant | null> {
     .eq('id', tenantId)
     .maybeSingle()
   return data ?? null
-}
+})
 
 export interface DayConfirmPreviewLine {
   ingredient_id: string

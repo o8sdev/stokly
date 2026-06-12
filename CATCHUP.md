@@ -296,6 +296,19 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Dashboard UX: streamed, decluttered, habit-first (no migration)
+The owner dashboard now **streams**: the shell (hero greeting + quick actions + range selector)
+paints from 4 cheap lookups; the KPI band, panels and ops widgets arrive via three `<Suspense>`
+sections (`components/dashboard/dashboard-sections.tsx`) with skeleton fallbacks + a matching
+`loading.tsx`. The 6 hottest read helpers (`getIngredients/getRecipes/getRecipeIngredients/
+getStockMovements/getActiveBatches/getTenant`) are wrapped in React `cache()` so parallel sections
+share one fetch per request. Decluttered: the redundant PageHeader title/buttons are gone — the
+greeting IS the header (business name in brand color, streak chip right); a **quick-action row**
+(visible on mobile too) leads with the daily habit **"Satış daxil et"** (primary, filled) +
+count/purchases/waste; the **attention strip moved above the panels**. Delight: `.card-stagger`
+entrance animation (50ms steps, reduced-motion safe) on KPI + panel grids. New i18n
+`dashboard.qa_sales` (az/ru). Verified visually via the demo login (social-shots/dashboard-full.png).
+
 ### Done — DB review hardening (migration 050, applied live)
 Full 14-table review against the live schema (all "text" status columns turned out to be
 **text + CHECK** — values are DB-enforced everywhere; pattern kept deliberately over enums).
