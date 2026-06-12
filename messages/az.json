@@ -1379,7 +1379,31 @@
       "faq": "Tez-tez verilən suallar",
       "demo": "Demo tələb et",
       "login": "Daxil ol",
-      "blog": "Bloq"
+      "blog": "Bloq",
+      "pricing": "Qiymət"
+    },
+    "pricing": {
+      "kicker": "Qiymətlər",
+      "title": "Menyu kimi sadə.",
+      "lead": "İki seçim — dequstasiya və əsas yemək. Gizli xərc yoxdur.",
+      "menu_label": "Qiymət menyusu",
+      "trial_name": "Sınaq",
+      "trial_price": "0 ₼",
+      "trial_period": "14 gün",
+      "trial_desc": "Bütün funksiyalar açıq — öz mətbəxinizdə, öz rəqəmlərinizlə yoxlayın.",
+      "normal_name": "Standart",
+      "normal_price": "99 ₼",
+      "per_month": "/ ay",
+      "normal_desc": "Tam funksionallıq, limitsiz komanda. Restoran böyüdükcə qiymət dəyişmir.",
+      "includes": [
+        "Resept maya dəyəri və marja",
+        "FIFO partiya və son istifadə izləmə",
+        "Sayım, itki və dövr hesabatları",
+        "AZ + RU dəstək"
+      ],
+      "stamp": "Tövsiyə olunur",
+      "note": "Kart tələb olunmur · istənilən vaxt imtina",
+      "cta": "Sınağa başla"
     },
     "receipt": {
       "title": "Günlük hesabat",

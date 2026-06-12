@@ -10,6 +10,7 @@ const SECTIONS = [
   { id: 'product', key: 'services' },
   { id: 'how', key: 'how' },
   { id: 'testimonials', key: 'testimonials' },
+  { id: 'pricing', key: 'pricing' },
   { id: 'faq', key: 'faq' },
 ] as const
 

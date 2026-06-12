@@ -296,6 +296,16 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Landing pricing section: the "menu card" (№ 07, no migration)
+Pricing rendered as a printed **price menu** in the ledger concept: double-rule frame, centered
+"STOKLY ✳ 2026 / Qiymət menyusu" header, courses with dot leaders — **Sınaq … 0 ₼ [14 gün]** and
+**Standart … 99 ₼ /ay** (matches the live `plans` table: trial 0/14d, normal 99 AZN; legacy plans
+inactive) — ✳ ✳ ✳ course dividers, teal "Tövsiyə olunur" stamp on Standart, 4-item includes list,
+dashed-rule footer with ink CTA → `#demo` (no self-serve signup; demo form starts the trial) +
+"kart tələb olunmur" note. Placed between testimonials and demo; demo→№ 08, FAQ→№ 09; nav gained
+"Qiymət/Цены". New i18n `landing.pricing.*` (az/ru). **Prices are marketing copy — keep in sync
+with the `plans` table if admin edits them.** Verified in preview (1100px + 390px); build green.
+
 ### Done — Dashboard engagement pass (no migration)
 The owner dashboard got the "want to open it every morning" layer: a client-side **time-of-day
 greeting** with the business name + a **sales-recording streak chip** (🔥 `{n} gün ardıcıl qeydiyyat`,

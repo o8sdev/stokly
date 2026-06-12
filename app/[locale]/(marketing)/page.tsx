@@ -59,6 +59,7 @@ export default async function LandingPage({
   }[]
   const testimonials = t.raw('testimonials.items') as Testimonial[]
   const faqItems = t.raw('faq.items') as FaqItem[]
+  const pricingIncludes = t.raw('pricing.includes') as string[]
 
   const dashboardLabels: DashboardLabels = {
     title: t('mock.dashboard_title'),
@@ -606,11 +607,162 @@ export default async function LandingPage({
         <Testimonials items={testimonials} />
       </section>
 
-      {/* ── № 07 · DEMO (order pad) ─────────────────────────────────────── */}
+      {/* ── № 07 · PRICING (the menu card) ──────────────────────────────── */}
+      <section id="pricing" className="scroll-mt-24 pb-24 lg:pb-32">
+        <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <Reveal>
+            <SectionIndex no="07">{t('pricing.kicker')}</SectionIndex>
+            <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
+              <h2
+                className="max-w-xl font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
+                style={{ color: INK }}
+              >
+                {t('pricing.title')}
+              </h2>
+              <p className="max-w-sm text-base leading-relaxed" style={{ color: INK2 }}>
+                {t('pricing.lead')}
+              </p>
+            </div>
+          </Reveal>
+
+          {/* Printed menu card: double-rule frame, courses with dot leaders,
+              ✳ ornament dividers — priced like a menu du jour. */}
+          <Reveal delay={120} variant="scale" className="mx-auto mt-12 max-w-2xl">
+            <div className="border p-1.5" style={{ borderColor: '#b5af9c' }}>
+              <div
+                className="relative border-[1.5px] bg-[#fbfaf5] px-6 py-9 sm:px-10"
+                style={{ borderColor: INK }}
+              >
+                <div className="text-center">
+                  <p
+                    className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em]"
+                    style={{ color: INK3 }}
+                  >
+                    stokly ✳ 2026
+                  </p>
+                  <p
+                    className="mt-2 font-display text-2xl font-bold tracking-tight"
+                    style={{ color: INK }}
+                  >
+                    {t('pricing.menu_label')}
+                  </p>
+                </div>
+
+                <MenuDivider />
+
+                {/* Course 1 — the tasting (trial) */}
+                <div>
+                  <div className="mk-lead">
+                    <span
+                      className="font-display text-xl font-semibold"
+                      style={{ color: INK }}
+                    >
+                      {t('pricing.trial_name')}
+                    </span>
+                    <span className="mk-lead-dots" aria-hidden />
+                    <span
+                      className="font-mono text-xl font-semibold tabular-nums"
+                      style={{ color: INK }}
+                    >
+                      {t('pricing.trial_price')}
+                    </span>
+                    <span
+                      className="rounded-[3px] border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em]"
+                      style={{ borderColor: '#c9c2ab', color: INK2 }}
+                    >
+                      {t('pricing.trial_period')}
+                    </span>
+                  </div>
+                  <p
+                    className="mt-2 max-w-md text-[15px] leading-relaxed"
+                    style={{ color: INK2 }}
+                  >
+                    {t('pricing.trial_desc')}
+                  </p>
+                </div>
+
+                <MenuDivider />
+
+                {/* Course 2 — the main (Standart), stamped */}
+                <div className="relative">
+                  <span className="mk-stamp absolute -top-5 right-0 text-[11px] sm:-right-4">
+                    ✓ {t('pricing.stamp')}
+                  </span>
+                  <div className="mk-lead">
+                    <span
+                      className="font-display text-xl font-semibold"
+                      style={{ color: INK }}
+                    >
+                      {t('pricing.normal_name')}
+                    </span>
+                    <span className="mk-lead-dots" aria-hidden />
+                    <span className="flex items-baseline gap-1.5">
+                      <span
+                        className="font-mono text-3xl font-semibold tabular-nums"
+                        style={{ color: INK }}
+                      >
+                        {t('pricing.normal_price')}
+                      </span>
+                      <span className="font-mono text-xs" style={{ color: INK3 }}>
+                        {t('pricing.per_month')}
+                      </span>
+                    </span>
+                  </div>
+                  <p
+                    className="mt-2 max-w-md text-[15px] leading-relaxed"
+                    style={{ color: INK2 }}
+                  >
+                    {t('pricing.normal_desc')}
+                  </p>
+                  <ul className="mt-4 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                    {pricingIncludes.map((line) => (
+                      <li
+                        key={line}
+                        className="flex items-baseline gap-2.5 text-[14px]"
+                        style={{ color: INK }}
+                      >
+                        <span
+                          className="font-mono text-xs"
+                          style={{ color: '#00926e' }}
+                          aria-hidden
+                        >
+                          —
+                        </span>
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div
+                  className="mt-8 border-t border-dashed pt-6 text-center"
+                  style={{ borderColor: '#c9c2ab' }}
+                >
+                  <a
+                    href="#demo"
+                    className="group inline-flex h-11 items-center gap-2 rounded-md bg-[#1c1a14] px-6 text-sm font-semibold text-[#f4f1e8] transition-colors hover:bg-[#00926e]"
+                  >
+                    {t('pricing.cta')}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </a>
+                  <p
+                    className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em]"
+                    style={{ color: INK3 }}
+                  >
+                    {t('pricing.note')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── № 08 · DEMO (order pad) ─────────────────────────────────────── */}
       <section id="demo" className="scroll-mt-24 pb-24 lg:pb-32">
         <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 lg:grid-cols-2 lg:px-8">
           <Reveal variant="left">
-            <SectionIndex no="07">{t('demo.kicker')}</SectionIndex>
+            <SectionIndex no="08">{t('demo.kicker')}</SectionIndex>
             <h2
               className="mt-5 font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
               style={{ color: INK }}
@@ -659,11 +811,11 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* ── № 08 · FAQ ──────────────────────────────────────────────────── */}
+      {/* ── № 09 · FAQ ──────────────────────────────────────────────────── */}
       <section id="faq" className="scroll-mt-24 pb-24 lg:pb-32">
         <div className="mx-auto max-w-3xl px-5 lg:px-8">
           <Reveal>
-            <SectionIndex no="08">{t('faq.kicker')}</SectionIndex>
+            <SectionIndex no="09">{t('faq.kicker')}</SectionIndex>
             <h2
               className="mt-5 font-display text-3xl font-bold leading-[1.08] tracking-[-0.02em] lg:text-[2.6rem]"
               style={{ color: INK }}
@@ -713,6 +865,18 @@ export default async function LandingPage({
 
       <MarketingFooter locale={locale} />
     </div>
+  )
+}
+
+/* Centered ✳ ornament divider, the way printed menus separate courses. */
+function MenuDivider() {
+  return (
+    <p
+      className="my-7 text-center font-mono text-[11px] tracking-[0.6em] text-[#c9c2ab]"
+      aria-hidden
+    >
+      ✳ ✳ ✳
+    </p>
   )
 }
 
