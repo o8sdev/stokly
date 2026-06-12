@@ -126,6 +126,44 @@ async function recipeUnitsConvertible(
   })
 }
 
+// The payload comes from the client — verify every sub-recipe line actually
+// points at one of THIS tenant's sub-recipes and never at the recipe itself
+// (the builder filters its pickers, but the server must not trust that).
+async function subRecipeLinesValid(
+  supabase: ReturnType<typeof createClient>,
+  tenantId: string,
+  lines: { kind: string; sourceId: string }[],
+  selfId?: string
+): Promise<boolean> {
+  const subIds = [
+    ...new Set(
+      lines.filter((l) => l.kind === 'sub_recipe').map((l) => l.sourceId)
+    ),
+  ]
+  if (subIds.length === 0) return true
+  if (selfId && subIds.includes(selfId)) return false
+  const { data } = await supabase
+    .from('recipes')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .eq('is_sub_recipe', true)
+    .in('id', subIds)
+  return (data ?? []).length === subIds.length
+}
+
+// A prep referenced by other recipes' lines can't silently stop being one —
+// those lines would keep pointing at a "sub-recipe" that no longer is.
+async function subRecipeInUse(
+  supabase: ReturnType<typeof createClient>,
+  recipeId: string
+): Promise<boolean> {
+  const { count } = await supabase
+    .from('recipe_ingredients')
+    .select('recipe_id', { count: 'exact', head: true })
+    .eq('sub_recipe_id', recipeId)
+  return (count ?? 0) > 0
+}
+
 async function persistLines(
   recipeId: string,
   lines: { kind: string; sourceId: string; quantity: number; unit: string; yieldOverride?: number | '' }[]
@@ -169,6 +207,9 @@ export async function createRecipe(
   }
 
   const supabase = createClient()
+  if (!(await subRecipeLinesValid(supabase, ctx.tenantId, data.lines))) {
+    return { error: 'validation' }
+  }
   const consumptionLocationId = await resolveConsumptionLocation(
     supabase,
     ctx.tenantId,
@@ -238,6 +279,14 @@ export async function updateRecipe(
   }
 
   const supabase = createClient()
+  if (!(await subRecipeLinesValid(supabase, ctx.tenantId, data.lines, id))) {
+    return { error: 'validation' }
+  }
+  // Demoting a prep to a dish while other recipes still reference it as a
+  // sub-recipe would strand those lines — refuse with a clear error.
+  if (!data.is_sub_recipe && (await subRecipeInUse(supabase, id))) {
+    return { error: 'in_use' }
+  }
   const consumptionLocationId = await resolveConsumptionLocation(
     supabase,
     ctx.tenantId,

@@ -123,8 +123,10 @@ export function computeRecipesWithCost(
       recipe.serving_size && recipe.serving_size > 0
         ? totalCost / recipe.serving_size
         : totalCost
+    // sale_price is the MENU price of one serving, so food-cost % compares it
+    // against the per-serving cost (totalCost is the whole batch).
     const percent = recipe.sale_price
-      ? foodCostPercent(totalCost, recipe.sale_price)
+      ? foodCostPercent(perServing, recipe.sale_price)
       : 0
     return {
       ...recipe,

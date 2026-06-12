@@ -854,6 +854,7 @@
     "kind_hint": "Yarımfabrikat menyuda satılmır; onu yeməyin tərkibində komponent kimi seçirsiniz (məs. pomidor sousu → makaron yeməyində).",
     "line_kind_hint": "İnqrediyent = xammal (un, ət). Yarımfabrikat = əvvəlcədən hazırladığınız komponent (sous, xəmir).",
     "unit_error": "Resept sətirlərindən birinin vahidi inqrediyentin baza vahidinə çevrilmir. İnqrediyent səhifəsində çevrilmə təyin edin.",
+    "in_use_error": "Bu yarımfabrikat başqa reseptlərdə istifadə olunur — əvvəlcə onu həmin reseptlərdən çıxarın, sonra adi reseptə çevirin.",
     "stocked": "Anbarda saxlanılır (Yarımfabrikat)",
     "stocked_help": "İstehsalda xammal silinir, hazır yarımfabrikat anbara əlavə olunur; satışda yarımfabrikat silinir (xammal yox).",
     "made_to_order_help": "Sifarişlə hazırlanır: satış zamanı birbaşa xammal silinir, anbarda saxlanılmır.",

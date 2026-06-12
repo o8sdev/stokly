@@ -118,7 +118,14 @@ export function RecipeIngredientsEditor({
                       unit: picked?.unit ?? line.unit,
                     })
                   } else {
-                    onChange(line.key, { sourceId: id })
+                    // A sub-recipe quantity is ALWAYS in the prep's serving
+                    // unit — that's what costing and stock deduction assume —
+                    // so the unit is set from the prep, never typed.
+                    const picked = subRecipeOptions.find((o) => o.id === id)
+                    onChange(line.key, {
+                      sourceId: id,
+                      unit: picked?.serving_unit || 'porsiya',
+                    })
                   }
                 }}
                 className="flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
@@ -165,11 +172,19 @@ export function RecipeIngredientsEditor({
                 ))}
               </select>
             ) : (
+              // Locked to the prep's serving unit — the quantity means
+              // "servings of the prep", so a free unit here would only mislead.
               <Input
-                value={line.unit}
-                placeholder={t('line_unit')}
-                onChange={(e) => onChange(line.key, { unit: e.target.value })}
-                className="h-9"
+                value={
+                  subRecipeOptions.find((o) => o.id === line.sourceId)
+                    ?.serving_unit ||
+                  line.unit ||
+                  'porsiya'
+                }
+                readOnly
+                disabled
+                aria-label={t('line_unit')}
+                className="h-9 bg-secondary/50 text-muted-foreground"
               />
             )}
 

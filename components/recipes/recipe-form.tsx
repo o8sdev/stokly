@@ -235,7 +235,6 @@ export function RecipeForm({
       consumptionLocationId,
       categoryId,
       isStocked,
-      isSubRecipe,
       notes,
       lines,
     ]
@@ -506,7 +505,9 @@ export function RecipeForm({
             <p className="text-sm text-destructive">
               {state.error === 'unit'
                 ? t('recipes.unit_error')
-                : t('common.error')}
+                : state.error === 'in_use'
+                  ? t('recipes.in_use_error')
+                  : t('common.error')}
             </p>
           )}
           <SubmitButton

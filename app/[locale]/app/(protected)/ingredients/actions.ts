@@ -60,6 +60,7 @@ export async function createIngredient(
     yield_percent: parsed.data.yield_percent,
     supplier_id: parsed.data.supplier_id ?? null,
     low_stock_threshold: parsed.data.low_stock_threshold ?? null,
+    par_level: parsed.data.par_level ?? null,
     is_produced: parsed.data.is_produced,
     default_shelf_life_days: parsed.data.default_shelf_life_days ?? null,
     storage_location: parsed.data.storage_location ?? null,

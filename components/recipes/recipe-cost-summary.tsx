@@ -31,11 +31,14 @@ export function RecipeCostSummary({
 }) {
   const t = useTranslations('recipes')
 
+  // sale_price is per SERVING (the menu price), so the live food-cost % and the
+  // suggested price compare against the per-serving cost, not the whole batch —
+  // mirroring computeRecipesWithCost and the menu-engineering report.
   const perServing = costPerServing(totalCost, servingSize)
   const parsedSale = salePrice === '' ? null : Number(salePrice)
   const percent =
-    parsedSale && parsedSale > 0 ? foodCostPercent(totalCost, parsedSale) : 0
-  const suggested = suggestedPrice(totalCost, 30)
+    parsedSale && parsedSale > 0 ? foodCostPercent(perServing, parsedSale) : 0
+  const suggested = suggestedPrice(perServing, 30)
 
   return (
     <StoklyCard className="lg:sticky lg:top-2">

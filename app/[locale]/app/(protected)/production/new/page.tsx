@@ -9,6 +9,7 @@ import {
   getConsumptionPoints,
 } from '@/lib/data/queries'
 import { tenantHasFeature } from '@/lib/admin/entitlements'
+import { toBaseUnit } from '@/lib/constants/units'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { ProductionForm } from '@/components/production/production-form'
@@ -31,12 +32,20 @@ export default async function NewProductionPage({
     ])
 
   // Direct ingredient lines per recipe (used to pre-fill production inputs).
+  // Quantities are converted into each ingredient's BASE/stock unit here —
+  // execute_production_run deducts stock in that unit, so a "200 q" recipe line
+  // on a kq-stocked ingredient must arrive as 0.2, not 200.
+  const ingById = new Map(ingredients.map((i) => [i.id, i]))
   const recipeLines: Record<string, { ingredient_id: string; quantity: number }[]> = {}
   for (const l of recipeIngredients) {
     if (!l.ingredient_id) continue
+    const ing = ingById.get(l.ingredient_id)
+    const qty = ing
+      ? toBaseUnit(Number(l.quantity), l.unit, ing.unit, ing.unit_conversions)
+      : Number(l.quantity)
     ;(recipeLines[l.recipe_id] ??= []).push({
       ingredient_id: l.ingredient_id,
-      quantity: Number(l.quantity),
+      quantity: qty,
     })
   }
 

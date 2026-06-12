@@ -296,6 +296,25 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Correctness sweep: ingredients, recipes/preps, unit conversions (no migration)
+Audited the whole add-ingredient → build-recipe → sell pipeline; six bugs found and fixed, proven
+by `scripts/calc-audit.ts` (21 assertions against the REAL calc modules — run
+`npx -y tsx scripts/calc-audit.ts`):
+- **Batch-dish semantics unified — sale_price is per SERVING.** `computeRecipesWithCost` and the
+  live `RecipeCostSummary` now compute food-cost % (and the suggested price) from **cost per
+  serving**, matching menu engineering; `computeTheoreticalUsage` divides the sold qty by
+  `serving_size`, so selling 1 serving of a 4-serving batch deducts ¼ batch (was: full batch per
+  serving, and % inflated ×size). Live DB had **0** batch dishes/sales ⇒ no historical distortion.
+- **Production template conversion:** `production/new` now converts template lines to each
+  ingredient's base unit (`toBaseUnit`) — a 200 q line on a kq item pre-fills 0.2, not 200.
+- **Sub-recipe line unit locked** to the prep's `serving_unit` in the editor (was free text; the
+  math always meant "servings of the prep").
+- **`createIngredient` now persists `par_level`** (insert dropped it; update had it).
+- **Server-side recipe guards:** sub-recipe lines must reference the tenant's own `is_sub_recipe`
+  recipes and never the recipe itself; demoting a referenced prep to a dish returns `in_use`
+  (i18n `recipes.in_use_error` az/ru).
+- Cleared the long-standing duplicate-dep lint warning in recipe-form (lint now fully clean).
+
 ### Done — Landing pricing section: the "menu card" (№ 07, no migration)
 Pricing rendered as a printed **price menu** in the ledger concept: double-rule frame, centered
 "STOKLY ✳ 2026 / Qiymət menyusu" header, courses with dot leaders — **Sınaq … 0 ₼ [14 gün]** and

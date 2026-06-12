@@ -91,7 +91,14 @@ export function computeTheoreticalUsage(
   const ctx = buildResolveContext(ingredients, recipes, recipeIngredients)
   const acc = new Map<string, number>()
   for (const item of soldItems) {
-    explode(item.recipe_id, item.quantity, ctx, acc, new Set())
+    // A recipe's lines describe ONE BATCH; serving_size says how many servings
+    // that batch makes, and a sold unit is one serving. Normalize here so a
+    // 4-serving dish sold once consumes a quarter of the batch — matching how
+    // cost-per-serving (and the menu price) are presented.
+    const recipe = ctx.recipes.get(item.recipe_id)
+    const size =
+      recipe?.serving_size && recipe.serving_size > 0 ? recipe.serving_size : 1
+    explode(item.recipe_id, item.quantity / size, ctx, acc, new Set())
   }
 
   let theoreticalCogs = 0
