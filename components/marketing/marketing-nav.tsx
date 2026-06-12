@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Menu, X, Globe, ArrowRight } from 'lucide-react'
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation'
 import { cn } from '@/lib/utils'
+import { StoklyLogo } from '@/components/brand/logo'
 
 const SECTIONS = [
   { id: 'product', key: 'services' },
@@ -44,11 +45,8 @@ export function MarketingNav({ locale }: { locale: string }) {
       )}
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 lg:px-8">
-        <Link href="/" className="flex items-baseline gap-1">
-          <span className="font-display text-xl font-bold tracking-tight text-[#1c1a14]">
-            Stokly
-          </span>
-          <span className="text-lg leading-none text-[#00926e]">*</span>
+        <Link href="/" className="flex items-center">
+          <StoklyLogo tone="ink" />
         </Link>
 
         <div className="hidden items-center gap-7 md:flex">

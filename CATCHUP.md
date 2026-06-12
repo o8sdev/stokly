@@ -296,6 +296,23 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Brand: Stokly ✳ logo suite + favicon/OG + Instagram handoff kit (no migration)
+The de-facto asterisk identity is now a real logo: **`components/brand/logo.tsx`** — `StoklyMark`
+(six rounded spokes, 8° hand-stamp tilt, drawn as paths not a font glyph) + `StoklyLogo` lockup
+(tones ink/paper/brand, sizes sm/md/lg). Swapped into all 9 wordmark touchpoints (marketing nav,
+footer, hero receipt; tenant sidebar + mobile header; admin sidebar, header, drawer, login).
+- **Icons:** `app/icon.svg` (favicon: ink tile + teal ✳), `app/apple-icon.png`,
+  `app/opengraph-image.png` (1200×630 ruled-paper card: lockup + mono tagline + Hesablandı stamp);
+  `public/brand-mark.svg`. `metadataBase` set from **`NEXT_PUBLIC_SITE_URL`** (set it in prod —
+  remaining build warnings are the root image-route stubs, cosmetic).
+- **`scripts/render-brand.ts`** (puppeteer + installed Chrome) regenerates all brand PNGs incl. IG
+  kit in `social-shots/brand/` (profile tiles 1080², lockups, transparent marks). Screenshots in
+  `social-shots/` re-captured with the new logo.
+- **`marketing/instagram-brief.md`** — a self-contained, paste-ready prompt for a separate
+  content-design chat: true product facts (no invented metrics; demo-data honesty rules), full
+  brand system (hex/fonts/motifs/voice), asset inventory, IG formats, 5 content pillars, the first
+  9-post grid, caption formula (AZ+RU) + hashtag bank, per-post output spec.
+
 ### Done — Admin lifecycle gaps closed: paid expiry, auto-churn, payment dedupe (migration 049)
 The three real holes from the admin business-logic audit are fixed — **migration 049 applied live**:
 - **`subscription_sweep(p_paid_grace_days=7, p_churn_after_days=30)`** (SECURITY DEFINER; service_role

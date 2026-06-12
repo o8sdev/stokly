@@ -6,6 +6,7 @@ import { LogOut, ChevronDown } from 'lucide-react'
 import { usePathname, Link } from '@/lib/i18n/navigation'
 import { NAV_SECTIONS, isNavGroup, type NavItem } from './nav-items'
 import { cn } from '@/lib/utils'
+import { StoklyLogo } from '@/components/brand/logo'
 import type { Role } from '@/types/database'
 
 // Pick the single best-matching nav href for the current path (longest prefix),
@@ -73,11 +74,8 @@ export function Sidebar({
   return (
     <aside className="hidden w-60 shrink-0 flex-col bg-sidebar md:flex">
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2 px-6">
-        <span className="h-2 w-2 rounded-full bg-brand" />
-        <span className="text-[20px] font-semibold tracking-tight text-brand">
-          Stokly
-        </span>
+      <div className="flex h-14 items-center px-6">
+        <StoklyLogo tone="brand" />
       </div>
 
       {/* Sections */}

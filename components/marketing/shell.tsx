@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server'
+import { StoklyLogo } from '@/components/brand/logo'
 
 // Fixed atmosphere layer: ruled ledger paper with a red margin line and a faint
 // static grain. Shared by the landing and blog pages.
@@ -15,12 +16,7 @@ export async function MarketingFooter({ locale }: { locale: string }) {
       <div className="mx-auto max-w-6xl px-5 py-14 lg:px-8">
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-xs">
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-display text-2xl font-bold tracking-tight text-[#1c1a14]">
-                Stokly
-              </span>
-              <span className="text-[#00926e]">*</span>
-            </div>
+            <StoklyLogo tone="ink" size="lg" />
             <p className="mt-3 text-sm leading-relaxed text-[#5b574a]">
               {t('footer.tagline')}
             </p>

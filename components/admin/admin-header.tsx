@@ -8,6 +8,7 @@ import { AdminCommandMenu } from './admin-command-menu'
 import { AdminNotificationsBell } from './admin-notifications-bell'
 import type { AdminNotification } from '@/types/database'
 import type { SearchResult } from '@/lib/admin/search'
+import { StoklyLogo } from '@/components/brand/logo'
 
 export function AdminHeader({
   locale,
@@ -43,8 +44,7 @@ export function AdminHeader({
           <Menu className="h-5 w-5" />
         </button>
         <span className="flex items-center gap-2 md:hidden">
-          <span className="h-2 w-2 rounded-full bg-brand" />
-          <span className="font-display text-lg font-bold text-white">Stokly</span>
+          <StoklyLogo tone="paper" size="sm" />
         </span>
       </div>
 
@@ -67,10 +67,7 @@ export function AdminHeader({
           <div className="absolute left-0 top-0 flex h-full w-64 flex-col bg-sidebar p-4">
             <div className="mb-4 flex h-10 items-center justify-between">
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-brand" />
-                <span className="font-display text-lg font-bold text-white">
-                  Stokly
-                </span>
+                <StoklyLogo tone="paper" size="sm" />
               </span>
               <button
                 type="button"

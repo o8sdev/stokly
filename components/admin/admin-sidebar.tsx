@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react'
 import { usePathname, Link } from '@/lib/i18n/navigation'
 import { ADMIN_NAV_SECTIONS, ADMIN_NAV_HREFS } from './admin-nav-items'
 import { cn } from '@/lib/utils'
+import { StoklyLogo } from '@/components/brand/logo'
 
 // Longest-prefix match so /admin/tenants/123 highlights "Tenants", and the bare
 // /admin only matches the Dashboard item.
@@ -75,10 +76,7 @@ export function AdminSidebar({
   return (
     <aside className="hidden w-60 shrink-0 flex-col bg-sidebar md:flex">
       <div className="flex h-14 items-center gap-2 px-6">
-        <span className="h-2 w-2 rounded-full bg-brand" />
-        <span className="text-[20px] font-semibold tracking-tight text-brand">
-          Stokly
-        </span>
+        <StoklyLogo tone="brand" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
           admin
         </span>

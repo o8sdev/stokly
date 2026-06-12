@@ -6,6 +6,7 @@ import { Bell, LogOut } from 'lucide-react'
 import { usePathname, useRouter } from '@/lib/i18n/navigation'
 import { NAV_SECTIONS, isNavGroup } from './nav-items'
 import { cn } from '@/lib/utils'
+import { StoklyLogo } from '@/components/brand/logo'
 
 // Resolve the current page's nav label key from the longest matching href.
 // Groups are expanded into their child links so /app/purchases resolves too.
@@ -78,8 +79,8 @@ export function Header({
   return (
     <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-card px-4 md:px-6">
       <div className="flex items-center gap-2">
-        <span className="text-lg font-semibold md:hidden">
-          <span className="text-brand">Stokly</span>
+        <span className="md:hidden">
+          <StoklyLogo tone="brand" size="sm" />
         </span>
         <h1 className="hidden text-lg font-semibold text-foreground md:block">
           {title}

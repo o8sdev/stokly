@@ -48,6 +48,11 @@ const spectral = Spectral({
 })
 
 export const metadata: Metadata = {
+  // Absolute base for og/twitter image URLs (app/opengraph-image.png). Set
+  // NEXT_PUBLIC_SITE_URL to the real domain in production.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  ),
   title: 'Stokly',
   description: 'Restaurant inventory and food-cost management',
 }

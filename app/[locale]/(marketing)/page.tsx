@@ -20,6 +20,7 @@ import {
 } from '@/components/marketing/testimonials'
 import { Faq, type FaqItem } from '@/components/marketing/faq'
 import { DemoForm } from '@/components/marketing/demo-form'
+import { StoklyLogo } from '@/components/brand/logo'
 
 /* "Kitchen ledger" landing — warm paper, ink type, hairline rules, mono
    numerals. The hero artifact is a till receipt; steps hang as kitchen
@@ -205,9 +206,9 @@ export default async function LandingPage({
             />
             <div className="mk-receipt relative rotate-[1.25deg] px-6 pb-7 pt-6 sm:px-7">
               <div className="text-center">
-                <p className="font-display text-lg font-bold tracking-tight" style={{ color: INK }}>
-                  Stokly<span style={{ color: '#00926e' }}>*</span>
-                </p>
+                <span className="inline-flex justify-center">
+                  <StoklyLogo tone="ink" size="sm" />
+                </span>
                 <p
                   className="mt-1 font-mono text-[10px] uppercase tracking-[0.28em]"
                   style={{ color: INK3 }}
