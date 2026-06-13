@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import type { Json } from '@/types/database'
+import { logActivity } from '@/lib/data/activity'
 
 export interface ProductionResult {
   error?: string
@@ -64,6 +65,11 @@ export async function executeProductionRun(
     return { error: 'generic' }
   }
 
+  await logActivity('production.run', {
+    entityType: 'production',
+    entityId: d.output_ingredient_id,
+    meta: { quantity: d.output_quantity, recipe_id: d.recipe_id || null },
+  })
   revalidatePath(`/${locale}/app/production`)
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/dashboard`)
@@ -93,6 +99,10 @@ export async function voidProductionRun(
     return { error: 'generic' }
   }
 
+  await logActivity('production.void', {
+    entityType: 'production',
+    entityId: runId,
+  })
   revalidatePath(`/${locale}/app/production`)
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/dashboard`)

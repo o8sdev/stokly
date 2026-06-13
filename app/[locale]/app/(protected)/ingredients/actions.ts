@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { ingredientSchema } from '@/lib/validations/ingredient'
+import { logActivity } from '@/lib/data/activity'
 
 export interface ActionResult {
   error?: string
@@ -215,11 +216,18 @@ export async function archiveIngredient(
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return
   const supabase = createClient()
-  await supabase
+  const { data: row } = await supabase
     .from('ingredients')
     .update({ archived_at: new Date().toISOString() })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('ingredient.archive', {
+    entityType: 'ingredient',
+    entityId: id,
+    meta: { name: row?.name },
+  })
   revalidatePath(`/${locale}/app/ingredients`)
 }
 
@@ -231,11 +239,18 @@ export async function restoreIngredient(
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return
   const supabase = createClient()
-  await supabase
+  const { data: row } = await supabase
     .from('ingredients')
     .update({ archived_at: null })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('ingredient.restore', {
+    entityType: 'ingredient',
+    entityId: id,
+    meta: { name: row?.name },
+  })
   revalidatePath(`/${locale}/app/ingredients`)
 }
 

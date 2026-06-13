@@ -10,6 +10,7 @@ import {
   isFrozenKind,
   isLocationKind,
 } from '@/lib/constants/locations'
+import { logActivity } from '@/lib/data/activity'
 
 export interface SettingsResult {
   error?: string
@@ -190,11 +191,18 @@ export async function archiveSupplier(
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return
   const supabase = createClient()
-  await supabase
+  const { data: row } = await supabase
     .from('suppliers')
     .update({ archived_at: new Date().toISOString() })
     .eq('id', supplierId)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('supplier.archive', {
+    entityType: 'supplier',
+    entityId: supplierId,
+    meta: { name: row?.name },
+  })
   revalidatePath(`/${locale}/app/settings/suppliers`)
 }
 
@@ -205,11 +213,18 @@ export async function restoreSupplier(
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return
   const supabase = createClient()
-  await supabase
+  const { data: row } = await supabase
     .from('suppliers')
     .update({ archived_at: null })
     .eq('id', supplierId)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('supplier.restore', {
+    entityType: 'supplier',
+    entityId: supplierId,
+    meta: { name: row?.name },
+  })
   revalidatePath(`/${locale}/app/settings/suppliers`)
 }
 
@@ -305,11 +320,18 @@ export async function archiveLocation(
     .eq('status', 'active')
     .gt('quantity_remaining', 0)
   if ((count ?? 0) > 0) return
-  await supabase
+  const { data: row } = await supabase
     .from('storage_locations')
     .update({ archived_at: new Date().toISOString() })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('location.archive', {
+    entityType: 'location',
+    entityId: id,
+    meta: { name: row?.name },
+  })
   revalidatePath(LOC_PATH(locale))
 }
 
@@ -320,11 +342,18 @@ export async function restoreLocation(
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return
   const supabase = createClient()
-  await supabase
+  const { data: row } = await supabase
     .from('storage_locations')
     .update({ archived_at: null })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('location.restore', {
+    entityType: 'location',
+    entityId: id,
+    meta: { name: row?.name },
+  })
   revalidatePath(LOC_PATH(locale))
 }
 

@@ -15,6 +15,7 @@ import {
   getRecentMovements,
   getActiveBatches,
 } from '@/lib/data/queries'
+import { resolveMemberEmails } from '@/lib/data/activity'
 import {
   getOverview,
   getOverviewPanels,
@@ -284,6 +285,9 @@ export async function OpsSection({
     .filter((r) => r.currentStock <= r.threshold)
     .slice(0, 6)
 
+  // Resolve every actor (not just the current user) so the feed shows who did
+  // what — accountability, and the read-side of the audit trail.
+  const actorEmails = await resolveMemberEmails(recent.map((m) => m.recorded_by))
   const recentRows: MovementRow[] = recent.map((m) => {
     const ing = ingredientById.get(m.ingredient_id)
     return {
@@ -294,7 +298,10 @@ export async function OpsSection({
       unit: ing?.unit ?? '',
       isAbsolute: m.is_absolute,
       createdAt: m.created_at,
-      user: m.recorded_by === userId ? email ?? '—' : '—',
+      user:
+        (m.recorded_by ? actorEmails.get(m.recorded_by) : null) ??
+        (m.recorded_by === userId ? email : null) ??
+        '—',
     }
   })
 

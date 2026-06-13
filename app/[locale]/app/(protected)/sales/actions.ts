@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { hasInitialCount } from '@/lib/data/counts'
+import { logActivity } from '@/lib/data/activity'
 import {
   getIngredients,
   getRecipes,
@@ -347,6 +348,11 @@ export async function confirmDailySales(
     )
   }
 
+  await logActivity('sales.confirm', {
+    entityType: 'sales',
+    entityId: dayId,
+    meta: { date: day.sale_date },
+  })
   revalidateSales(locale, day.sale_date)
   return { success: true }
 }
@@ -385,6 +391,11 @@ export async function voidDailySales(
     .delete()
     .eq('daily_sales_id', dayId)
 
+  await logActivity('sales.void', {
+    entityType: 'sales',
+    entityId: dayId,
+    meta: { date: day.sale_date, reason: reason.trim() },
+  })
   revalidateSales(locale, day.sale_date)
   return { success: true }
 }

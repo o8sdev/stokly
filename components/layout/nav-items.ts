@@ -20,6 +20,7 @@ import {
   Trash2,
   Coins,
   LineChart,
+  History,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -133,6 +134,11 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/app/reports/supplier-pricing',
             labelKey: 'supplier_pricing',
             icon: LineChart,
+          },
+          {
+            href: '/app/data/activity',
+            labelKey: 'data_activity',
+            icon: History,
           },
         ],
       },

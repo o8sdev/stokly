@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { createPeriodForCount } from '@/lib/data/counts'
+import { logActivity } from '@/lib/data/activity'
 import {
   stockCountSchema,
   deliverySchema,
@@ -69,6 +70,11 @@ export async function submitStockCount(
     })),
   })
   if (error) return { error: 'generic' }
+
+  await logActivity('inventory.count', {
+    entityType: 'count',
+    meta: { lines: parsed.data.lines.length, location_id: locationId },
+  })
 
   // Close the period (last count → the counted business date) and build its report.
   const periodId = await createPeriodForCount(ctx.tenantId, ctx.userId, cd)
@@ -238,6 +244,15 @@ export async function submitTransfer(
     return { error: 'generic' }
   }
 
+  await logActivity('inventory.transfer', {
+    entityType: 'transfer',
+    entityId: parsed.data.ingredient_id,
+    meta: {
+      quantity: parsed.data.quantity,
+      from: parsed.data.from_location_id,
+      to: parsed.data.to_location_id,
+    },
+  })
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/dashboard`)
   redirect(`/${locale}/app/inventory`)
@@ -302,6 +317,14 @@ export async function submitWaste(
     return { error: 'generic' }
   }
 
+  await logActivity('waste.record', {
+    entityType: 'waste',
+    entityId: parsed.data.ingredient_id,
+    meta: {
+      quantity: parsed.data.quantity,
+      reason: parsed.data.reason?.trim() || null,
+    },
+  })
   // Stay on the waste page (don't redirect to the same route — that leaves the
   // form's useFormState undefined). The client refreshes to show the new entry.
   revalidatePath(`/${locale}/app/inventory/waste`)
@@ -335,6 +358,10 @@ export async function reverseWaste(
     return { error: 'generic' }
   }
 
+  await logActivity('waste.reverse', {
+    entityType: 'waste',
+    entityId: movementId,
+  })
   revalidatePath(`/${locale}/app/inventory/waste`)
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/dashboard`)
@@ -351,11 +378,15 @@ export async function writeOffExpired(
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
   if (!reason.trim()) return { error: 'reason_required' }
   const supabase = createClient()
-  const { error } = await supabase.rpc('write_off_expired', {
+  const { data, error } = await supabase.rpc('write_off_expired', {
     p_tenant: ctx.tenantId,
     p_reason: reason.trim(),
   })
   if (error) return { error: 'generic' }
+  await logActivity('inventory.writeoff_expired', {
+    entityType: 'writeoff',
+    meta: { batches: data, reason: reason.trim() },
+  })
   revalidatePath(`/${locale}/app/inventory`)
   revalidatePath(`/${locale}/app/dashboard`)
   return { success: true }

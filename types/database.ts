@@ -64,6 +64,34 @@ export type FeatureKey =
 export interface Database {
   public: {
     Tables: {
+      tenant_activity_log: {
+        Row: {
+          id: string
+          tenant_id: string
+          actor_id: string | null
+          actor_email: string | null
+          action: string
+          entity_type: string | null
+          entity_id: string | null
+          meta: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          actor_id?: string | null
+          actor_email?: string | null
+          action: string
+          entity_type?: string | null
+          entity_id?: string | null
+          meta?: Json
+          created_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['tenant_activity_log']['Insert']
+        >
+        Relationships: []
+      }
       tenants: {
         Row: {
           id: string
@@ -1084,6 +1112,19 @@ export interface Database {
           p_meta?: Json
         }
         Returns: undefined
+      }
+      log_tenant_activity: {
+        Args: {
+          p_action: string
+          p_entity_type?: string | null
+          p_entity_id?: string | null
+          p_meta?: Json
+        }
+        Returns: undefined
+      }
+      tenant_member_emails: {
+        Args: { p_ids: string[] }
+        Returns: { user_id: string; email: string }[]
       }
       admin_tenant_metrics: {
         Args: { p_ids: string[] }

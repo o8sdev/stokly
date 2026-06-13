@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { recipeSchema } from '@/lib/validations/recipe'
+import { logActivity } from '@/lib/data/activity'
 import { getIngredients } from '@/lib/data/queries'
 import { isConvertible } from '@/lib/constants/units'
 
@@ -363,11 +364,18 @@ export async function archiveRecipe(
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
   const supabase = createClient()
   if (await subRecipeInUse(supabase, id)) return { error: 'in_use' }
-  await supabase
+  const { data: row } = await supabase
     .from('recipes')
     .update({ archived_at: new Date().toISOString() })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('recipe.archive', {
+    entityType: 'recipe',
+    entityId: id,
+    meta: { name: row?.name },
+  })
   revalidatePath(`/${locale}/app/recipes`)
   revalidatePath(`/${locale}/app/dashboard`)
   return { success: true }
@@ -380,11 +388,18 @@ export async function restoreRecipe(
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
   const supabase = createClient()
-  await supabase
+  const { data: row } = await supabase
     .from('recipes')
     .update({ archived_at: null })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
+    .select('name')
+    .maybeSingle()
+  await logActivity('recipe.restore', {
+    entityType: 'recipe',
+    entityId: id,
+    meta: { name: row?.name },
+  })
   revalidatePath(`/${locale}/app/recipes`)
   return { success: true }
 }
