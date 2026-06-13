@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { FieldHint } from '@/components/ui/field-hint'
 import { UNIT_OPTIONS, packPresetsFor } from '@/lib/constants/units'
+import { CostFromPurchase } from './cost-from-purchase'
 
 export function IngredientForm({
   locale,
@@ -129,12 +130,13 @@ export function IngredientForm({
           <Input
             id="cost_per_unit"
             name="cost_per_unit"
+            value={costVal}
+            placeholder="0"
             onChange={(e) => setCostVal(e.target.value)}
             type="number"
             step="0.0001"
             min="0"
             required
-            defaultValue={ingredient?.cost_per_unit ?? 0}
             className="mt-auto text-right font-mono tabular-nums"
           />
         </div>
@@ -158,6 +160,18 @@ export function IngredientForm({
           />
         </div>
       </div>
+
+      {baseUnit && (
+        <CostFromPurchase
+          baseUnit={baseUnit}
+          factors={Object.fromEntries(
+            convRows
+              .filter((r) => r.unit && Number(r.factor) > 0)
+              .map((r) => [r.unit, Number(r.factor)])
+          )}
+          onApply={(c) => setCostVal(String(c))}
+        />
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">

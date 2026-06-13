@@ -35,6 +35,7 @@ import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import { UNIT_OPTIONS, packPresetsFor } from '@/lib/constants/units'
+import { CostFromPurchase } from '@/components/ingredients/cost-from-purchase'
 
 interface SalesPoint {
   id: string
@@ -447,7 +448,8 @@ function IngredientsStep({
               type="number"
               step="0.0001"
               min="0"
-              defaultValue="0"
+              value={costVal}
+              placeholder="0"
               onChange={(e) => setCostVal(e.target.value)}
               className="text-right font-mono tabular-nums"
             />
@@ -464,6 +466,18 @@ function IngredientsStep({
             </select>
           </div>
         </div>
+
+        {baseUnit && (
+          <CostFromPurchase
+            baseUnit={baseUnit}
+            factors={Object.fromEntries(
+              convRows
+                .filter((r) => r.unit && Number(r.factor) > 0)
+                .map((r) => [r.unit, Number(r.factor)])
+            )}
+            onApply={(c) => setCostVal(String(c))}
+          />
+        )}
 
         {/* Unit conversions — e.g. fish priced per kq but bought/used as pieces:
             "1 ədəd = 0.45 kq". Costs the alt unit at the base price. */}
