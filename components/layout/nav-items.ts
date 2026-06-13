@@ -19,7 +19,6 @@ import {
   Warehouse,
   Trash2,
   Coins,
-  ScrollText,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -68,26 +67,28 @@ export const NAV_SECTIONS: NavSection[] = [
           { href: '/app/production', labelKey: 'production', icon: Factory },
         ],
       },
-      // Stock on hand, counts, and what leaves it.
+      // Stock on hand + the journals. Each journal page carries a "+ qeyd et"
+      // button to its entry form, so the entry isn't a separate sidebar row.
       {
         labelKey: 'stock',
         icon: Boxes,
         children: [
           { href: '/app/inventory', labelKey: 'inventory', icon: Boxes },
           { href: '/app/data/counts', labelKey: 'data_counts', icon: ClipboardList },
-          { href: '/app/inventory/waste', labelKey: 'waste_log', icon: Trash2 },
-          { href: '/app/data/waste', labelKey: 'data_waste', icon: ScrollText },
+          { href: '/app/data/waste', labelKey: 'data_waste', icon: Trash2 },
         ],
       },
-      // Money in / money out, each entry page followed by its journal.
+      // Money in / money out — the journals are home; entry is a button on each.
       {
         labelKey: 'trade',
         icon: ShoppingBag,
         children: [
-          { href: '/app/sales', labelKey: 'sales', icon: Receipt },
-          { href: '/app/data/sales', labelKey: 'data_sales', icon: ScrollText },
-          { href: '/app/purchases', labelKey: 'purchases', icon: ShoppingCart },
-          { href: '/app/data/purchases', labelKey: 'data_purchases', icon: ScrollText },
+          { href: '/app/data/sales', labelKey: 'data_sales', icon: Receipt },
+          {
+            href: '/app/data/purchases',
+            labelKey: 'data_purchases',
+            icon: ShoppingCart,
+          },
           {
             href: '/app/purchases/shopping-list',
             labelKey: 'shopping_list',
@@ -140,6 +141,16 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
 ]
+
+// Entry pages reached via a journal's "+ qeyd et" button / dashboard quick
+// actions (not sidebar rows) still need a correct top-bar title. Maps the
+// href to an existing `nav` label key.
+export const TITLE_ALIASES: Record<string, string> = {
+  '/app/sales': 'sales',
+  '/app/purchases': 'purchases',
+  '/app/inventory/waste': 'waste_log',
+  '/app/inventory/count': 'data_counts',
+}
 
 // Flat list used by the mobile bottom tab bar (icons only, primary routes).
 // Sales replaces the food-cost report: entering today's sales IS the daily loop.

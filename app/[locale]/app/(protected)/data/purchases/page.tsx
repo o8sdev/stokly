@@ -7,6 +7,7 @@ import {
 } from '@/lib/data/overview'
 import { getPurchaseLog } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
+import { EntryLinkButton } from '@/components/data/entry-link-button'
 import { RangeSelector } from '@/components/dashboard/range-selector'
 import { PurchasesExplorer } from '@/components/data/purchases-explorer'
 
@@ -34,6 +35,12 @@ export default async function PurchasesDataPage({
       <PageHeader
         title={t('data.purchases_title')}
         description={t('data.purchases_desc')}
+        action={
+          <EntryLinkButton
+            href="/app/purchases"
+            label={t('data.add_purchase')}
+          />
+        }
       />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">

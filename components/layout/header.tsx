@@ -4,13 +4,20 @@ import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { Bell, LogOut } from 'lucide-react'
 import { usePathname, useRouter } from '@/lib/i18n/navigation'
-import { NAV_SECTIONS, isNavGroup } from './nav-items'
+import { NAV_SECTIONS, isNavGroup, TITLE_ALIASES } from './nav-items'
 import { cn } from '@/lib/utils'
 import { StoklyLogo } from '@/components/brand/logo'
 
 // Resolve the current page's nav label key from the longest matching href.
 // Groups are expanded into their child links so /app/purchases resolves too.
 function activeLabelKey(pathname: string): string {
+  // Entry pages that aren't sidebar rows (sales / purchases / waste / count)
+  // still get a precise title via the alias map, keyed on the locale-stripped
+  // path tail (e.g. /az/app/sales → /app/sales).
+  const tail = pathname.replace(/^\/[a-z]{2}(?=\/)/, '')
+  for (const [href, key] of Object.entries(TITLE_ALIASES)) {
+    if (tail === href) return key
+  }
   const items = NAV_SECTIONS.flatMap((s) =>
     s.items.flatMap((i) => (isNavGroup(i) ? i.children : [i]))
   )

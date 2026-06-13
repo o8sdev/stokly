@@ -296,6 +296,26 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Journals are home; entry forms are a "+ qeyd et" button (no migration)
+Follow-up to the sidebar restructure: the standalone entry rows (İtki qeyd et, Satışlar, Alışlar)
+are **removed** from the sidebar. Each **journal** page is now the single sidebar home for its
+domain and carries a green **"+ qeyd et"** header action that links to its entry form:
+- **İtki jurnalı** (`/app/data/waste`) → "İtki qeyd et" → `/app/inventory/waste`
+- **Satış jurnalı** (`/app/data/sales`) → "Satış qeyd et" → `/app/sales`
+- **Alış jurnalı** (`/app/data/purchases`) → "Alış qeyd et" → `/app/purchases`
+- **Sayımlar** (`/app/data/counts`) → "Sayım et" → `/app/inventory/count` (added for symmetry)
+
+New groups: **Anbar** = İnventar · Sayımlar · İtki jurnalı; **Satış / Alış** = Satış jurnalı ·
+Alış jurnalı · Sifariş siyahısı. A shared `EntryLinkButton` (`components/data/entry-link-button.tsx`,
+Plus icon + `Link`) renders the action via `PageHeader`'s `action` slot. Because the entry pages are
+no longer `NAV_SECTIONS` rows, the top-bar title lost its prefix match → added `TITLE_ALIASES` in
+`nav-items.ts` (locale-stripped path tail → `nav` key) and a lookup in `header.tsx` so `/app/sales`
+→ "Satışlar", `/app/inventory/waste` → "İtki qeyd et", `/app/inventory/count` → "Sayımlar" resolve
+correctly instead of falling back to the dashboard label. Waste entry-page title unified to "İtki
+qeyd et" (`inventory.waste_log`) so the top bar and page heading match. Bilingual
+`data.add_sale/add_purchase/add_waste/add_count` (az/ru). Verified: typecheck + lint + clean build
+green, demo-login screenshot (button top-right, slimmer Satış/Alış group), puppeteer top-bar eval.
+
 ### Done — Sidebar restructure + waste naming unified (no migration)
 The tenant sidebar was too long (11 flat rows across two extra sections HESABATLAR + MƏLUMATLAR).
 Now everything related sits under ONE collapsible group inside ƏSAS, each entry page paired with its

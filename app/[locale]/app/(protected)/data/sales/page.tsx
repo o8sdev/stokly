@@ -9,6 +9,7 @@ import { getSalesLog } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { RangeSelector } from '@/components/dashboard/range-selector'
 import { SalesExplorer } from '@/components/data/sales-explorer'
+import { EntryLinkButton } from '@/components/data/entry-link-button'
 
 export default async function SalesDataPage({
   params: { locale },
@@ -34,6 +35,9 @@ export default async function SalesDataPage({
       <PageHeader
         title={t('data.sales_title')}
         description={t('data.sales_desc')}
+        action={
+          <EntryLinkButton href="/app/sales" label={t('data.add_sale')} />
+        }
       />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">

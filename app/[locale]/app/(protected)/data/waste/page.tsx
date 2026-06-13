@@ -7,6 +7,7 @@ import {
 } from '@/lib/data/overview'
 import { getWasteLog } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
+import { EntryLinkButton } from '@/components/data/entry-link-button'
 import { RangeSelector } from '@/components/dashboard/range-selector'
 import { WasteExplorer } from '@/components/data/waste-explorer'
 
@@ -34,6 +35,12 @@ export default async function WasteDataPage({
       <PageHeader
         title={t('data.waste_title')}
         description={t('data.waste_desc')}
+        action={
+          <EntryLinkButton
+            href="/app/inventory/waste"
+            label={t('data.add_waste')}
+          />
+        }
       />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
