@@ -47,10 +47,11 @@ export function deriveStockLevel(
           level -= Math.abs(movement.quantity)
           break
         case 'adjustment':
+        case 'count': // per-location count = signed delta reconciling one station
           level += movement.quantity // can be negative
           break
-        // 'count' handled above (is_absolute); 'transfer' is a no-op for the
-        // ingredient total (it only changes which location holds the stock).
+        // A legacy GLOBAL count is is_absolute (handled above); 'transfer' is a
+        // no-op for the ingredient total (only changes which location holds it).
       }
     }
   }
@@ -94,9 +95,11 @@ export function deriveAllStockLevels(
         )
         break
       case 'adjustment':
+      case 'count': // per-location count = signed delta reconciling one station
         levels.set(movement.ingredient_id, current + movement.quantity)
         break
-      // 'transfer' is intentionally a no-op for the ingredient total.
+      // A legacy GLOBAL count is is_absolute (handled above); 'transfer' is a
+      // no-op for the ingredient total.
     }
   }
 

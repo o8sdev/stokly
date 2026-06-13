@@ -1014,6 +1014,10 @@ export interface Database {
         Args: { p_movement_id: string }
         Returns: undefined
       }
+      record_stock_count: {
+        Args: { p_lines: Json }
+        Returns: undefined
+      }
       execute_production_run: {
         Args: {
           p_output_ingredient_id: string

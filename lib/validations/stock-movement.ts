@@ -11,6 +11,9 @@ export const stockCountSchema = z.object({
   lines: z.array(stockCountLineSchema).min(1, 'min_one_line'),
   // Business date the count was taken (yyyy-mm-dd). Blank/missing → server now().
   count_date: z.string().optional(),
+  // The station being counted ('' → tenant default consumption point). One
+  // location per submission: count the kitchen, then the bar, then the warehouse.
+  location_id: z.string().uuid().optional().or(z.literal('')),
 })
 
 // Delivery: per-line ingredient + received quantity + unit cost paid +

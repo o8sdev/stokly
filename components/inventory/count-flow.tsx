@@ -18,10 +18,14 @@ export function CountFlow({
   locale,
   items,
   preCount,
+  locations,
+  defaultLocationId,
 }: {
   locale: string
   items: CountItem[]
   preCount: PreCountInfo
+  locations: { id: string; name: string }[]
+  defaultLocationId: string
 }) {
   const t = useTranslations()
   const router = useRouter()
@@ -80,7 +84,12 @@ export function CountFlow({
         </Button>
       </div>
 
-      <StockCountForm locale={locale} items={items} />
+      <StockCountForm
+        locale={locale}
+        items={items}
+        locations={locations}
+        defaultLocationId={defaultLocationId}
+      />
 
       <MissingSalesPanel
         locale={locale}

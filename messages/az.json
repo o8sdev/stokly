@@ -949,6 +949,8 @@
     "raw_col_total": "Cəmi",
     "count_help": "Hər inqrediyent üçün sayılan miqdarı daxil edin",
     "count_date": "Sayım tarixi",
+    "count_location": "Hansı məkanı sayırsınız?",
+    "count_location_hint": "Hər məkanı ayrıca sayın — anbar, mətbəx, bar. Ümumi stok cəm olaraq görünür.",
     "counted_quantity": "Sayılan miqdar",
     "received_into": "Qəbul yeri",
     "received_into_hint": "Yeni təchizat bu yerə daxil olur — sonra mətbəxə köçürün.",

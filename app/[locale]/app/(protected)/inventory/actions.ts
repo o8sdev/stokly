@@ -11,11 +11,6 @@ import {
   wasteSchema,
   transferSchema,
 } from '@/lib/validations/stock-movement'
-import type { Database } from '@/types/database'
-
-type MovementInsert =
-  Database['public']['Tables']['stock_movements']['Insert']
-
 export interface InventoryActionResult {
   error?: string
   success?: boolean
@@ -30,8 +25,10 @@ function parseJson(formData: FormData): unknown {
   }
 }
 
-// STOCK COUNT — creates one append-only 'count' movement per counted line.
-// quantity IS the absolute level (is_absolute=true). Never updates rows.
+// STOCK COUNT — per-location. record_stock_count reconciles the chosen station's
+// batches to each counted figure and appends a 'count' movement carrying the
+// DELTA (from_location_id = the station). One station per submission; counting
+// the kitchen never touches the bar/warehouse.
 export async function submitStockCount(
   locale: string,
   _prev: InventoryActionResult,
@@ -54,22 +51,23 @@ export async function submitStockCount(
     .eq('tenant_id', ctx.tenantId)
   const isBaseline = (prevPeriods ?? 0) === 0
   const cd = parsed.data.count_date
-  const createdAt =
+  // Non-baseline counts are stamped at end-of-day of the business date so the
+  // count sorts after that day's deltas; the baseline (opening) count is stamped
+  // at NOW (the day-0 trap). Null → the RPC uses now().
+  const occurredAt =
     !isBaseline && cd && /^\d{4}-\d{2}-\d{2}$/.test(cd)
       ? new Date(`${cd}T23:59:59Z`).toISOString()
       : null
+  const locationId = parsed.data.location_id || null
 
-  const rows: MovementInsert[] = parsed.data.lines.map((line) => ({
-    tenant_id: ctx.tenantId,
-    ingredient_id: line.ingredient_id,
-    movement_type: 'count',
-    quantity: line.quantity,
-    is_absolute: true,
-    recorded_by: ctx.userId,
-    ...(createdAt ? { created_at: createdAt } : {}),
-  }))
-
-  const { error } = await supabase.from('stock_movements').insert(rows)
+  const { error } = await supabase.rpc('record_stock_count', {
+    p_lines: parsed.data.lines.map((line) => ({
+      ingredient_id: line.ingredient_id,
+      location_id: locationId,
+      counted_qty: line.quantity,
+      occurred_at: occurredAt,
+    })),
+  })
   if (error) return { error: 'generic' }
 
   // Close the period (last count → the counted business date) and build its report.

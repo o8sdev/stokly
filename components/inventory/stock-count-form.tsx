@@ -17,15 +17,20 @@ export interface CountItem {
   id: string
   name: string
   unit: string
-  currentStock: number
+  // Current on-hand keyed by location id; the form shows the selected station's.
+  byLocation: Record<string, number>
 }
 
 export function StockCountForm({
   locale,
   items,
+  locations,
+  defaultLocationId,
 }: {
   locale: string
   items: CountItem[]
+  locations: { id: string; name: string }[]
+  defaultLocationId: string
 }) {
   const t = useTranslations()
   const [query, setQuery] = useState('')
@@ -33,6 +38,11 @@ export function StockCountForm({
   const [counts, setCounts] = useState<Record<string, string>>({})
   const [countDate, setCountDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
+  )
+  // The station being counted. One station per submission — switching it starts
+  // a fresh sheet (the current on-hand shown is per station).
+  const [locationId, setLocationId] = useState(
+    defaultLocationId || locations[0]?.id || ''
   )
 
   const action = submitStockCount.bind(null, locale)
@@ -51,6 +61,7 @@ export function StockCountForm({
     () =>
       JSON.stringify({
         count_date: countDate,
+        location_id: locationId,
         lines: Object.entries(counts)
           .filter(([, v]) => v !== '' && Number.isFinite(Number(v)))
           .map(([ingredient_id, v]) => ({
@@ -58,7 +69,7 @@ export function StockCountForm({
             quantity: Number(v),
           })),
       }),
-    [counts, countDate]
+    [counts, countDate, locationId]
   )
 
   const filledCount = Object.values(counts).filter((v) => v !== '').length
@@ -91,6 +102,32 @@ export function StockCountForm({
         />
       </div>
 
+      {locations.length > 1 && (
+        <div className="space-y-2">
+          <Label htmlFor="count_location">
+            {t('inventory.count_location')}
+          </Label>
+          <select
+            id="count_location"
+            value={locationId}
+            onChange={(e) => {
+              setLocationId(e.target.value)
+              setCounts({}) // a different station = a fresh count sheet
+            }}
+            className="flex h-[38px] w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+          >
+            {locations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            {t('inventory.count_location_hint')}
+          </p>
+        </div>
+      )}
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -117,7 +154,7 @@ export function StockCountForm({
                 <p className="text-xs text-muted-foreground">
                   {t('inventory.current_stock')}:{' '}
                   <span className="font-mono tabular-nums">
-                    {formatQuantity(item.currentStock)}
+                    {formatQuantity(item.byLocation[locationId] ?? 0)}
                   </span>{' '}
                   {item.unit}
                 </p>
