@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { RefreshCw, AlertTriangle, Info } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { Button } from '@/components/ui/button'
-import { formatMoney, formatDate } from '@/lib/utils'
+import { formatMoney, formatDate, formatQuantity } from '@/lib/utils'
 import { regeneratePeriodReport } from '@/app/[locale]/app/(protected)/reports/period/[id]/actions'
 import type { CountPeriod } from '@/types/database'
 import { computePeriodKpis } from '@/lib/calculations/period-report'
@@ -14,6 +14,7 @@ import type {
   PeriodReportData,
   Discrepancy,
 } from '@/lib/calculations/period-report'
+import { buildShrinkageAlerts } from '@/lib/calculations/shrinkage'
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
@@ -29,9 +30,11 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 export function PeriodReportView({
   locale,
   period,
+  shrinkageThreshold,
 }: {
   locale: string
   period: CountPeriod
+  shrinkageThreshold: number
 }) {
   const t = useTranslations()
   const router = useRouter()
@@ -90,6 +93,11 @@ export function PeriodReportView({
         ? 'text-emerald-600'
         : 'text-muted-foreground'
   const signed = (n: number): string => (n > 0 ? `+${formatMoney(n)}` : formatMoney(n))
+  // Ingredients used materially more than their recipes predict (possible
+  // over-portioning / unrecorded waste / theft) — only when sales are itemized.
+  const shrinkage = itemized
+    ? buildShrinkageAlerts(data.lines, shrinkageThreshold)
+    : []
 
   return (
     <div className="space-y-5">
@@ -260,6 +268,42 @@ export function PeriodReportView({
           <p className="mt-3 text-xs text-muted-foreground">
             {t('report_period.variance_hint')}
           </p>
+        </div>
+      )}
+
+      {/* Shrinkage alerts — ingredients used well over what recipes predict */}
+      {shrinkage.length > 0 && (
+        <div className="rounded-xl border border-red-300 bg-red-50/60 p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-red-700">
+            <AlertTriangle className="h-4 w-4" />
+            {t('report_period.shrinkage_title')}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t('report_period.shrinkage_hint', { pct: shrinkageThreshold })}
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {shrinkage.map((s) => (
+              <li
+                key={s.ingredient_id}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="font-medium">{s.name}</span>
+                <span className="flex items-center gap-3 font-mono tabular-nums">
+                  <span className="font-semibold text-red-600">
+                    {t('report_period.shrinkage_over_pct', {
+                      pct: s.variance_pct,
+                    })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    +{formatQuantity(s.variance_qty)} {s.unit}
+                  </span>
+                  <span className="font-semibold">
+                    {formatMoney(s.variance_value)}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

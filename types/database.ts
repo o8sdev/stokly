@@ -112,6 +112,7 @@ export interface Database {
           onboarding_dismissed_at: string | null
           default_food_cost_target: number
           blind_counts: boolean
+          shrinkage_threshold_pct: number
           created_at: string
         }
         Insert: {
@@ -133,6 +134,7 @@ export interface Database {
           onboarding_dismissed_at?: string | null
           default_food_cost_target?: number
           blind_counts?: boolean
+          shrinkage_threshold_pct?: number
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['tenants']['Insert']>

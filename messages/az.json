@@ -1186,6 +1186,9 @@
     "theoretical_food_cost": "Gözlənilən maya dəyəri",
     "actual_food_cost": "Faktiki maya dəyəri",
     "variance_hint": "Gözlənilən istifadə satılan menyu məhsullarından hesablanır. Müsbət fərq resept normasından artıq istifadə deməkdir (artıq porsiya, itki və ya oğurluq).",
+    "shrinkage_title": "İtki siqnalları",
+    "shrinkage_hint": "Faktiki istifadə resept normasını {pct}%-dən çox keçən inqrediyentlər — artıq porsiya, qeydsiz itki və ya oğurluq əlaməti.",
+    "shrinkage_over_pct": "+{pct}% norma üstü",
     "version": "Versiya: {version}",
     "disc_missing_sales": "Bu dövrdə {count} gün üçün satış məlumatı daxil edilməyib: {dates}. COGS hesablaması bu günlər üçün natamam ola bilər.",
     "disc_negative_usage": "{name}: bağlanış miqdarı açılış + tədarükdən çoxdur — ehtimal ki qeydə alınmamış tədarük və ya sayım xətası."
@@ -1218,7 +1221,9 @@
     "food_cost_target": "Standart hədəf maya dəyəri %",
     "food_cost_target_hint": "Bütün menyu üçün standart maya dəyəri limiti. Hər resept öz hədəfini təyin edə bilər.",
     "blind_counts_label": "Kor sayım",
-    "blind_counts_hint": "Sayım zamanı gözlənilən stok gizlədilir — işçilər sistem rəqəmini görmədən sayır (oğurluğa qarşı)."
+    "blind_counts_hint": "Sayım zamanı gözlənilən stok gizlədilir — işçilər sistem rəqəmini görmədən sayır (oğurluğa qarşı).",
+    "shrinkage_threshold_label": "İtki həddi (%)",
+    "shrinkage_threshold_hint": "Faktiki istifadə resept normasını bu %-dən çox keçəndə hesabatda işarələnir."
   },
   "production": {
     "input_location": "Xammal nöqtəsi",

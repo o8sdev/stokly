@@ -25,6 +25,7 @@ const tenantSchema = z.object({
   business_type: z.string().optional(),
   default_food_cost_target: z.coerce.number().min(1).max(100),
   blind_counts: z.coerce.boolean(),
+  shrinkage_threshold_pct: z.coerce.number().min(0).max(100),
 })
 
 export async function updateTenant(
@@ -43,6 +44,7 @@ export async function updateTenant(
     business_type: formData.get('business_type'),
     default_food_cost_target: formData.get('default_food_cost_target'),
     blind_counts: formData.get('blind_counts') === 'on',
+    shrinkage_threshold_pct: formData.get('shrinkage_threshold_pct'),
   })
   if (!parsed.success) return { error: 'validation' }
 
@@ -58,6 +60,7 @@ export async function updateTenant(
       business_type: bt && BUSINESS_TYPE_KEYS.includes(bt) ? bt : null,
       default_food_cost_target: parsed.data.default_food_cost_target,
       blind_counts: parsed.data.blind_counts,
+      shrinkage_threshold_pct: parsed.data.shrinkage_threshold_pct,
     })
     .eq('id', ctx.tenantId)
 

@@ -124,6 +124,25 @@ export function SettingsForm({
         </span>
       </label>
 
+      <div className="max-w-[14rem] space-y-2">
+        <Label htmlFor="shrinkage_threshold_pct">
+          {t('settings.shrinkage_threshold_label')}
+        </Label>
+        <Input
+          id="shrinkage_threshold_pct"
+          name="shrinkage_threshold_pct"
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          defaultValue={tenant.shrinkage_threshold_pct ?? 10}
+          required
+        />
+        <p className="text-xs text-muted-foreground">
+          {t('settings.shrinkage_threshold_hint')}
+        </p>
+      </div>
+
       {state.error && (
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}
