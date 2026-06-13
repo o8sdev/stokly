@@ -44,6 +44,8 @@ function fmt(ts: string): string {
 
 export function AuditLogTable({ rows }: { rows: AuditRow[] }) {
   const t = useTranslations('admin.logs')
+  const actionLabels = t.raw('actions') as Record<string, string>
+  const labelFor = (a: string) => actionLabels[a] ?? a
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -73,7 +75,7 @@ export function AuditLogTable({ rows }: { rows: AuditRow[] }) {
     const csv = toCsv(rows, [
       { header: 'Time', value: (r) => fmt(r.created_at) },
       { header: 'Admin', value: (r) => r.actor_email ?? '' },
-      { header: 'Action', value: (r) => r.action },
+      { header: 'Action', value: (r) => labelFor(r.action) },
       { header: 'Tenant', value: (r) => r.tenant_name ?? '' },
       { header: 'Details', value: (r) => JSON.stringify(r.details) },
     ])
@@ -97,7 +99,7 @@ export function AuditLogTable({ rows }: { rows: AuditRow[] }) {
             <option value="">{t('all_actions')}</option>
             {ACTIONS.map((a) => (
               <option key={a} value={a}>
-                {a}
+                {labelFor(a)}
               </option>
             ))}
           </select>
@@ -171,7 +173,7 @@ export function AuditLogTable({ rows }: { rows: AuditRow[] }) {
                       <td className="px-3 py-2.5 text-slate-300">{r.actor_email ?? '—'}</td>
                       <td className="px-3 py-2.5">
                         <span className="rounded-full bg-white/5 px-2 py-0.5 text-[11px] font-medium text-slate-300">
-                          {r.action}
+                          {labelFor(r.action)}
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
