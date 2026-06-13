@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ConfirmButton } from '@/components/admin/confirm-button'
 import {
   FIELD,
   SELECT,
@@ -211,7 +212,7 @@ export function InvitationsClient({
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
-  const [, start] = React.useTransition()
+  const tc = useTranslations('admin.confirm')
   const [origin, setOrigin] = React.useState('')
   React.useEffect(() => setOrigin(window.location.origin), [])
 
@@ -332,14 +333,16 @@ export function InvitationsClient({
                         <Link2 className="h-4 w-4" />
                       </button>
                       {r.status === 'unused' && (
-                        <button
-                          type="button"
-                          title={t('revoke')}
-                          onClick={() => start(() => revokeInvitation(locale, r.id))}
-                          className="text-slate-400 hover:text-[#F08C8C]"
+                        <ConfirmButton
+                          action={() => revokeInvitation(locale, r.id)}
+                          title={tc('revoke_title')}
+                          description={tc('irreversible')}
+                          confirmLabel={tc('revoke')}
+                          triggerLabel={t('revoke')}
+                          triggerClassName="text-slate-400 hover:text-[#F08C8C]"
                         >
                           <X className="h-4 w-4" />
-                        </button>
+                        </ConfirmButton>
                       )}
                     </div>
                   </td>

@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Trash2, Star } from 'lucide-react'
 import { getGlobalLibrary } from '@/lib/data/queries'
+import { ConfirmButton } from '@/components/admin/confirm-button'
 import { LibraryAddForm } from './library-add-form'
 import { deleteLibraryItem, toggleLibraryCommon } from './actions'
 
@@ -11,6 +12,7 @@ export default async function AdminLibraryPage({
 }) {
   setRequestLocale(locale)
   const t = await getTranslations('admin.library')
+  const tc = await getTranslations('admin.confirm')
   const items = await getGlobalLibrary()
 
   return (
@@ -98,14 +100,16 @@ export default async function AdminLibraryPage({
                     </form>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <form action={deleteLibraryItem.bind(null, locale, g.id)}>
-                      <button
-                        type="submit"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-[#F08C8C]"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </form>
+                    <ConfirmButton
+                      action={deleteLibraryItem.bind(null, locale, g.id)}
+                      title={tc('delete_title')}
+                      description={tc('irreversible')}
+                      confirmLabel={tc('delete')}
+                      triggerLabel={tc('delete')}
+                      triggerClassName="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-[#F08C8C]"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </ConfirmButton>
                   </td>
                 </tr>
               ))}

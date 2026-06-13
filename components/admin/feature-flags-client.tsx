@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { X, Plus } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ConfirmButton } from '@/components/admin/confirm-button'
 import {
   setFeatureGlobal,
   addOverride,
@@ -104,7 +105,7 @@ export function FeatureFlagsClient({
   canEdit: boolean
 }) {
   const t = useTranslations('admin.flags')
-  const [, start] = React.useTransition()
+  const tc = useTranslations('admin.confirm')
 
   return (
     <div className="space-y-4">
@@ -154,15 +155,18 @@ export function FeatureFlagsClient({
                       {o.tenant_name ?? o.tenant_id.slice(0, 8)} ·{' '}
                       {o.enabled ? t('granted') : t('denied')}
                       {canEdit && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            start(() => removeOverride(locale, f.key, o.tenant_id))
+                        <ConfirmButton
+                          action={() =>
+                            removeOverride(locale, f.key, o.tenant_id)
                           }
-                          className="opacity-70 hover:opacity-100"
+                          title={tc('remove_override_title')}
+                          description={tc('irreversible')}
+                          confirmLabel={tc('delete')}
+                          triggerLabel={tc('delete')}
+                          triggerClassName="opacity-70 hover:opacity-100"
                         >
                           <X className="h-3 w-3" />
-                        </button>
+                        </ConfirmButton>
                       )}
                     </span>
                   ))}

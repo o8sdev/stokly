@@ -5,6 +5,7 @@ import { requirePlatformAdmin } from '@/lib/auth/admin'
 import { createClient } from '@/lib/supabase/server'
 import { Link } from '@/lib/i18n/navigation'
 import { BlogForm } from '@/components/admin/blog-form'
+import { ConfirmButton } from '@/components/admin/confirm-button'
 import { updateBlogPost, deleteBlogPost, togglePublish } from '../actions'
 import type { BlogPost } from '@/types/database'
 
@@ -16,6 +17,7 @@ export default async function EditBlogPage({
   setRequestLocale(locale)
   await requirePlatformAdmin(locale)
   const t = await getTranslations('admin.blog')
+  const tc = await getTranslations('admin.confirm')
 
   const supabase = createClient()
   const { data } = await supabase
@@ -57,15 +59,17 @@ export default async function EditBlogPage({
               {isPublished ? t('unpublish') : t('publish')}
             </button>
           </form>
-          <form action={deleteBlogPost.bind(null, locale, post.id)}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#F08C8C]/30 px-3 py-1.5 text-xs font-medium text-[#F08C8C] transition-colors hover:bg-[#F08C8C]/10"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {t('delete')}
-            </button>
-          </form>
+          <ConfirmButton
+            action={deleteBlogPost.bind(null, locale, post.id)}
+            title={tc('delete_title')}
+            description={tc('irreversible')}
+            confirmLabel={tc('delete')}
+            triggerLabel={t('delete')}
+            triggerClassName="inline-flex items-center gap-1.5 rounded-lg border border-[#F08C8C]/30 px-3 py-1.5 text-xs font-medium text-[#F08C8C] transition-colors hover:bg-[#F08C8C]/10"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            {t('delete')}
+          </ConfirmButton>
         </div>
       </div>
 

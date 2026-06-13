@@ -8,6 +8,7 @@ import { Link } from '@/lib/i18n/navigation'
 import { Checkbox } from '@/components/ui/checkbox'
 import { HealthBadge } from './health-badge'
 import { TenantControls } from './tenant-controls'
+import { ConfirmButton } from './confirm-button'
 import { bulkSuspend, bulkChangePlan } from '@/app/[locale]/admin/(console)/tenants/actions'
 import { toCsv, downloadCsv } from '@/lib/admin/csv'
 import { formatMoney, formatDate, formatRelativeTime, cn } from '@/lib/utils'
@@ -61,7 +62,7 @@ export function TenantsTable({
   const params = useSearchParams()
   const [selected, setSelected] = React.useState<Set<string>>(new Set())
   const [bulkPlan, setBulkPlan] = React.useState('')
-  const [, start] = React.useTransition()
+  const tc = useTranslations('admin.confirm')
 
   const sort = params.get('sort') ?? 'created_at'
   const dir = params.get('dir') ?? 'desc'
@@ -157,32 +158,35 @@ export function TenantsTable({
                     </option>
                   ))}
               </select>
-              <button
-                type="button"
+              <ConfirmButton
                 disabled={!bulkPlan}
-                onClick={() =>
-                  start(async () => {
-                    await bulkChangePlan(locale, ids, bulkPlan)
-                    setSelected(new Set())
-                    setBulkPlan('')
-                  })
-                }
-                className="inline-flex h-8 items-center rounded-lg border border-white/15 px-2.5 text-xs text-slate-200 hover:bg-white/10 disabled:opacity-40"
+                danger={false}
+                action={async () => {
+                  await bulkChangePlan(locale, ids, bulkPlan)
+                  setSelected(new Set())
+                  setBulkPlan('')
+                }}
+                title={tc('bulk_plan_title')}
+                description={tc('bulk_plan_body')}
+                confirmLabel={tc('apply')}
+                triggerLabel={t('apply')}
+                triggerClassName="inline-flex h-8 items-center rounded-lg border border-white/15 px-2.5 text-xs text-slate-200 hover:bg-white/10 disabled:opacity-40"
               >
                 {t('apply')}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  start(async () => {
-                    await bulkSuspend(locale, ids)
-                    setSelected(new Set())
-                  })
-                }
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-500/30 px-2.5 text-xs text-[#F08C8C] hover:bg-red-500/10"
+              </ConfirmButton>
+              <ConfirmButton
+                action={async () => {
+                  await bulkSuspend(locale, ids)
+                  setSelected(new Set())
+                }}
+                title={tc('bulk_suspend_title')}
+                description={tc('bulk_suspend_body')}
+                confirmLabel={tc('suspend')}
+                triggerLabel={t('suspend')}
+                triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-500/30 px-2.5 text-xs text-[#F08C8C] hover:bg-red-500/10"
               >
                 <Ban className="h-3.5 w-3.5" /> {t('suspend')}
-              </button>
+              </ConfirmButton>
             </>
           )}
         </div>

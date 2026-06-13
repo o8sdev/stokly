@@ -639,6 +639,21 @@
       "col_tenant": "Restoran",
       "empty": "Qeyd yoxdur"
     },
+    "confirm": {
+      "cancel": "Ləğv et",
+      "delete": "Sil",
+      "revoke": "Ləğv et",
+      "suspend": "Dayandır",
+      "apply": "Tətbiq et",
+      "irreversible": "Bu əməliyyat geri qaytarıla bilməz.",
+      "delete_title": "Silinsin?",
+      "revoke_title": "Dəvət ləğv edilsin?",
+      "remove_override_title": "Override silinsin?",
+      "bulk_suspend_title": "Seçilmiş tenantlar dayandırılsın?",
+      "bulk_suspend_body": "Seçilmiş bütün tenantlar dərhal dayandırılacaq.",
+      "bulk_plan_title": "Plan dəyişdirilsin?",
+      "bulk_plan_body": "Seçilmiş bütün tenantların planı dəyişəcək."
+    },
     "admins": {
       "title": "Platforma adminləri",
       "subtitle": "Konsola giriş icazəsi olan hesabları idarə edin.",
