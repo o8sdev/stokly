@@ -36,6 +36,16 @@ export async function GettingStarted({ locale }: { locale: string }) {
       </h1>
       <p className="mt-1 text-muted-foreground">{t('gs_subtitle')}</p>
 
+      <div className="mt-5">
+        <Link
+          href="/app/onboarding"
+          className="group inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+        >
+          {t('continue_setup')}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+
       {/* How it works — explanatory guided tour */}
       <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.05] p-4">
         <div className="min-w-0 flex-1">

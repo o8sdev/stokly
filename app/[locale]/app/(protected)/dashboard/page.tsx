@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
 import { tenantHasFeature } from '@/lib/admin/entitlements'
@@ -55,11 +56,24 @@ export default async function DashboardPage({
     getLastCountInfo(ctx.tenantId),
     getSalesStreak(ctx.tenantId),
   ])
+  const onboardingEnabled = await tenantHasFeature(
+    ctx.tenantId,
+    'onboarding_screen'
+  )
+  // True first-run (nothing set up yet) → the guided wizard. Resumable +
+  // skippable, so this never traps an existing business.
+  if (
+    onboardingEnabled &&
+    !tenant?.onboarding_dismissed_at &&
+    recipes.length === 0 &&
+    lastCount.lastCountDate === null
+  ) {
+    redirect(`/${locale}/app/onboarding`)
+  }
   const needsOnboarding =
     !tenant?.onboarding_dismissed_at &&
     (recipes.length === 0 || lastCount.lastCountDate === null)
-  const showGettingStarted =
-    needsOnboarding && (await tenantHasFeature(ctx.tenantId, 'onboarding_screen'))
+  const showGettingStarted = needsOnboarding && onboardingEnabled
 
   return (
     <div>

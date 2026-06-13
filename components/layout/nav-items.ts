@@ -150,6 +150,7 @@ export const TITLE_ALIASES: Record<string, string> = {
   '/app/purchases': 'purchases',
   '/app/inventory/waste': 'waste_log',
   '/app/inventory/count': 'data_counts',
+  '/app/onboarding': 'onboarding',
 }
 
 // Flat list used by the mobile bottom tab bar (icons only, primary routes).
