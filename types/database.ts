@@ -1128,6 +1128,20 @@ export interface Database {
         Args: { p_ids: string[] }
         Returns: { user_id: string; email: string }[]
       }
+      count_tenants_by_status: {
+        Args: Record<string, never>
+        Returns: {
+          active: number
+          trial: number
+          suspended: number
+          churned: number
+          total: number
+        }[]
+      }
+      count_tenants_by_plan: {
+        Args: Record<string, never>
+        Returns: { plan_tier: string; count: number }[]
+      }
       admin_tenant_metrics: {
         Args: { p_ids: string[] }
         Returns: {

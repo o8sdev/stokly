@@ -150,6 +150,9 @@ export async function getOnboardingStuck(
     .from('tenants')
     .select('id, name, last_active_at')
     .eq('status', 'trial')
+    // Least-recently-active first so the genuinely-stuck trials surface even
+    // past the cap.
+    .order('last_active_at', { ascending: true, nullsFirst: true })
     .limit(500)
   const list = tenants ?? []
   if (list.length === 0) return []

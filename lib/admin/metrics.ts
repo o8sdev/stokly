@@ -95,17 +95,10 @@ export interface ActiveCounts {
 
 export async function getActiveTenantCounts(): Promise<ActiveCounts> {
   const supabase = createClient()
-  const { data } = await supabase
-    .from('tenants')
-    .select('status')
-    .neq('status', 'deleted')
-  let active = 0
-  let trial = 0
-  for (const t of data ?? []) {
-    if (t.status === 'active') active += 1
-    else if (t.status === 'trial') trial += 1
-  }
-  return { active, paid: active, trial, total: (data ?? []).length }
+  const { data } = await supabase.rpc('count_tenants_by_status')
+  const row = data?.[0]
+  const active = row?.active ?? 0
+  return { active, paid: active, trial: row?.trial ?? 0, total: row?.total ?? 0 }
 }
 
 export interface PlanSlice {
@@ -115,14 +108,10 @@ export interface PlanSlice {
 
 export async function getTenantsByPlan(): Promise<PlanSlice[]> {
   const supabase = createClient()
-  const { data } = await supabase
-    .from('tenants')
-    .select('plan_tier')
-    .neq('status', 'deleted')
-  const counts = new Map<string, number>()
-  for (const t of data ?? []) {
-    counts.set(t.plan_tier, (counts.get(t.plan_tier) ?? 0) + 1)
-  }
+  const { data } = await supabase.rpc('count_tenants_by_plan')
+  const counts = new Map<string, number>(
+    (data ?? []).map((r) => [r.plan_tier, r.count])
+  )
   const plans = await getPlans()
   return plans.map((p) => ({ plan: p.key, count: counts.get(p.key) ?? 0 }))
 }
@@ -228,6 +217,9 @@ export async function getChurnRisk(limit = 5): Promise<ChurnRiskRow[]> {
     .from('tenants')
     .select('id, name, last_active_at, status, plan_tier')
     .in('status', ['active', 'trial', 'suspended'])
+    // Sample the least-recently-active first so the true risks aren't missed
+    // when there are more than the cap.
+    .order('last_active_at', { ascending: true, nullsFirst: true })
     .limit(500)
   const list = tenants ?? []
   const metrics = await getTenantMetricsBatch(list.map((t) => t.id))
