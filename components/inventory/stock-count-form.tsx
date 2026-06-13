@@ -17,9 +17,14 @@ export interface CountItem {
   id: string
   name: string
   unit: string
-  // Current on-hand keyed by location id; the form shows the selected station's.
+  // Current on-hand keyed by location id; the form shows the active station's.
   byLocation: Record<string, number>
 }
+
+// Counts are keyed per (station, ingredient) so one session can count every
+// location and submit them together as a single count. UUIDs never contain
+// "__", so it's a safe separator.
+const keyFor = (loc: string, ing: string): string => `${loc}__${ing}`
 
 export function StockCountForm({
   locale,
@@ -36,19 +41,21 @@ export function StockCountForm({
 }) {
   const t = useTranslations()
   const [query, setQuery] = useState('')
-  // Map ingredientId -> counted value string.
+  // Map `${locationId}__${ingredientId}` -> counted value string. Entries persist
+  // when you switch stations, so the whole count is built up then submitted once.
   const [counts, setCounts] = useState<Record<string, string>>({})
   const [countDate, setCountDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
   )
-  // The station being counted. One station per submission — switching it starts
-  // a fresh sheet (the current on-hand shown is per station).
+  // The station currently being entered. Switching keeps every station's
+  // entries; on submit all stations roll up into one count period, so the total
+  // is the sum of the locations and each location is reconciled individually.
   const [locationId, setLocationId] = useState(
     defaultLocationId || locations[0]?.id || ''
   )
   // Blind mode: the expected on-hand stays hidden while counting; the user taps
-  // "Reveal variance" to compare expected vs counted before the final save, so
-  // a count can't simply be typed to match the system number.
+  // "Reveal variance" to compare expected vs counted before saving. Reset per
+  // station so each location is genuinely counted blind.
   const [revealed, setRevealed] = useState(false)
   const showExpected = !blind || revealed
 
@@ -64,29 +71,39 @@ export function StockCountForm({
     return items.filter((i) => i.name.toLowerCase().includes(q))
   }, [items, query])
 
+  // How many lines have been entered per station (for the summary + tab badges).
+  const enteredByLoc = useMemo(() => {
+    const m: Record<string, number> = {}
+    for (const [key, v] of Object.entries(counts)) {
+      if (v === '' || !Number.isFinite(Number(v))) continue
+      const loc = key.split('__')[0]
+      m[loc] = (m[loc] ?? 0) + 1
+    }
+    return m
+  }, [counts])
+  const filledCount = Object.values(enteredByLoc).reduce((a, b) => a + b, 0)
+
   const payload = useMemo(
     () =>
       JSON.stringify({
         count_date: countDate,
-        location_id: locationId,
         lines: Object.entries(counts)
           .filter(([, v]) => v !== '' && Number.isFinite(Number(v)))
-          .map(([ingredient_id, v]) => ({
-            ingredient_id,
-            quantity: Number(v),
-          })),
+          .map(([key, v]) => {
+            const [location_id, ingredient_id] = key.split('__')
+            return { ingredient_id, location_id, quantity: Number(v) }
+          }),
       }),
-    [counts, countDate, locationId]
+    [counts, countDate]
   )
 
-  const filledCount = Object.values(counts).filter((v) => v !== '').length
-
   function step(id: string, delta: number) {
+    const k = keyFor(locationId, id)
     setCounts((prev) => {
-      const current = Number(prev[id] ?? '')
+      const current = Number(prev[k] ?? '')
       const base = Number.isFinite(current) ? current : 0
       const next = Math.max(0, Math.round((base + delta) * 1000) / 1000)
-      return { ...prev, [id]: String(next) }
+      return { ...prev, [k]: String(next) }
     })
   }
 
@@ -129,8 +146,9 @@ export function StockCountForm({
             id="count_location"
             value={locationId}
             onChange={(e) => {
+              // Keep every station's entries — only re-hide the expected figures
+              // so the newly-selected station is still counted blind.
               setLocationId(e.target.value)
-              setCounts({}) // a different station = a fresh count sheet
               setRevealed(false)
             }}
             className="flex h-[38px] w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
@@ -138,12 +156,33 @@ export function StockCountForm({
             {locations.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}
+                {enteredByLoc[l.id] ? ` • ${enteredByLoc[l.id]}` : ''}
               </option>
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
             {t('inventory.count_location_hint')}
           </p>
+          {filledCount > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-xs text-muted-foreground">
+                {t('inventory.count_entered')}:
+              </span>
+              {locations
+                .filter((l) => enteredByLoc[l.id])
+                .map((l) => (
+                  <span
+                    key={l.id}
+                    className="rounded-md bg-secondary px-2 py-1 text-xs"
+                  >
+                    {l.name}:{' '}
+                    <span className="font-mono font-semibold tabular-nums">
+                      {enteredByLoc[l.id]}
+                    </span>
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -159,7 +198,9 @@ export function StockCountForm({
 
       <div className="space-y-2">
         {filtered.map((item) => {
-          const changed = (counts[item.id] ?? '') !== ''
+          const k = keyFor(locationId, item.id)
+          const val = counts[k] ?? ''
+          const changed = val !== ''
           return (
             <div
               key={item.id}
@@ -182,8 +223,7 @@ export function StockCountForm({
                       (() => {
                         const exp = item.byLocation[locationId] ?? 0
                         const v =
-                          Math.round((Number(counts[item.id]) - exp) * 1000) /
-                          1000
+                          Math.round((Number(val) - exp) * 1000) / 1000
                         return (
                           <span
                             className={cn(
@@ -221,12 +261,9 @@ export function StockCountForm({
                   inputMode="decimal"
                   step="0.001"
                   min="0"
-                  value={counts[item.id] ?? ''}
+                  value={val}
                   onChange={(e) =>
-                    setCounts((prev) => ({
-                      ...prev,
-                      [item.id]: e.target.value,
-                    }))
+                    setCounts((prev) => ({ ...prev, [k]: e.target.value }))
                   }
                   placeholder="0"
                   className="h-11 w-20 text-right font-mono text-[22px] tabular-nums"

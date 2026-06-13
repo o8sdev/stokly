@@ -1,18 +1,23 @@
 import { z } from 'zod'
 
-// Stock count: an array of absolute counted levels per ingredient. Blank
-// inputs are skipped at submit time, so quantities here are already present.
+// Stock count: an array of absolute counted levels per (ingredient, station).
+// Blank inputs are skipped at submit time, so quantities here are already
+// present. Each line carries its own station so ONE submission can count every
+// location at once (Anbar + Mətbəx + Bar) and roll up into a single count
+// period — essential for an operating business's Day-0 opening count.
 export const stockCountLineSchema = z.object({
   ingredient_id: z.string().uuid(),
   quantity: z.coerce.number({ invalid_type_error: 'number' }).nonnegative(),
+  // Station this counted figure belongs to ('' / missing → form default below).
+  location_id: z.string().uuid().optional().or(z.literal('')),
 })
 
 export const stockCountSchema = z.object({
   lines: z.array(stockCountLineSchema).min(1, 'min_one_line'),
   // Business date the count was taken (yyyy-mm-dd). Blank/missing → server now().
   count_date: z.string().optional(),
-  // The station being counted ('' → tenant default consumption point). One
-  // location per submission: count the kitchen, then the bar, then the warehouse.
+  // Fallback station for lines that omit one ('' → tenant default consumption
+  // point). The form sends a station per line, so this is just the default.
   location_id: z.string().uuid().optional().or(z.literal('')),
 })
 

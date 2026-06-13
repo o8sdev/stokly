@@ -61,19 +61,25 @@ export async function submitStockCount(
       : null
   const locationId = parsed.data.location_id || null
 
+  // Each line carries its own station, so one submission reconciles every
+  // location in a single count (the RPC handles per-line location_id). Lines
+  // that omit a station fall back to the form default / tenant default.
   const { error } = await supabase.rpc('record_stock_count', {
     p_lines: parsed.data.lines.map((line) => ({
       ingredient_id: line.ingredient_id,
-      location_id: locationId,
+      location_id: line.location_id || locationId,
       counted_qty: line.quantity,
       occurred_at: occurredAt,
     })),
   })
   if (error) return { error: 'generic' }
 
+  const locationsCounted = new Set(
+    parsed.data.lines.map((l) => l.location_id || locationId || 'default')
+  ).size
   await logActivity('inventory.count', {
     entityType: 'count',
-    meta: { lines: parsed.data.lines.length, location_id: locationId },
+    meta: { lines: parsed.data.lines.length, locations: locationsCounted },
   })
 
   // Close the period (last count → the counted business date) and build its report.
