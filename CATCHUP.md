@@ -296,6 +296,22 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Sidebar restructure + waste naming unified (no migration)
+The tenant sidebar was too long (11 flat rows across two extra sections HESABATLAR + MƏLUMATLAR).
+Now everything related sits under ONE collapsible group inside ƏSAS, each entry page paired with its
+journal:
+- **Mətbəx:** İnqrediyentlər · Reseptlər · İstehsal
+- **Anbar:** İnventar · Sayımlar · İtki qeyd et · İtki jurnalı
+- **Satış / Alış:** Satışlar · Satış jurnalı · Alışlar · Alış jurnalı · Sifariş siyahısı
+- **Hesabatlar:** Maliyyə · Yemək dəyəri · Anbar dəyəri · Dövr hesabatları · Stok yaşlanması · Menyu
+  mühəndisliyi · Məkana görə
+Collapsed (default) the nav is 8 rows; groups auto-open on the active route. The standalone
+`reports`/`data` sections and `MƏLUMATLAR` are gone. **Naming fixed:** waste was split between
+"Tullantı" (entry page) and "İtki" (everywhere else) — unified on **İtki** (`nav.waste_log` →
+"İtki qeyd et", `inventory.waste_log` → "İtki", `log_waste`/`waste_log_empty` aligned); RU keeps the
+correct domain split (списание = the act, потери = the metric). Mobile tab bar swaps the food-cost
+report for **Satışlar** (the daily loop). Verified via the demo login (collapsed + expanded shots).
+
 ### Done — Unit-conversion UX 1–5 (no migration)
 1. **Scoped unit pickers:** recipe-line unit selects offer ONLY units valid for the chosen
    ingredient (`allowedUnitsFor` = base + metric family + pack conversions) — the save-time
