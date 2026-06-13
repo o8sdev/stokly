@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { recipeSchema } from '@/lib/validations/recipe'
-import { tenantHasFeature } from '@/lib/admin/entitlements'
 import { getIngredients } from '@/lib/data/queries'
 import { isConvertible } from '@/lib/constants/units'
 
@@ -31,24 +30,32 @@ function toNumberOrNull(value: number | '' | undefined): number | null {
   return value === '' || value === undefined ? null : value
 }
 
-// Resolve a recipe's consumption-location routing: keep it only when the tenant
-// has multi_location AND the target is one of its consumption points; else null
-// (→ the RPC falls back to the default consumption point).
+// Resolve a recipe's consumption-location routing to a CONCRETE station so every
+// dish is always explicitly routed (the owner must identify where it's made):
+// use the chosen point when it's a valid consumption point of this tenant, else
+// fall back to the tenant's default consumption point.
 async function resolveConsumptionLocation(
   supabase: ReturnType<typeof createClient>,
   tenantId: string,
   raw: string | undefined
 ): Promise<string | null> {
-  if (!raw) return null
-  if (!(await tenantHasFeature(tenantId, 'multi_location'))) return null
-  const { data } = await supabase
+  if (raw) {
+    const { data } = await supabase
+      .from('storage_locations')
+      .select('id')
+      .eq('id', raw)
+      .eq('tenant_id', tenantId)
+      .eq('is_consumption_point', true)
+      .maybeSingle()
+    if (data?.id) return data.id
+  }
+  const { data: def } = await supabase
     .from('storage_locations')
     .select('id')
-    .eq('id', raw)
     .eq('tenant_id', tenantId)
-    .eq('is_consumption_point', true)
+    .eq('is_default_consumption', true)
     .maybeSingle()
-  return data?.id ?? null
+  return def?.id ?? null
 }
 
 // Keep a recipe's category only when it actually belongs to the tenant.

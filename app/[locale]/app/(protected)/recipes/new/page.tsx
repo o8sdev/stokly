@@ -23,7 +23,6 @@ export default async function NewRecipePage({
         subRecipeOptions={builder.subRecipeOptions}
         consumptionLocations={builder.consumptionLocations}
         defaultConsumptionId={builder.defaultConsumptionId}
-        multiLocation={builder.multiLocation}
         categories={builder.categories}
       />
     </div>

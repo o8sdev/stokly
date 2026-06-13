@@ -844,7 +844,7 @@
   },
   "recipes": {
     "consumption_location": "İstehlak nöqtəsi",
-    "consumption_location_hint": "Bu məhsul satıldıqda stok hansı nöqtədən silinir (məs. kokteyl → Bar). Boş = əsas nöqtə.",
+    "consumption_location_hint": "Bu yemək harada hazırlanır / satıldıqda stok hansı nöqtədən silinir (məs. kokteyl → Bar).",
     "consumption_default": "Əsas (standart)",
     "yield": "Çıxım (yield) %",
     "yield_hint": "Hazırlanma zamanı itən həcm. Məs. 1 kq xammaldan 0.8 kq sous alınırsa, çıxım 80%-dir. Maya dəyəri və nəzəri istifadə bu nisbətə görə artırılır. Yalnız yarı-reseptlər üçün.",

@@ -53,7 +53,6 @@ export function RecipeForm({
   subRecipeOptions,
   consumptionLocations,
   defaultConsumptionId,
-  multiLocation,
   categories = [],
   recipe,
   existingLines,
@@ -63,7 +62,6 @@ export function RecipeForm({
   subRecipeOptions: SubRecipeOption[]
   consumptionLocations: { id: string; name: string }[]
   defaultConsumptionId: string | null
-  multiLocation: boolean
   categories?: { id: string; name: string }[]
   recipe?: Recipe
   existingLines?: RecipeIngredient[]
@@ -92,9 +90,10 @@ export function RecipeForm({
       ? String(Math.round(recipe.yield_percent * 1000) / 10)
       : ''
   )
-  // Which consumption point this dish draws from ('' = tenant default).
+  // Which consumption point (station) this dish is made at / deducted from.
+  // Defaults to the tenant's default station so the choice is always concrete.
   const [consumptionLocationId, setConsumptionLocationId] = useState(
-    recipe?.consumption_location_id ?? ''
+    recipe?.consumption_location_id ?? defaultConsumptionId ?? ''
   )
   // Menu section ('' = uncategorised).
   const [categoryId, setCategoryId] = useState(recipe?.category_id ?? '')
@@ -461,33 +460,28 @@ export function RecipeForm({
               </div>
             )}
 
-            {!isSubRecipe &&
-              multiLocation &&
-              consumptionLocations.length > 1 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <Label htmlFor="consumption_location_id">
-                      {t('recipes.consumption_location')}
-                    </Label>
-                    <FieldHint text={t('recipes.consumption_location_hint')} />
-                  </div>
-                  <select
-                    id="consumption_location_id"
-                    value={consumptionLocationId}
-                    onChange={(e) => setConsumptionLocationId(e.target.value)}
-                    className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:max-w-xs"
-                  >
-                    <option value="">
-                      {t('recipes.consumption_default')}
-                    </option>
-                    {consumptionLocations.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.name}
-                      </option>
-                    ))}
-                  </select>
+            {!isSubRecipe && consumptionLocations.length > 1 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="consumption_location_id">
+                    {t('recipes.consumption_location')}
+                  </Label>
+                  <FieldHint text={t('recipes.consumption_location_hint')} />
                 </div>
-              )}
+                <select
+                  id="consumption_location_id"
+                  value={consumptionLocationId}
+                  onChange={(e) => setConsumptionLocationId(e.target.value)}
+                  className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:max-w-xs"
+                >
+                  {consumptionLocations.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3 stokly-card p-5">
