@@ -312,10 +312,13 @@ export async function confirmDailySales(
     p_usage: usage as unknown as Json,
   })
   if (error) {
-    // Oversell no longer blocks confirmation (migration 043 absorbs the shortfall
-    // and surfaces it as negative stock), so any error here is unexpected. The
-    // location_short mapping stays as a defensive fallback.
-    if (error.message?.includes('location_short')) return { error: 'kitchen_short' }
+    // Strict per-location (migration 051): if a dish's ingredient sits at a
+    // location other than its routed consumption point, the RPC refuses so the
+    // owner moves stock to that station first. (True oversell — nothing anywhere
+    // to transfer — still absorbs as negative and does not error.)
+    if (error.message?.includes('location_short')) {
+      return { error: 'stock_elsewhere' }
+    }
     return { error: 'generic' }
   }
 

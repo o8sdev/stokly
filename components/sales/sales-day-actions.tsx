@@ -30,7 +30,7 @@ export function SalesDayActions({
   const [err, setErr] = useState<string | null>(null)
 
   const errText = err
-    ? t(err === 'kitchen_short' ? 'confirm_kitchen_short' : 'error')
+    ? t(err === 'stock_elsewhere' ? 'confirm_kitchen_short' : 'error')
     : null
 
   function confirmDay() {

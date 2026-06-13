@@ -13,8 +13,15 @@ import { TransferForm } from '@/components/inventory/transfer-form'
 
 export default async function TransferPage({
   params: { locale },
+  searchParams,
 }: {
   params: { locale: string }
+  searchParams: {
+    ingredient?: string
+    from?: string
+    to?: string
+    qty?: string
+  }
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
@@ -24,6 +31,19 @@ export default async function TransferPage({
     getStorageLocations(ctx.tenantId),
     getStockByLocation(ctx.tenantId),
   ])
+
+  // Prefill from a "move stock first" deep link (e.g. the waste form's transfer
+  // prompt). Only seed values that actually belong to this tenant.
+  const validIng = ingredients.some((i) => i.id === searchParams.ingredient)
+  const validFrom = locations.some((l) => l.id === searchParams.from)
+  const validTo = locations.some((l) => l.id === searchParams.to)
+  const qtyOk = /^\d+(\.\d+)?$/.test(searchParams.qty ?? '')
+  const initial = {
+    ingredientId: validIng ? (searchParams.ingredient as string) : '',
+    fromId: validFrom ? (searchParams.from as string) : '',
+    toId: validTo ? (searchParams.to as string) : '',
+    quantity: qtyOk ? (searchParams.qty as string) : '',
+  }
 
   return (
     <div>
@@ -52,6 +72,7 @@ export default async function TransferPage({
           is_frozen: l.is_frozen,
         }))}
         stock={stock}
+        initial={initial}
       />
     </div>
   )

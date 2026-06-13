@@ -34,17 +34,24 @@ export function TransferForm({
   ingredients,
   locations,
   stock,
+  initial,
 }: {
   locale: string
   ingredients: IngOpt[]
   locations: LocOpt[]
   stock: StockEntry[]
+  initial?: {
+    ingredientId?: string
+    fromId?: string
+    toId?: string
+    quantity?: string
+  }
 }) {
   const t = useTranslations()
-  const [ingredientId, setIngredientId] = useState('')
-  const [fromId, setFromId] = useState('')
-  const [toId, setToId] = useState('')
-  const [quantity, setQuantity] = useState('')
+  const [ingredientId, setIngredientId] = useState(initial?.ingredientId ?? '')
+  const [fromId, setFromId] = useState(initial?.fromId ?? '')
+  const [toId, setToId] = useState(initial?.toId ?? '')
+  const [quantity, setQuantity] = useState(initial?.quantity ?? '')
   const [expiry, setExpiry] = useState('')
 
   const action = submitTransfer.bind(null, locale)

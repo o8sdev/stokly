@@ -6,11 +6,13 @@ import { useTranslations } from 'next-intl'
 import {
   AlertTriangle,
   ArrowDownToLine,
+  ArrowLeftRight,
   CalendarX,
   ChefHat,
   MoreHorizontal,
   type LucideIcon,
 } from 'lucide-react'
+import { Link } from '@/lib/i18n/navigation'
 import { submitWaste } from '@/app/[locale]/app/(protected)/inventory/actions'
 import type { IngredientOption } from '@/types/app'
 import type { WasteCategory } from '@/types/database'
@@ -18,7 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { formatMoney } from '@/lib/utils'
+import { formatMoney, formatQuantity } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 const CATEGORY_META: Record<string, { icon: LucideIcon; key: string }> = {
@@ -35,6 +37,7 @@ export function WasteForm({
   ingredients,
   categories,
   stockLevels,
+  stockByLocation,
   consumptionLocations,
   defaultConsumptionId,
   multiLocation,
@@ -44,6 +47,10 @@ export function WasteForm({
   ingredients: IngredientOption[]
   categories: WasteCategory[]
   stockLevels: Record<string, number>
+  stockByLocation: Record<
+    string,
+    { locationId: string; locationName: string; qty: number }[]
+  >
   consumptionLocations: { id: string; name: string }[]
   defaultConsumptionId: string | null
   multiLocation: boolean
@@ -67,6 +74,24 @@ export function WasteForm({
   const onHand = ingredientId ? (stockLevels[ingredientId] ?? 0) : 0
   const value = qtyNum * (selected?.cost_per_unit ?? 0)
   const overStock = !!selected && qtyNum > onHand
+
+  // Where this ingredient physically sits, and whether the routed waste station
+  // actually holds enough (consumption is strict per-location). If the station
+  // is short but stock exists elsewhere, suggest a transfer instead of a refuse.
+  const wasteLocId = locationId || defaultConsumptionId || ''
+  const wasteLocName =
+    consumptionLocations.find((l) => l.id === wasteLocId)?.name ?? ''
+  const locBreakdown = ingredientId ? (stockByLocation[ingredientId] ?? []) : []
+  const atWasteLoc =
+    locBreakdown.find((l) => l.locationId === wasteLocId)?.qty ?? 0
+  const elsewhere = locBreakdown.filter(
+    (l) => l.locationId !== wasteLocId && l.qty > 0
+  )
+  const transferSrc = elsewhere[0]
+  const needsTransfer = !!selected && qtyNum > atWasteLoc && elsewhere.length > 0
+  const transferHref = transferSrc
+    ? `/app/inventory/transfer?ingredient=${ingredientId}&from=${transferSrc.locationId}&to=${wasteLocId}&qty=${Math.max(qtyNum - atWasteLoc, 0)}`
+    : '/app/inventory/transfer'
 
   const payload = useMemo(
     () =>
@@ -135,12 +160,26 @@ export function WasteForm({
           ))}
         </select>
         {selected && (
-          <p className="text-xs text-muted-foreground">
-            {t('inventory.on_hand')}:{' '}
-            <span className="font-mono tabular-nums text-foreground">
-              {onHand} {selected.unit}
-            </span>
-          </p>
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <p>
+              {t('inventory.on_hand')}:{' '}
+              <span className="font-mono tabular-nums text-foreground">
+                {formatQuantity(onHand)} {selected.unit}
+              </span>
+            </p>
+            {locBreakdown.length > 1 && (
+              <p className="flex flex-wrap gap-x-3 gap-y-0.5">
+                {locBreakdown.map((l) => (
+                  <span key={l.locationId}>
+                    {l.locationName}:{' '}
+                    <span className="font-mono tabular-nums text-foreground">
+                      {formatQuantity(l.qty)}
+                    </span>
+                  </span>
+                ))}
+              </p>
+            )}
+          </div>
         )}
       </div>
 
@@ -253,13 +292,30 @@ export function WasteForm({
         />
       </div>
 
-      {status === 'error' && (
+      {needsTransfer && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
+          <p className="text-amber-800">
+            {transferSrc
+              ? t('inventory.waste_stock_elsewhere', {
+                  from: transferSrc.locationName,
+                  to: wasteLocName || t('inventory.waste_this_station'),
+                })
+              : t('inventory.waste_stock_elsewhere_generic')}
+          </p>
+          <Button asChild size="sm" variant="secondary" className="mt-2 gap-2">
+            <Link href={transferHref}>
+              <ArrowLeftRight className="h-4 w-4" />
+              {t('inventory.move_stock')}
+            </Link>
+          </Button>
+        </div>
+      )}
+      {status === 'error' && errKey !== 'stock_elsewhere' && (
+        <p className="text-sm text-destructive">{t('common.error')}</p>
+      )}
+      {status === 'error' && errKey === 'stock_elsewhere' && !needsTransfer && (
         <p className="text-sm text-destructive">
-          {t(
-            errKey === 'kitchen_short'
-              ? 'inventory.waste_kitchen_short'
-              : 'common.error'
-          )}
+          {t('inventory.waste_stock_elsewhere_generic')}
         </p>
       )}
       {status === 'ok' && (

@@ -6,6 +6,8 @@ import {
   getStockMovements,
   getWasteLog,
   getConsumptionPoints,
+  getStorageLocations,
+  getStockByLocation,
 } from '@/lib/data/queries'
 import { tenantHasFeature } from '@/lib/admin/entitlements'
 import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
@@ -38,15 +40,25 @@ export default async function WastePage({
     ? (searchParams.to as string)
     : today
 
-  const [ingredients, categories, movements, log, points, multiLocation] =
-    await Promise.all([
-      getIngredients(ctx.tenantId),
-      getWasteCategories(ctx.tenantId),
-      getStockMovements(ctx.tenantId),
-      getWasteLog(ctx.tenantId, from, to),
-      getConsumptionPoints(ctx.tenantId),
-      tenantHasFeature(ctx.tenantId, 'multi_location'),
-    ])
+  const [
+    ingredients,
+    categories,
+    movements,
+    log,
+    points,
+    multiLocation,
+    locations,
+    byLoc,
+  ] = await Promise.all([
+    getIngredients(ctx.tenantId),
+    getWasteCategories(ctx.tenantId),
+    getStockMovements(ctx.tenantId),
+    getWasteLog(ctx.tenantId, from, to),
+    getConsumptionPoints(ctx.tenantId),
+    tenantHasFeature(ctx.tenantId, 'multi_location'),
+    getStorageLocations(ctx.tenantId),
+    getStockByLocation(ctx.tenantId),
+  ])
 
   const ingredientOptions: IngredientOption[] = ingredients.map((i) => ({
     id: i.id,
@@ -60,6 +72,28 @@ export default async function WastePage({
   const stockLevels: Record<string, number> = Object.fromEntries(
     deriveAllStockLevels(movements)
   )
+
+  // Per-ingredient stock split by location — lets the form show where an
+  // ingredient actually sits and prompt a transfer when the chosen station is
+  // empty (consumption is strict per-location).
+  const locName = new Map(locations.map((l) => [l.id, l.name]))
+  const stockByLocation: Record<
+    string,
+    { locationId: string; locationName: string; qty: number }[]
+  > = {}
+  for (const s of byLoc) {
+    if (s.qty <= 0) continue
+    const arr = stockByLocation[s.ingredient_id] ?? []
+    arr.push({
+      locationId: s.location_id ?? '',
+      locationName: locName.get(s.location_id ?? '') ?? '—',
+      qty: s.qty,
+    })
+    stockByLocation[s.ingredient_id] = arr
+  }
+  for (const arr of Object.values(stockByLocation)) {
+    arr.sort((a, b) => b.qty - a.qty)
+  }
 
   const active = log.filter((e) => !e.reversed)
   const totalValue = active.reduce((sum, e) => sum + e.value, 0)
@@ -86,6 +120,7 @@ export default async function WastePage({
             ingredients={ingredientOptions}
             categories={categories}
             stockLevels={stockLevels}
+            stockByLocation={stockByLocation}
             consumptionLocations={points.points}
             defaultConsumptionId={points.defaultId}
             multiLocation={multiLocation}

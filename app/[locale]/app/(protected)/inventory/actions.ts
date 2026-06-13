@@ -103,17 +103,23 @@ export async function submitDelivery(
 
   const supabase = createClient()
 
-  // Resolve the receiving location: the chosen one if it belongs to the tenant,
-  // else the default-receiving dock (Warehouse). New stock lands here; the user
-  // moves it to the kitchen later.
+  // Resolve the receiving location: the chosen one if it belongs to the tenant.
+  // For a SINGLE-station tenant (exactly one consumption point) land new stock
+  // directly in that point so it's immediately usable — no Anbar→Mətbəx transfer
+  // needed (consumption is strict per-location). Multi-station tenants keep
+  // landing in the default receiving dock and route deliberately.
   const { data: locs } = await supabase
     .from('storage_locations')
-    .select('id, is_default_receiving')
+    .select('id, is_default_receiving, is_consumption_point')
     .eq('tenant_id', ctx.tenantId)
   const chosen = parsed.data.location_id || ''
   const validChosen = (locs ?? []).some((l) => l.id === chosen) ? chosen : null
+  const consumptionPts = (locs ?? []).filter((l) => l.is_consumption_point)
+  const soleConsumption =
+    consumptionPts.length === 1 ? consumptionPts[0].id : null
   const locationId =
     validChosen ??
+    soleConsumption ??
     (locs ?? []).find((l) => l.is_default_receiving)?.id ??
     null
 
@@ -289,7 +295,12 @@ export async function submitWaste(
     p_location_id: parsed.data.location_id || null,
   })
   if (error) {
-    if (error.message?.includes('location_short')) return { error: 'kitchen_short' }
+    // Strict per-location: the routed station is empty but the ingredient sits
+    // at another location. Tell the form to prompt a transfer (it has the
+    // per-location breakdown to say where).
+    if (error.message?.includes('location_short')) {
+      return { error: 'stock_elsewhere' }
+    }
     return { error: 'generic' }
   }
 
