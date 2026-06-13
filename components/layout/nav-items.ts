@@ -19,6 +19,7 @@ import {
   Warehouse,
   Trash2,
   Coins,
+  LineChart,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -127,6 +128,11 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/app/reports/by-location',
             labelKey: 'by_location',
             icon: Warehouse,
+          },
+          {
+            href: '/app/reports/supplier-pricing',
+            labelKey: 'supplier_pricing',
+            icon: LineChart,
           },
         ],
       },

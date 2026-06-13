@@ -6,6 +6,7 @@ import {
   Hourglass,
   Grid2x2,
   Warehouse,
+  TrendingUp,
 } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { PageHeader } from '@/components/layout/page-header'
@@ -61,6 +62,12 @@ export default async function ReportsPage({
       title: t('by_location'),
       desc: t('by_location_desc'),
       icon: Warehouse,
+    },
+    {
+      href: '/app/reports/supplier-pricing',
+      title: t('supplier_pricing'),
+      desc: t('supplier_pricing_desc'),
+      icon: TrendingUp,
     },
   ]
 

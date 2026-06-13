@@ -296,6 +296,32 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Onboarding wizard + sales points as core + supplier price-tracking (no migration)
+Three sequential phases turning captured purchase data into setup guidance + price intelligence.
+- **Phase 1 — sales points are core.** Ungated multiple consumption (sales) points: `createLocation`
+  / `setConsumptionPoint` / locations-manager no longer require the Pro `multi_location` feature, so
+  any tenant sets up Kitchen, Bar, etc. and routes recipes to them. Owner-facing term relabelled
+  "Satış nöqtəsi / Точка продаж". `multi_location` stays defined (can gate advanced per-location
+  analytics) but no longer blocks point creation.
+- **Phase 2 — guided onboarding wizard (`/app/onboarding`).** A resumable, skippable stepper: Sales
+  points → Suppliers → Ingredients → Recipes (linked to a point) → First stock. Sales points /
+  suppliers / ingredients add inline (`createLocation`, `createSupplier`, new `addIngredientQuick` —
+  return results + `router.refresh`); recipes + first stock link to their full forms. Step completion
+  is derived from data. The dashboard redirects a true first-run here; the Getting-Started card gained
+  a "Continue setup" CTA. `TITLE_ALIASES['/app/onboarding']` + `nav.onboarding` ("Quruluş").
+- **Phase 3 — supplier price-tracking report (`/app/reports/supplier-pricing`).** Pure analysis over
+  purchase history (no migration), in `lib/calculations/supplier-pricing.ts`: a per-period **supplier
+  comparison** per ingredient (avg/min/max/last, cheapest highlighted + potential saving), an all-time
+  **monthly price trend** (seasonality, Recharts line), and **price-rise alerts** (latest delivery >
+  moving average via `isPriceOutlier`) annotated with any over-target dishes the ingredient feeds
+  (reusing `buildFoodCostRows`). Reports hub card + sidebar entry.
+
+Verified in-browser on the demo: the wizard's 5-step rail renders and an inline "Bar" sales point was
+created end-to-end (also confirms Phase 1's ungate); the report's comparison table + expandable
+per-supplier breakdown + monthly trend chart render. The supplier ranking / savings / price-rise
+alerts populate as multi-supplier + changing-price history accrues (the onboarding now drives that
+capture). Build green each phase.
+
 ### Done — Dashboard recipe food-cost monitor + per-recipe target (migration 053)
 A color-coded recipe food-cost analysis on the dashboard. Migration 053:
 `tenants.default_food_cost_target` (numeric, default 30) + `recipes.target_food_cost_percent`
