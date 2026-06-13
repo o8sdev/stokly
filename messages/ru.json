@@ -853,7 +853,7 @@
     "quick_add_all": "Добавить все"
   },
   "recipes": {
-    "consumption_location": "Точка списания",
+    "consumption_location": "Точка продаж",
     "consumption_location_hint": "Где готовится блюдо / откуда списывается сток при продаже (напр. коктейль → Бар).",
     "target_food_cost": "Целевая себестоимость %",
     "target_food_cost_hint": "Лимит себестоимости этого блюда. Пусто = общий целевой по бизнесу. Отслеживается на дашборде.",
@@ -1344,7 +1344,7 @@
     "kind_cold_storage": "Холодильник",
     "kind_freezer": "Морозильник",
     "kind_receiving": "Приёмка",
-    "consumption_point": "Списание",
+    "consumption_point": "Точка продаж",
     "consumption_hint": "Продажи, потери и производство списываются отсюда",
     "default_consumption": "Основная",
     "default_consumption_hint": "Рецепты без указанной локации списываются отсюда",

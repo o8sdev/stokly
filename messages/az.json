@@ -853,7 +853,7 @@
     "quick_add_all": "Hamısını əlavə et"
   },
   "recipes": {
-    "consumption_location": "İstehlak nöqtəsi",
+    "consumption_location": "Satış nöqtəsi",
     "consumption_location_hint": "Bu yemək harada hazırlanır / satıldıqda stok hansı nöqtədən silinir (məs. kokteyl → Bar).",
     "target_food_cost": "Hədəf maya dəyəri %",
     "target_food_cost_hint": "Bu yeməyin maya dəyəri limiti. Boş = biznes üzrə standart hədəf. İdarə panelində izlənir.",
@@ -1344,7 +1344,7 @@
     "kind_cold_storage": "Soyuducu",
     "kind_freezer": "Dondurucu",
     "kind_receiving": "Qəbul",
-    "consumption_point": "İstehlak",
+    "consumption_point": "Satış nöqtəsi",
     "consumption_hint": "Satış, itki və istehsal buradan silinir",
     "default_consumption": "Əsas",
     "default_consumption_hint": "Məkanı təyin edilməmiş reseptlər buradan silinir",

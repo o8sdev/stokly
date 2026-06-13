@@ -34,12 +34,10 @@ export function LocationsManager({
   locale,
   locations,
   usedIds,
-  multiLocation,
 }: {
   locale: string
   locations: StorageLocation[]
   usedIds: string[]
-  multiLocation: boolean
 }) {
   const t = useTranslations()
   const formRef = useRef<HTMLFormElement>(null)
@@ -58,7 +56,6 @@ export function LocationsManager({
   }, [state.success])
 
   const used = new Set(usedIds)
-  const consumptionCount = locations.filter((l) => l.is_consumption_point).length
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
@@ -66,10 +63,11 @@ export function LocationsManager({
         {locations.map((l) => {
           const canDelete =
             !l.is_default_consumption && !l.is_default_receiving && !used.has(l.id)
-          // Can't turn the default off; turning a 2nd+ point ON needs the feature.
+          // Sales points are core (any number is free); only the default point
+          // can't be turned off (reassign the default first).
           const cpDisabled = l.is_consumption_point
             ? l.is_default_consumption
-            : consumptionCount >= 1 && !multiLocation
+            : false
           return (
             <div
               key={l.id}
@@ -125,11 +123,7 @@ export function LocationsManager({
                     l.is_consumption_point ? chipOn : chipOff,
                     cpDisabled && 'opacity-50'
                   )}
-                  title={
-                    cpDisabled && !l.is_consumption_point
-                      ? t('locations.requires_multi_location')
-                      : t('locations.consumption_hint')
-                  }
+                  title={t('locations.consumption_hint')}
                 >
                   <Utensils className="h-3.5 w-3.5" />
                   {t('locations.consumption_point')}

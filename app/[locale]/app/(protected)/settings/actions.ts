@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireTenant, canWrite } from '@/lib/auth/tenant'
 import { BUSINESS_TYPE_KEYS } from '@/lib/constants/business-types'
-import { tenantHasFeature } from '@/lib/admin/entitlements'
 import {
   isConsumptionKind,
   isFrozenKind,
@@ -213,19 +212,9 @@ export async function createLocation(
 
   const supabase = createClient()
 
-  // A consumption kind (kitchen/bar/prep) makes the location a consumption point.
-  // The FIRST consumption point is free; a 2nd+ requires the multi_location feature.
-  let isConsumption = false
-  if (isConsumptionKind(kind)) {
-    const { count } = await supabase
-      .from('storage_locations')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', ctx.tenantId)
-      .eq('is_consumption_point', true)
-    isConsumption =
-      (count ?? 0) === 0 ||
-      (await tenantHasFeature(ctx.tenantId, 'multi_location'))
-  }
+  // A consumption kind (kitchen/bar/prep) makes the location a sales/consumption
+  // point. Sales points are a core concept — any number is free on any plan.
+  const isConsumption = isConsumptionKind(kind)
   const isFrozen = formData.get('is_frozen') === 'on' || isFrozenKind(kind)
 
   // Append to the end of the list.
@@ -322,9 +311,9 @@ export async function setDefaultConsumptionLocation(
   revalidatePath(LOC_PATH(locale))
 }
 
-// Toggle whether a location is a consumption point (sales/waste/production deduct
-// from it). The FIRST point is free; turning ON a 2nd+ requires multi_location.
-// The default consumption point cannot be turned off (reassign the default first).
+// Toggle whether a location is a sales/consumption point (sales/waste/production
+// deduct from it). Sales points are core — any number is free. The default
+// consumption point cannot be turned off (reassign the default first).
 export async function setConsumptionPoint(
   locale: string,
   id: string,
@@ -341,19 +330,6 @@ export async function setConsumptionPoint(
     .maybeSingle()
   if (!loc) return
   if (!value && loc.is_default_consumption) return // can't unset the default
-  if (value && !loc.is_consumption_point) {
-    const { count } = await supabase
-      .from('storage_locations')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', ctx.tenantId)
-      .eq('is_consumption_point', true)
-    if (
-      (count ?? 0) >= 1 &&
-      !(await tenantHasFeature(ctx.tenantId, 'multi_location'))
-    ) {
-      return // gated: 2nd+ consumption point needs the feature
-    }
-  }
   await supabase
     .from('storage_locations')
     .update({ is_consumption_point: value })
