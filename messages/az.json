@@ -310,6 +310,7 @@
       "flags": "Feature Flags",
       "logs": "Audit Log",
       "library": "Kitabxana",
+      "admins": "Adminlər",
       "blog": "Bloq",
       "new_business": "Yeni biznes",
       "home": "Əsas"
@@ -637,6 +638,26 @@
       "col_action": "Əməliyyat",
       "col_tenant": "Restoran",
       "empty": "Qeyd yoxdur"
+    },
+    "admins": {
+      "title": "Platforma adminləri",
+      "subtitle": "Konsola giriş icazəsi olan hesabları idarə edin.",
+      "email": "E-poçt",
+      "role": "Rol",
+      "role_super": "Super",
+      "role_readonly": "Yalnız oxu",
+      "add": "Admin əlavə et",
+      "add_hint": "Hesab əvvəlcədən qeydiyyatdan keçməlidir — sonra e-poçtu ilə admin təyin edin.",
+      "added": "Admin əlavə edildi ✓",
+      "added_col": "Əlavə edilib",
+      "you": "siz",
+      "remove": "Çıxar",
+      "err_validation": "Düzgün e-poçt daxil edin",
+      "err_user_not_found": "Bu e-poçtla istifadəçi tapılmadı (əvvəlcə qeydiyyatdan keçməlidir)",
+      "err_cannot_remove_self": "Özünüzü çıxara bilməzsiniz",
+      "err_last_admin": "Son super admini çıxarmaq olmaz",
+      "err_forbidden": "İcazə yoxdur",
+      "err_generic": "Alınmadı. Yenidən cəhd edin."
     },
     "library": {
       "title": "Qlobal inqrediyent kitabxanası",

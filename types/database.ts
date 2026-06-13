@@ -1142,6 +1142,23 @@ export interface Database {
         Args: Record<string, never>
         Returns: { plan_tier: string; count: number }[]
       }
+      admin_list_platform_admins: {
+        Args: Record<string, never>
+        Returns: {
+          user_id: string
+          email: string | null
+          role: string
+          created_at: string
+        }[]
+      }
+      admin_add_platform_admin: {
+        Args: { p_email: string; p_role: string }
+        Returns: string
+      }
+      admin_remove_platform_admin: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       admin_tenant_metrics: {
         Args: { p_ids: string[] }
         Returns: {
