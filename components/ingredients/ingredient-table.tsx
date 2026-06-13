@@ -2,10 +2,14 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Pencil, Search, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, Pencil, Search } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import type { IngredientWithStock } from '@/types/app'
-import { deleteIngredient } from '@/app/[locale]/app/(protected)/ingredients/actions'
+import {
+  archiveIngredient,
+  restoreIngredient,
+} from '@/app/[locale]/app/(protected)/ingredients/actions'
+import { ArchiveToggle } from '@/components/ui/archive-toggle'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,25 +26,29 @@ import { formatMoney, formatQuantity, cn } from '@/lib/utils'
 export function IngredientTable({
   locale,
   rows,
+  archivedRows,
 }: {
   locale: string
   rows: IngredientWithStock[]
+  archivedRows: IngredientWithStock[]
 }) {
   const t = useTranslations()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(0)
+  const [showArchived, setShowArchived] = useState(false)
   const PAGE = 50
 
+  const source = showArchived ? archivedRows : rows
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return rows
-    return rows.filter(
+    if (!q) return source
+    return source.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
         (r.name_az ?? '').toLowerCase().includes(q) ||
         (r.name_ru ?? '').toLowerCase().includes(q)
     )
-  }, [rows, query])
+  }, [source, query])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE))
   const clamped = Math.min(page, pageCount - 1)
@@ -66,6 +74,15 @@ export function IngredientTable({
 
   return (
     <div className="space-y-4">
+      <ArchiveToggle
+        showArchived={showArchived}
+        onChange={(v) => {
+          setShowArchived(v)
+          setPage(0)
+        }}
+        activeCount={rows.length}
+        archivedCount={archivedRows.length}
+      />
       <div className="relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -80,10 +97,14 @@ export function IngredientTable({
         <div className="stokly-card">
           <EmptyState
             message={
-              query ? t('common.none') : t('ingredients.empty')
+              query
+                ? t('common.none')
+                : showArchived
+                  ? t('common.no_archived')
+                  : t('ingredients.empty')
             }
             action={
-              !query ? (
+              !query && !showArchived ? (
                 <Button asChild size="sm">
                   <Link href="/app/ingredients/new">{t('ingredients.add')}</Link>
                 </Button>
@@ -106,7 +127,10 @@ export function IngredientTable({
           {pageRows.map((row) => {
             const status = stockStatus(row)
             return (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className={showArchived ? 'opacity-60' : undefined}
+              >
                 <TableCell className="font-medium">{row.name}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {row.unit}
@@ -137,28 +161,49 @@ export function IngredientTable({
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                    >
-                      <Link href={`/app/ingredients/${row.id}`}>
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <form action={deleteIngredient.bind(null, locale, row.id)}>
-                      <button
-                        type="submit"
-                        title={t('common.delete')}
-                        className={cn(
-                          'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors',
-                          'hover:bg-[#FEF2F2] hover:text-[#E53E3E]'
-                        )}
+                    {showArchived ? (
+                      <form
+                        action={restoreIngredient.bind(null, locale, row.id)}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </form>
+                        <button
+                          type="submit"
+                          title={t('common.restore')}
+                          className={cn(
+                            'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors',
+                            'hover:bg-secondary hover:text-foreground'
+                          )}
+                        >
+                          <ArchiveRestore className="h-4 w-4" />
+                        </button>
+                      </form>
+                    ) : (
+                      <>
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                        >
+                          <Link href={`/app/ingredients/${row.id}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <form
+                          action={archiveIngredient.bind(null, locale, row.id)}
+                        >
+                          <button
+                            type="submit"
+                            title={t('common.archive')}
+                            className={cn(
+                              'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors',
+                              'hover:bg-[#FEF2F2] hover:text-[#E53E3E]'
+                            )}
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
+                        </form>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

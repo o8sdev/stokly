@@ -2,7 +2,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getStorageLocations, getLocationsInUse } from '@/lib/data/queries'
+import {
+  getStorageLocations,
+  getArchivedLocations,
+  getLocationsInUse,
+} from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { LocationsManager } from './locations-manager'
@@ -15,8 +19,9 @@ export default async function LocationsPage({
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
-  const [locations, used] = await Promise.all([
+  const [locations, archived, used] = await Promise.all([
     getStorageLocations(ctx.tenantId),
+    getArchivedLocations(ctx.tenantId),
     getLocationsInUse(ctx.tenantId),
   ])
 
@@ -37,6 +42,7 @@ export default async function LocationsPage({
       <LocationsManager
         locale={locale}
         locations={locations}
+        archived={archived}
         usedIds={[...used]}
       />
     </div>

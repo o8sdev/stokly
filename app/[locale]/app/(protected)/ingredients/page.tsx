@@ -5,6 +5,7 @@ import { requireTenant } from '@/lib/auth/tenant'
 import { tenantHasFeature } from '@/lib/admin/entitlements'
 import {
   getIngredients,
+  getArchivedIngredients,
   getSuppliers,
   getStockMovements,
   getCommonLibrary,
@@ -28,12 +29,14 @@ export default async function IngredientsPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, suppliers, movements, common] = await Promise.all([
-    getIngredients(ctx.tenantId),
-    getSuppliers(ctx.tenantId),
-    getStockMovements(ctx.tenantId),
-    getCommonLibrary(),
-  ])
+  const [ingredients, archivedIngredients, suppliers, movements, common] =
+    await Promise.all([
+      getIngredients(ctx.tenantId),
+      getArchivedIngredients(ctx.tenantId),
+      getSuppliers(ctx.tenantId),
+      getStockMovements(ctx.tenantId),
+      getCommonLibrary(),
+    ])
 
   const [canImport, canLibrary] = await Promise.all([
     tenantHasFeature(ctx.tenantId, 'bulk_import'),
@@ -47,14 +50,16 @@ export default async function IngredientsPage({
   const levels = deriveAllStockLevels(movements)
   const supplierName = new Map(suppliers.map((s) => [s.id, s.name]))
 
-  const rows: IngredientWithStock[] = ingredients.map((i) => ({
+  const toRow = (i: (typeof ingredients)[number]): IngredientWithStock => ({
     ...i,
     currentStock: levels.get(i.id) ?? 0,
     supplierName: i.supplier_id
       ? supplierName.get(i.supplier_id) ?? null
       : null,
     lastCountAt: lastCountDate(movements, i.id),
-  }))
+  })
+  const rows = ingredients.map(toRow)
+  const archivedRows = archivedIngredients.map(toRow)
 
   return (
     <div>
@@ -80,7 +85,7 @@ export default async function IngredientsPage({
         }
       />
       <QuickAdd locale={locale} items={commonItems} />
-      <IngredientTable locale={locale} rows={rows} />
+      <IngredientTable locale={locale} rows={rows} archivedRows={archivedRows} />
     </div>
   )
 }

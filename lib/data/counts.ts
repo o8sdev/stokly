@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import {
-  getIngredients,
+  getIngredientsAll,
   getStockMovements,
   getTenant,
-  getRecipes,
+  getRecipesAll,
   getRecipeIngredients,
 } from '@/lib/data/queries'
 import { deriveStockLevelsAsOf } from '@/lib/calculations/stock-level'
@@ -385,7 +385,7 @@ export async function generatePeriodReport(
 
   const [movements, ingredients] = await Promise.all([
     getStockMovements(tenantId),
-    getIngredients(tenantId),
+    getIngredientsAll(tenantId),
   ])
 
   const openingLevels = deriveStockLevelsAsOf(movements, openingAsOf)
@@ -424,7 +424,7 @@ export async function generatePeriodReport(
         theoreticalUsage = snap.map
       } else {
         const [recipes, recipeIngredients] = await Promise.all([
-          getRecipes(tenantId),
+          getRecipesAll(tenantId),
           getRecipeIngredients(tenantId),
         ])
         const soldItems = [...soldMap.entries()].map(([recipe_id, quantity]) => ({

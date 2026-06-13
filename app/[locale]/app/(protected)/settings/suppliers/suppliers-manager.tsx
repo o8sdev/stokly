@@ -3,14 +3,16 @@
 import { useRef, useEffect, useState } from 'react'
 import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
-import { Trash2, Pencil } from 'lucide-react'
+import { Archive, ArchiveRestore, Pencil } from 'lucide-react'
 import type { Supplier } from '@/types/database'
 import {
   createSupplier,
   updateSupplier,
-  deleteSupplier,
+  archiveSupplier,
+  restoreSupplier,
   type SettingsResult,
 } from '../actions'
+import { ArchiveToggle } from '@/components/ui/archive-toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,14 +30,17 @@ import {
 export function SuppliersManager({
   locale,
   suppliers,
+  archived,
 }: {
   locale: string
   suppliers: Supplier[]
+  archived: Supplier[]
 }) {
   const t = useTranslations()
   const formRef = useRef<HTMLFormElement>(null)
   // The side panel doubles as add (editing == null) and edit form.
   const [editing, setEditing] = useState<Supplier | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
 
   const [createState, createAction] = useFormState<SettingsResult, FormData>(
     createSupplier.bind(null, locale),
@@ -55,62 +60,92 @@ export function SuppliersManager({
     if (updateState.success) setEditing(null)
   }, [updateState.success])
 
-  const removeSupplier = deleteSupplier.bind(null, locale)
+  const archive = archiveSupplier.bind(null, locale)
+  const restore = restoreSupplier.bind(null, locale)
+  const list = showArchived ? archived : suppliers
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-      <div className="stokly-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('settings.supplier_name')}</TableHead>
-              <TableHead>{t('settings.supplier_phone')}</TableHead>
-              <TableHead className="w-20" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {suppliers.length === 0 ? (
+      <div className="space-y-3">
+        <ArchiveToggle
+          showArchived={showArchived}
+          onChange={setShowArchived}
+          activeCount={suppliers.length}
+          archivedCount={archived.length}
+        />
+        <div className="stokly-card overflow-hidden">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={3}
-                  className="text-center text-muted-foreground"
-                >
-                  {t('settings.no_suppliers')}
-                </TableCell>
+                <TableHead>{t('settings.supplier_name')}</TableHead>
+                <TableHead>{t('settings.supplier_phone')}</TableHead>
+                <TableHead className="w-20" />
               </TableRow>
-            ) : (
-              suppliers.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell>{s.phone ?? '—'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        aria-label={t('settings.edit_supplier')}
-                        onClick={() => setEditing(s)}
-                      >
-                        <Pencil className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                      <form action={removeSupplier.bind(null, s.id)}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          type="submit"
-                          aria-label={t('common.delete')}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </form>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {list.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    className="text-center text-muted-foreground"
+                  >
+                    {showArchived
+                      ? t('common.no_archived')
+                      : t('settings.no_suppliers')}
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                list.map((s) => (
+                  <TableRow
+                    key={s.id}
+                    className={showArchived ? 'opacity-60' : undefined}
+                  >
+                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell>{s.phone ?? '—'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        {showArchived ? (
+                          <form action={restore.bind(null, s.id)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              type="submit"
+                              aria-label={t('common.restore')}
+                            >
+                              <ArchiveRestore className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </form>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              type="button"
+                              aria-label={t('settings.edit_supplier')}
+                              onClick={() => setEditing(s)}
+                            >
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                            <form action={archive.bind(null, s.id)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                type="submit"
+                                aria-label={t('common.archive')}
+                              >
+                                <Archive className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </form>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* key remounts the form when switching add <-> edit so defaults apply */}

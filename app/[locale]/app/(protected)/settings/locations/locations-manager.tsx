@@ -3,12 +3,21 @@
 import { useRef, useEffect, useState } from 'react'
 import { useFormState } from 'react-dom'
 import { useTranslations } from 'next-intl'
-import { Trash2, Utensils, Star, Truck, Snowflake, Check } from 'lucide-react'
+import {
+  Archive,
+  ArchiveRestore,
+  Utensils,
+  Star,
+  Truck,
+  Snowflake,
+  Check,
+} from 'lucide-react'
 import type { StorageLocation } from '@/types/database'
 import {
   createLocation,
   renameLocation,
-  deleteLocation,
+  archiveLocation,
+  restoreLocation,
   setConsumptionPoint,
   setDefaultConsumptionLocation,
   setDefaultReceivingLocation,
@@ -33,10 +42,12 @@ const selectCls =
 export function LocationsManager({
   locale,
   locations,
+  archived,
   usedIds,
 }: {
   locale: string
   locations: StorageLocation[]
+  archived: StorageLocation[]
   usedIds: string[]
 }) {
   const t = useTranslations()
@@ -176,11 +187,11 @@ export function LocationsManager({
                 </button>
               </form>
 
-              {/* Delete */}
+              {/* Archive */}
               {canDelete ? (
-                <form action={deleteLocation.bind(null, locale, l.id)}>
-                  <Button type="submit" variant="ghost" size="icon" aria-label={t('common.delete')}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                <form action={archiveLocation.bind(null, locale, l.id)}>
+                  <Button type="submit" variant="ghost" size="icon" aria-label={t('common.archive')}>
+                    <Archive className="h-4 w-4 text-destructive" />
                   </Button>
                 </form>
               ) : (
@@ -188,15 +199,40 @@ export function LocationsManager({
                   variant="ghost"
                   size="icon"
                   disabled
-                  title={t('locations.cannot_delete')}
-                  aria-label={t('common.delete')}
+                  title={t('locations.cannot_archive')}
+                  aria-label={t('common.archive')}
                 >
-                  <Trash2 className="h-4 w-4 opacity-30" />
+                  <Archive className="h-4 w-4 opacity-30" />
                 </Button>
               )}
             </div>
           )
         })}
+        {archived.length > 0 && (
+          <div className="space-y-2 pt-2">
+            <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t('common.archived')}
+            </p>
+            {archived.map((l) => (
+              <div
+                key={l.id}
+                className="flex items-center justify-between rounded-lg border border-dashed border-border bg-secondary/20 p-3 opacity-70"
+              >
+                <span className="text-sm font-medium">{l.name}</span>
+                <form action={restoreLocation.bind(null, locale, l.id)}>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('common.restore')}
+                  >
+                    <ArchiveRestore className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <form ref={formRef} action={formAction} className="space-y-4 stokly-card p-5">

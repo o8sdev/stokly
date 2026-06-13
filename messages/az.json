@@ -918,6 +918,7 @@
     "filter_all": "Hamısı",
     "filter_dishes": "Yeməklər",
     "filter_sub": "Yarımfabrikatlar",
+    "cannot_archive_in_use": "Bu yarımfabrikat başqa reseptlərdə istifadə olunur — əvvəlcə oradan çıxarın",
     "add_ingredient": "İnqrediyent əlavə et",
     "add_sub_recipe": "Yarımfabrikat əlavə et",
     "line_ingredient": "İnqrediyent",
@@ -1422,7 +1423,8 @@
     "frozen": "Dondurucu",
     "frozen_hint": "Burada saxlama yararlılıq müddətini uzada bilər",
     "frozen_label": "Dondurucu (saxlama müddətini uzadır)",
-    "cannot_delete": "Bu yeri silmək olmaz (mətbəx/qəbul və ya stok var)"
+    "cannot_delete": "Bu yeri silmək olmaz (mətbəx/qəbul və ya stok var)",
+    "cannot_archive": "Bu yeri arxivləşdirmək olmaz (defolt mətbəx/qəbul nöqtəsi və ya aktiv stok var)"
   },
   "movement_type": {
     "delivery": "Çatdırılma",
@@ -1455,6 +1457,12 @@
     "add": "Əlavə et",
     "actions": "Əməliyyatlar",
     "none": "Yoxdur",
+    "archive": "Arxivləşdir",
+    "restore": "Bərpa et",
+    "archived": "Arxivlənmiş",
+    "view_active": "Aktiv",
+    "view_archived": "Arxiv",
+    "no_archived": "Arxivlənmiş element yoxdur",
     "yes": "Bəli",
     "no": "Xeyr",
     "required": "Bu sahə tələb olunur",

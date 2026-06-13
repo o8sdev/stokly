@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getSuppliers } from '@/lib/data/queries'
+import { getSuppliers, getArchivedSuppliers } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { SuppliersManager } from './suppliers-manager'
@@ -15,7 +15,10 @@ export default async function SuppliersPage({
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
-  const suppliers = await getSuppliers(ctx.tenantId)
+  const [suppliers, archived] = await Promise.all([
+    getSuppliers(ctx.tenantId),
+    getArchivedSuppliers(ctx.tenantId),
+  ])
 
   return (
     <div>
@@ -30,7 +33,11 @@ export default async function SuppliersPage({
           </Button>
         }
       />
-      <SuppliersManager locale={locale} suppliers={suppliers} />
+      <SuppliersManager
+        locale={locale}
+        suppliers={suppliers}
+        archived={archived}
+      />
     </div>
   )
 }

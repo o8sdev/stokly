@@ -176,15 +176,35 @@ export async function updateSupplier(
   return { success: true }
 }
 
-export async function deleteSupplier(
+// Archive (soft-delete) a supplier. A hard delete used to NULL the supplier on
+// every past delivery movement (FK ON DELETE SET NULL), erasing who we bought
+// from and breaking price history / the supplier-pricing report. Archiving
+// keeps that link intact: the supplier just leaves the active picker.
+export async function archiveSupplier(
   locale: string,
   supplierId: string
 ): Promise<void> {
   const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
   const supabase = createClient()
   await supabase
     .from('suppliers')
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', supplierId)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(`/${locale}/app/settings/suppliers`)
+}
+
+export async function restoreSupplier(
+  locale: string,
+  supplierId: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('suppliers')
+    .update({ archived_at: null })
     .eq('id', supplierId)
     .eq('tenant_id', ctx.tenantId)
   revalidatePath(`/${locale}/app/settings/suppliers`)
@@ -256,9 +276,11 @@ export async function renameLocation(
   revalidatePath(LOC_PATH(locale))
 }
 
-// Delete a location — refused if it is the kitchen / default-receiving point or
-// still holds active stock (guarded in the UI too, this is the hard backstop).
-export async function deleteLocation(
+// Archive a location — refused if it is the default consumption / receiving
+// point or still holds active stock (move/consume it first). Archiving keeps
+// the location resolvable for past movements that reference it; reversible via
+// restoreLocation.
+export async function archiveLocation(
   locale: string,
   id: string
 ): Promise<void> {
@@ -282,7 +304,22 @@ export async function deleteLocation(
   if ((count ?? 0) > 0) return
   await supabase
     .from('storage_locations')
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(LOC_PATH(locale))
+}
+
+export async function restoreLocation(
+  locale: string,
+  id: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('storage_locations')
+    .update({ archived_at: null })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
   revalidatePath(LOC_PATH(locale))

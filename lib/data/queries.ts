@@ -29,15 +29,18 @@ const round3 = (n: number): number => Math.round(n * 1000) / 1000
 // All loaders take an explicit tenantId (resolved via requireTenant) so the
 // tenant scope is always server-controlled. RLS provides defence in depth.
 
-export const getIngredients = cache(async (
-  tenantId: string
+// Shared loader. `includeArchived` decides whether soft-deleted (archived)
+// rows come back: active lists/pickers exclude them, while history/report
+// resolvers (getIngredientsAll) include them so past journal/report rows still
+// resolve a name instead of showing "—".
+const loadIngredients = async (
+  tenantId: string,
+  includeArchived: boolean
 ): Promise<IngredientWithConversions[]> => {
   const supabase = createClient()
-  const { data } = await supabase
-    .from('ingredients')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .order('name', { ascending: true })
+  let q = supabase.from('ingredients').select('*').eq('tenant_id', tenantId)
+  if (!includeArchived) q = q.is('archived_at', null)
+  const { data } = await q.order('name', { ascending: true })
   const ingredients = data ?? []
   if (ingredients.length === 0) return []
 
@@ -57,7 +60,20 @@ export const getIngredients = cache(async (
     ...i,
     unit_conversions: byIngredient.get(i.id) ?? null,
   }))
-})
+}
+
+// Active ingredients (archived excluded) — every picker/list/cost calc.
+export const getIngredients = cache((tenantId: string) =>
+  loadIngredients(tenantId, false)
+)
+// All ingredients incl. archived — history/report name resolution ONLY.
+export const getIngredientsAll = cache((tenantId: string) =>
+  loadIngredients(tenantId, true)
+)
+// Just the archived ones — the "Archived" management view.
+export const getArchivedIngredients = cache(async (tenantId: string) =>
+  (await loadIngredients(tenantId, true)).filter((i) => i.archived_at != null)
+)
 
 // Stocked preps (Yarımfabrikat) summary for the production page: on-hand,
 // cost/serving, last production yield, and nearest expiry of the prep's stock.
@@ -79,12 +95,13 @@ export async function getPreps(tenantId: string): Promise<PrepSummary[]> {
     .select('id, name, serving_unit, produced_ingredient_id')
     .eq('tenant_id', tenantId)
     .not('produced_ingredient_id', 'is', null)
+    .is('archived_at', null)
   const reps = recipes ?? []
   if (reps.length === 0) return []
 
   const [movements, ingredients, runsRes, batches] = await Promise.all([
     getStockMovements(tenantId),
-    getIngredients(tenantId),
+    getIngredientsAll(tenantId),
     supabase
       .from('production_runs')
       .select('output_ingredient_id, actual_yield_percent, produced_at')
@@ -211,28 +228,68 @@ export async function getIngredient(
   return data ?? null
 }
 
-export async function getSuppliers(tenantId: string): Promise<Supplier[]> {
+const loadSuppliers = async (
+  tenantId: string,
+  includeArchived: boolean
+): Promise<Supplier[]> => {
   const supabase = createClient()
-  const { data } = await supabase
-    .from('suppliers')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .order('name', { ascending: true })
+  let q = supabase.from('suppliers').select('*').eq('tenant_id', tenantId)
+  if (!includeArchived) q = q.is('archived_at', null)
+  const { data } = await q.order('name', { ascending: true })
   return data ?? []
+}
+// Active suppliers (archived excluded) — delivery picker + supplier list.
+export async function getSuppliers(tenantId: string): Promise<Supplier[]> {
+  return loadSuppliers(tenantId, false)
+}
+// All suppliers incl. archived — purchase/price-history name resolution ONLY.
+export async function getSuppliersAll(tenantId: string): Promise<Supplier[]> {
+  return loadSuppliers(tenantId, true)
+}
+// Just the archived ones — the "Archived" management view.
+export async function getArchivedSuppliers(
+  tenantId: string
+): Promise<Supplier[]> {
+  return (await loadSuppliers(tenantId, true)).filter(
+    (s) => s.archived_at != null
+  )
 }
 
 // Per-tenant storage locations (Warehouse, Kitchen, …), ordered for display.
-export async function getStorageLocations(
-  tenantId: string
-): Promise<StorageLocation[]> {
+const loadStorageLocations = async (
+  tenantId: string,
+  includeArchived: boolean
+): Promise<StorageLocation[]> => {
   const supabase = createClient()
-  const { data } = await supabase
+  let q = supabase
     .from('storage_locations')
     .select('*')
     .eq('tenant_id', tenantId)
+  if (!includeArchived) q = q.is('archived_at', null)
+  const { data } = await q
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true })
   return data ?? []
+}
+// Active locations (archived excluded) — every location picker.
+export async function getStorageLocations(
+  tenantId: string
+): Promise<StorageLocation[]> {
+  return loadStorageLocations(tenantId, false)
+}
+// All locations incl. archived — movement/location name resolution ONLY.
+export async function getStorageLocationsAll(
+  tenantId: string
+): Promise<StorageLocation[]> {
+  return loadStorageLocations(tenantId, true)
+}
+// Just the archived ones — the "Archived" group in the locations manager.
+export async function getArchivedLocations(
+  tenantId: string
+): Promise<StorageLocation[]> {
+  return (await loadStorageLocations(tenantId, true)).filter(
+    (l) => l.archived_at != null
+  )
 }
 
 export interface LocationStock {
@@ -282,15 +339,28 @@ export async function getLocationsInUse(
   return used
 }
 
-export const getRecipes = cache(async (tenantId: string): Promise<Recipe[]> => {
+const loadRecipes = async (
+  tenantId: string,
+  includeArchived: boolean
+): Promise<Recipe[]> => {
   const supabase = createClient()
-  const { data } = await supabase
-    .from('recipes')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .order('name', { ascending: true })
+  let q = supabase.from('recipes').select('*').eq('tenant_id', tenantId)
+  if (!includeArchived) q = q.is('archived_at', null)
+  const { data } = await q.order('name', { ascending: true })
   return data ?? []
-})
+}
+// Active recipes (archived excluded) — recipe list, sellable-dish + sub-recipe pickers.
+export const getRecipes = cache((tenantId: string) =>
+  loadRecipes(tenantId, false)
+)
+// All recipes incl. archived — sales-history name resolution ONLY.
+export const getRecipesAll = cache((tenantId: string) =>
+  loadRecipes(tenantId, true)
+)
+// Just the archived ones — the "Archived" recipes view.
+export const getArchivedRecipes = cache(async (tenantId: string) =>
+  (await loadRecipes(tenantId, true)).filter((r) => r.archived_at != null)
+)
 
 export async function getRecipe(
   tenantId: string,
@@ -419,7 +489,7 @@ export async function getWasteLog(
       .select('reverses_movement_id')
       .eq('tenant_id', tenantId)
       .not('reverses_movement_id', 'is', null),
-    getIngredients(tenantId),
+    getIngredientsAll(tenantId),
     getWasteCategories(tenantId),
   ])
 
@@ -485,7 +555,7 @@ export async function getProductionRuns(
       .select('production_run_id')
       .eq('tenant_id', tenantId)
       .eq('reason', 'production_void'),
-    getIngredients(tenantId),
+    getIngredientsAll(tenantId),
   ])
   const ingMap = new Map(ings.map((i) => [i.id, i]))
   const voided = new Set(
@@ -539,8 +609,8 @@ export async function getPurchaseLog(
       .lte('created_at', toEnd)
       .order('created_at', { ascending: false })
       .limit(1000),
-    getIngredients(tenantId),
-    getSuppliers(tenantId),
+    getIngredientsAll(tenantId),
+    getSuppliersAll(tenantId),
   ])
 
   const ingMap = new Map(ings.map((i) => [i.id, i]))
@@ -653,8 +723,8 @@ export async function getDayConfirmPreview(
 
   const [ingredients, recipes, recipeIngredients, movements, locations, byLoc] =
     await Promise.all([
-      getIngredients(tenantId),
-      getRecipes(tenantId),
+      getIngredientsAll(tenantId),
+      getRecipesAll(tenantId),
       getRecipeIngredients(tenantId),
       getStockMovements(tenantId),
       getStorageLocations(tenantId),
@@ -861,7 +931,7 @@ export async function getIngredientPriceHistory(
       .not('unit_cost', 'is', null)
       .order('created_at', { ascending: false })
       .limit(100),
-    getSuppliers(tenantId),
+    getSuppliersAll(tenantId),
   ])
 
   const supMap = new Map(suppliers.map((s) => [s.id, s.name]))

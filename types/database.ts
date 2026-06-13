@@ -314,6 +314,7 @@ export interface Database {
           phone: string | null
           notes: string | null
           created_at: string
+          archived_at: string | null
         }
         Insert: {
           id?: string
@@ -322,6 +323,7 @@ export interface Database {
           phone?: string | null
           notes?: string | null
           created_at?: string
+          archived_at?: string | null
         }
         Update: Partial<Database['public']['Tables']['suppliers']['Insert']>
         Relationships: []
@@ -344,6 +346,7 @@ export interface Database {
           storage_location: string | null
           created_at: string
           updated_at: string
+          archived_at: string | null
         }
         Insert: {
           id?: string
@@ -362,6 +365,7 @@ export interface Database {
           storage_location?: string | null
           created_at?: string
           updated_at?: string
+          archived_at?: string | null
         }
         Update: Partial<
           Database['public']['Tables']['ingredients']['Insert']
@@ -387,6 +391,7 @@ export interface Database {
           notes: string | null
           created_at: string
           updated_at: string
+          archived_at: string | null
         }
         Insert: {
           id?: string
@@ -406,6 +411,7 @@ export interface Database {
           notes?: string | null
           created_at?: string
           updated_at?: string
+          archived_at?: string | null
         }
         Update: Partial<Database['public']['Tables']['recipes']['Insert']>
         Relationships: []
@@ -539,6 +545,7 @@ export interface Database {
           is_default_consumption: boolean
           sort_order: number
           created_at: string
+          archived_at: string | null
         }
         Insert: {
           id?: string
@@ -551,6 +558,7 @@ export interface Database {
           is_default_consumption?: boolean
           sort_order?: number
           created_at?: string
+          archived_at?: string | null
         }
         Update: Partial<
           Database['public']['Tables']['storage_locations']['Insert']

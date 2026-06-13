@@ -203,10 +203,12 @@ export async function removeIngredientConversion(
   revalidatePath(`/${locale}/app/ingredients/${ingredientId}`)
 }
 
-// Best-effort delete. The stock_movements FK is ON DELETE RESTRICT, so an
-// ingredient with recorded movements cannot be removed — the DB rejects it and
-// we simply revalidate without surfacing an error (the row stays).
-export async function deleteIngredient(
+// Archive (soft-delete) an ingredient. Inventory master data is retired, never
+// hard-deleted, so the append-only stock ledger, cost batches, recipe lines and
+// period reports that reference it stay intact and auditable. The row leaves
+// every active list/picker but remains resolvable in history; reversible via
+// restoreIngredient.
+export async function archiveIngredient(
   locale: string,
   id: string
 ): Promise<void> {
@@ -215,7 +217,23 @@ export async function deleteIngredient(
   const supabase = createClient()
   await supabase
     .from('ingredients')
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(`/${locale}/app/ingredients`)
+}
+
+// Un-archive: the ingredient returns to active lists/pickers.
+export async function restoreIngredient(
+  locale: string,
+  id: string
+): Promise<void> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return
+  const supabase = createClient()
+  await supabase
+    .from('ingredients')
+    .update({ archived_at: null })
     .eq('id', id)
     .eq('tenant_id', ctx.tenantId)
   revalidatePath(`/${locale}/app/ingredients`)

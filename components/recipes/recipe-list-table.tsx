@@ -1,11 +1,15 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { Pencil } from 'lucide-react'
+import { Archive, ArchiveRestore, Pencil } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import type { RecipeWithCost } from '@/types/app'
 import type { RecipeCategory } from '@/types/database'
+import {
+  archiveRecipe,
+  restoreRecipe,
+} from '@/app/[locale]/app/(protected)/recipes/actions'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,31 +19,54 @@ import {
   FoodCostBadge,
   EmptyState,
 } from '@/components/ui/stokly-theme'
+import { ArchiveToggle } from '@/components/ui/archive-toggle'
 import { cn } from '@/lib/utils'
 import { formatMoney } from '@/lib/utils'
 
 type Filter = 'all' | 'dishes' | 'sub'
 
 export function RecipeListTable({
+  locale,
   rows,
+  archived,
   categories = [],
 }: {
+  locale: string
   rows: RecipeWithCost[]
+  archived: RecipeWithCost[]
   categories?: RecipeCategory[]
 }) {
   const t = useTranslations('recipes')
+  const tc = useTranslations('common')
   const [filter, setFilter] = useState<Filter>('all')
   // '' = all sections; 'none' = uncategorised; otherwise a category id.
   const [category, setCategory] = useState('')
   const [query, setQuery] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
+  const [, startTransition] = useTransition()
 
   const categoryName = useMemo(
     () => new Map(categories.map((c) => [c.id, c.name])),
     [categories]
   )
 
+  function onArchive(id: string) {
+    setArchiveError(null)
+    startTransition(async () => {
+      const res = await archiveRecipe(locale, id)
+      if (res?.error === 'in_use') setArchiveError(t('cannot_archive_in_use'))
+    })
+  }
+  function onRestore(id: string) {
+    startTransition(async () => {
+      await restoreRecipe(locale, id)
+    })
+  }
+
+  const source = showArchived ? archived : rows
   const filtered = useMemo(() => {
-    let r = rows
+    let r = source
     if (filter === 'dishes') r = r.filter((x) => !x.is_sub_recipe)
     if (filter === 'sub') r = r.filter((x) => x.is_sub_recipe)
     if (category === 'none') r = r.filter((x) => !x.category_id)
@@ -54,7 +81,7 @@ export function RecipeListTable({
       )
     }
     return r
-  }, [rows, filter, category, query])
+  }, [source, filter, category, query])
 
   const filters: { key: Filter; label: string }[] = [
     { key: 'all', label: t('filter_all') },
@@ -103,11 +130,24 @@ export function RecipeListTable({
             <option value="none">{t('no_category')}</option>
           </select>
         )}
+        <ArchiveToggle
+          showArchived={showArchived}
+          onChange={(v) => {
+            setShowArchived(v)
+            setArchiveError(null)
+          }}
+          activeCount={rows.length}
+          archivedCount={archived.length}
+        />
       </div>
+
+      {archiveError && (
+        <p className="text-sm text-destructive">{archiveError}</p>
+      )}
 
       {filtered.length === 0 ? (
         <div className="stokly-card">
-          <EmptyState message={t('empty')} />
+          <EmptyState message={showArchived ? tc('no_archived') : t('empty')} />
         </div>
       ) : (
         <DataTable
@@ -121,7 +161,10 @@ export function RecipeListTable({
           ]}
         >
           {filtered.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              className={showArchived ? 'opacity-60' : undefined}
+            >
               <TableCell className="font-medium">
                 <span className="flex items-center gap-2">
                   {row.name}
@@ -156,11 +199,41 @@ export function RecipeListTable({
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                  <Link href={`/app/recipes/${row.id}`}>
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                </Button>
+                {showArchived ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    type="button"
+                    aria-label={tc('restore')}
+                    onClick={() => onRestore(row.id)}
+                  >
+                    <ArchiveRestore className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                    >
+                      <Link href={`/app/recipes/${row.id}`}>
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      type="button"
+                      aria-label={tc('archive')}
+                      onClick={() => onArchive(row.id)}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))}

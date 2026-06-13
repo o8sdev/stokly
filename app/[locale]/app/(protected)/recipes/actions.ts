@@ -349,6 +349,46 @@ export async function updateRecipe(
   redirect(`/${locale}/app/recipes`)
 }
 
+// Archive (soft-delete) a recipe: it leaves the menu/recipe lists + every
+// picker, but its composition and sales history stay intact and auditable. A
+// prep still referenced by other recipes' lines can't be archived (those lines
+// would point at nothing) — refuse with 'in_use'. The backing produced
+// ingredient of a stocked prep is left untouched (it holds stock + ledger).
+// Reversible via restoreRecipe.
+export async function archiveRecipe(
+  locale: string,
+  id: string
+): Promise<{ error?: string; success?: boolean }> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const supabase = createClient()
+  if (await subRecipeInUse(supabase, id)) return { error: 'in_use' }
+  await supabase
+    .from('recipes')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(`/${locale}/app/recipes`)
+  revalidatePath(`/${locale}/app/dashboard`)
+  return { success: true }
+}
+
+export async function restoreRecipe(
+  locale: string,
+  id: string
+): Promise<{ error?: string; success?: boolean }> {
+  const ctx = await requireTenant(locale)
+  if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  const supabase = createClient()
+  await supabase
+    .from('recipes')
+    .update({ archived_at: null })
+    .eq('id', id)
+    .eq('tenant_id', ctx.tenantId)
+  revalidatePath(`/${locale}/app/recipes`)
+  return { success: true }
+}
+
 // ── Menu categories (sections: breakfast, soups, …) ─────────────────────────
 export async function createRecipeCategory(
   locale: string,

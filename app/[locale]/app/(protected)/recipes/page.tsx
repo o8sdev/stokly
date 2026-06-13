@@ -5,6 +5,7 @@ import { requireTenant } from '@/lib/auth/tenant'
 import {
   getIngredients,
   getRecipes,
+  getArchivedRecipes,
   getRecipeIngredients,
   getRecipeCategories,
 } from '@/lib/data/queries'
@@ -23,17 +24,19 @@ export default async function RecipesPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, recipes, recipeIngredients, categories] =
+  const [ingredients, recipes, archivedRecipes, recipeIngredients, categories] =
     await Promise.all([
       getIngredients(ctx.tenantId),
       getRecipes(ctx.tenantId),
+      getArchivedRecipes(ctx.tenantId),
       getRecipeIngredients(ctx.tenantId),
       getRecipeCategories(ctx.tenantId),
     ])
 
-  const rows = computeRecipesWithCost(
+  const rows = computeRecipesWithCost(ingredients, recipes, recipeIngredients)
+  const archivedRows = computeRecipesWithCost(
     ingredients,
-    recipes,
+    archivedRecipes,
     recipeIngredients
   )
 
@@ -53,7 +56,12 @@ export default async function RecipesPage({
           </div>
         }
       />
-      <RecipeListTable rows={rows} categories={categories} />
+      <RecipeListTable
+        locale={locale}
+        rows={rows}
+        archived={archivedRows}
+        categories={categories}
+      />
     </div>
   )
 }
