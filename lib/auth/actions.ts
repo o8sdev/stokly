@@ -88,9 +88,12 @@ export async function signout(
   redirect(target ?? `/${locale}`)
 }
 
-// Clear admin tenant-impersonation and return to the admin console.
+// Clear admin tenant-impersonation and return to the admin console. The end of
+// a god-mode session is audited too, so "who viewed what, when" stays complete.
 export async function exitImpersonation(locale: string): Promise<void> {
   const { cookies } = await import('next/headers')
+  const { logAdminAction } = await import('@/lib/admin/audit')
+  await logAdminAction('impersonation_ended')
   cookies().delete('stokly_admin_tenant')
   redirect(`/${locale}/admin`)
 }

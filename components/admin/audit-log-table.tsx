@@ -29,6 +29,16 @@ const ACTIONS = [
   'business_created',
   'plan_edited',
   'feature_flag_changed',
+  'demo_status_updated',
+  'blog_post_created',
+  'blog_post_updated',
+  'blog_post_deleted',
+  'blog_post_published',
+  'library_item_added',
+  'library_item_removed',
+  'library_item_updated',
+  'admin_added',
+  'admin_removed',
 ]
 
 function fmt(ts: string): string {

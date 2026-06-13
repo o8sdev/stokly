@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requirePlatformAdmin } from '@/lib/auth/admin'
+import { logAdminAction } from '@/lib/admin/audit'
 import type { Database } from '@/types/database'
 
 export interface BlogResult {
@@ -99,6 +100,7 @@ export async function createBlogPost(
   })
   if (error) return { error: error.code === '23505' ? 'slug' : 'generic' }
 
+  await logAdminAction('blog_post_created', { details: { slug, title: f.title_az } })
   revalidatePath(`/${locale}/admin/blog`)
   revalidatePath(`/${locale}/blog`)
   redirect(`/${locale}/admin/blog`)
@@ -147,6 +149,7 @@ export async function updateBlogPost(
     .eq('id', id)
   if (error) return { error: error.code === '23505' ? 'slug' : 'generic' }
 
+  await logAdminAction('blog_post_updated', { details: { id } })
   revalidatePath(`/${locale}/admin/blog`)
   revalidatePath(`/${locale}/blog`)
   redirect(`/${locale}/admin/blog`)
@@ -159,6 +162,7 @@ export async function deleteBlogPost(
   await requirePlatformAdmin(locale)
   const supabase = createClient()
   await supabase.from('blog_posts').delete().eq('id', id)
+  await logAdminAction('blog_post_deleted', { details: { id } })
   revalidatePath(`/${locale}/admin/blog`)
   revalidatePath(`/${locale}/blog`)
   redirect(`/${locale}/admin/blog`)
@@ -177,6 +181,9 @@ export async function togglePublish(
   }
   if (publish) patch.published_at = new Date().toISOString()
   await supabase.from('blog_posts').update(patch).eq('id', id)
+  await logAdminAction(publish ? 'blog_post_published' : 'blog_post_updated', {
+    details: { id },
+  })
   revalidatePath(`/${locale}/admin/blog`)
   revalidatePath(`/${locale}/blog`)
 }

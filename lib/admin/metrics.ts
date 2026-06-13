@@ -35,9 +35,16 @@ export interface MrrMetrics {
 
 export async function getMRRMetrics(): Promise<MrrMetrics> {
   const supabase = createClient()
+  // Count only LIVE tenants (exclude deleted/churned — their revenue isn't
+  // recurring) and only the last ~13 months of payments (all the 12-month
+  // series needs). Keeps the headline honest and the scan bounded.
+  const windowStart = new Date()
+  windowStart.setMonth(windowStart.getMonth() - 13)
   const { data } = await supabase
     .from('manual_payments')
-    .select('amount, period_start, period_end, paid_at')
+    .select('amount, period_start, period_end, paid_at, tenants!inner(status)')
+    .gte('paid_at', windowStart.toISOString())
+    .in('tenants.status', ['active', 'trial', 'suspended'])
 
   // True MRR, not cash collected: a payment covering [period_start, period_end]
   // is recognised evenly across every month it spans, so a 3-month prepayment

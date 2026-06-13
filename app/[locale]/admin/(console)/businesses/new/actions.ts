@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requirePlatformAdmin } from '@/lib/auth/admin'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logAdminAction } from '@/lib/admin/audit'
 
 export interface CreateBusinessResult {
   ok?: boolean
@@ -43,6 +44,7 @@ export async function createBusiness(
 
   if (error) return { error: 'generic' }
 
+  await logAdminAction('business_created', { details: { email, restaurant } })
   revalidatePath(`/${locale}/admin/tenants`)
   return { ok: true }
 }

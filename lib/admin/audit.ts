@@ -32,6 +32,16 @@ export type AuditAction =
   | 'plan_edited'
   | 'feature_flag_changed'
   | 'export_downloaded'
+  | 'demo_status_updated'
+  | 'blog_post_created'
+  | 'blog_post_updated'
+  | 'blog_post_deleted'
+  | 'blog_post_published'
+  | 'library_item_added'
+  | 'library_item_removed'
+  | 'library_item_updated'
+  | 'admin_added'
+  | 'admin_removed'
 
 export async function logAdminAction(
   action: AuditAction | string,

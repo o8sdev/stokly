@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requirePlatformAdmin } from '@/lib/auth/admin'
+import { logAdminAction } from '@/lib/admin/audit'
 
 export interface LibraryResult {
   ok?: boolean
@@ -39,6 +40,7 @@ export async function addLibraryItem(
   })
   if (error) return { error: 'generic' }
 
+  await logAdminAction('library_item_added', { details: { name_az, category } })
   revalidatePath(`/${locale}/admin/library`)
   return { ok: true }
 }
@@ -50,6 +52,7 @@ export async function deleteLibraryItem(
   await requirePlatformAdmin(locale)
   const supabase = createClient()
   await supabase.from('global_ingredient_library').delete().eq('id', id)
+  await logAdminAction('library_item_removed', { details: { id } })
   revalidatePath(`/${locale}/admin/library`)
 }
 
@@ -65,5 +68,6 @@ export async function toggleLibraryCommon(
     .from('global_ingredient_library')
     .update({ is_common: value })
     .eq('id', id)
+  await logAdminAction('library_item_updated', { details: { id, is_common: value } })
   revalidatePath(`/${locale}/admin/library`)
 }

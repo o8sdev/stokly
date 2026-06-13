@@ -24,6 +24,37 @@ async function ensureSuper(locale: string): Promise<boolean> {
   return ctx.role === 'super'
 }
 
+// The lifecycle side-effects of moving a tenant onto a plan, shared by the
+// single and bulk plan-change actions so they never drift. Paid plan → activate
+// and clear suspension (from any prior status). Trial → a live trial window
+// (seed 14 days when there is none or it has lapsed).
+function planPatch(
+  planKey: string,
+  currentTrialEndsAt: string | null
+): {
+  plan_tier: string
+  status: TenantStatus
+  suspended_at: null
+  trial_ends_at?: string
+} {
+  if (planKey !== 'trial') {
+    return { plan_tier: planKey, status: 'active', suspended_at: null }
+  }
+  const patch: {
+    plan_tier: string
+    status: TenantStatus
+    suspended_at: null
+    trial_ends_at?: string
+  } = { plan_tier: planKey, status: 'trial', suspended_at: null }
+  const end = currentTrialEndsAt ? new Date(currentTrialEndsAt) : null
+  if (!end || end.getTime() < Date.now()) {
+    const seed = new Date()
+    seed.setDate(seed.getDate() + 14)
+    patch.trial_ends_at = seed.toISOString()
+  }
+  return patch
+}
+
 // ── Impersonation (god-mode) ───────────────────────────────────────────────
 export async function enterTenant(locale: string, tenantId: string): Promise<void> {
   await ensureAdmin(locale)
@@ -53,29 +84,7 @@ export async function changePlan(
     .eq('id', tenantId)
     .maybeSingle()
 
-  const patch: {
-    plan_tier: string
-    status?: TenantStatus
-    suspended_at?: null
-    trial_ends_at?: string
-  } = { plan_tier: planKey }
-
-  if (planKey !== 'trial') {
-    // Moving to a paid plan fully activates the tenant from ANY status
-    // (suspended, churned, trial) — "set tier → Standart" = activate.
-    patch.status = 'active'
-    patch.suspended_at = null
-  } else {
-    // Downgrade to trial → keep a coherent, live trial window.
-    patch.status = 'trial'
-    patch.suspended_at = null
-    const end = current?.trial_ends_at ? new Date(current.trial_ends_at) : null
-    if (!end || end.getTime() < Date.now()) {
-      const seed = new Date()
-      seed.setDate(seed.getDate() + 14)
-      patch.trial_ends_at = seed.toISOString()
-    }
-  }
+  const patch = planPatch(planKey, current?.trial_ends_at ?? null)
 
   await supabase.from('tenants').update(patch).eq('id', tenantId)
   await supabase.rpc('log_activity', {
@@ -242,11 +251,21 @@ export async function recordPayment(
   const method = String(formData.get('method') ?? 'bank_transfer')
   const reference = String(formData.get('reference') ?? '').trim() || null
   const period_start = String(formData.get('period_start') ?? '') || null
-  const period_end = String(formData.get('period_end') ?? '') || null
+  let period_end = String(formData.get('period_end') ?? '') || null
   const note = String(formData.get('note') ?? '').trim() || null
 
   if (!tenant_id || !Number.isFinite(amount) || amount < 0) {
     return { error: 'validation' }
+  }
+
+  // Coverage protects the tenant from the subscription sweep, which reads
+  // coalesce(period_end, paid_at). Without an explicit end the payment would
+  // only "cover" the pay date and could trigger an immediate auto-suspend — so
+  // default it to one month after the start (or today).
+  if (!period_end) {
+    const base = period_start ? new Date(`${period_start}T00:00:00Z`) : new Date()
+    base.setMonth(base.getMonth() + 1)
+    period_end = base.toISOString().slice(0, 10)
   }
 
   const supabase = createClient()
@@ -347,7 +366,9 @@ export async function bulkChangePlan(
 ): Promise<void> {
   if (!(await ensureSuper(locale)) || ids.length === 0) return
   const supabase = createClient()
-  await supabase.from('tenants').update({ plan_tier: planKey }).in('id', ids)
+  // Mirror changePlan's lifecycle side-effects so bulk and single stay
+  // consistent (bulk-to-trial grants every selected tenant a fresh 14-day window).
+  await supabase.from('tenants').update(planPatch(planKey, null)).in('id', ids)
   await logAdminAction('plan_changed', { details: { bulk: ids.length, to: planKey } })
   revalidatePath(`/${locale}/admin/tenants`)
 }
