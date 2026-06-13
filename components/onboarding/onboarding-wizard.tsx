@@ -34,6 +34,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import { UNIT_OPTIONS, packPresetsFor } from '@/lib/constants/units'
 
 interface SalesPoint {
   id: string
@@ -388,11 +389,19 @@ function IngredientsStep({
   const t = useTranslations('onboarding')
   const ti = useTranslations('ingredients')
   const formRef = useRef<HTMLFormElement>(null)
+  const [baseUnit, setBaseUnit] = useState('')
+  const [costVal, setCostVal] = useState('')
+  const [convRows, setConvRows] = useState<{ unit: string; factor: string }[]>([])
   const [state, action] = useFormState<OnboardingResult, FormData>(
     addIngredientQuick.bind(null, locale),
     {}
   )
-  useRefreshOnSuccess(state.success, () => formRef.current?.reset())
+  useRefreshOnSuccess(state.success, () => {
+    formRef.current?.reset()
+    setBaseUnit('')
+    setCostVal('')
+    setConvRows([])
+  })
 
   return (
     <div className="mt-3 space-y-4">
@@ -401,39 +410,158 @@ function IngredientsStep({
         items={ingredients.map((i) => `${i.name} · ${i.unit}`)}
         emptyHint={t('none_yet')}
       />
-      <form ref={formRef} action={action} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div className="col-span-2 space-y-1 sm:col-span-1">
-          <Label htmlFor="ing_name">{ti('name')}</Label>
-          <Input id="ing_name" name="name" required placeholder={t('ing_name_ph')} />
+      <form ref={formRef} action={action} className="space-y-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="col-span-2 space-y-1 sm:col-span-1">
+            <Label htmlFor="ing_name">{ti('name')}</Label>
+            <Input id="ing_name" name="name" required placeholder={t('ing_name_ph')} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ing_unit">{ti('unit')}</Label>
+            <select
+              id="ing_unit"
+              name="unit"
+              required
+              defaultValue=""
+              onChange={(e) => setBaseUnit(e.target.value)}
+              className={selectCls}
+            >
+              <option value="" disabled>
+                {ti('select_unit')}
+              </option>
+              {UNIT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {ti(`units.${o.key}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ing_cost">{ti('cost')}</Label>
+            <Input
+              id="ing_cost"
+              name="cost_per_unit"
+              type="number"
+              step="0.0001"
+              min="0"
+              defaultValue="0"
+              onChange={(e) => setCostVal(e.target.value)}
+              className="text-right font-mono tabular-nums"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ing_supplier">{ti('supplier')}</Label>
+            <select id="ing_supplier" name="supplier_id" defaultValue="" className={selectCls}>
+              <option value="">{ti('no_supplier')}</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="ing_unit">{ti('unit')}</Label>
-          <Input id="ing_unit" name="unit" required placeholder="kq" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="ing_cost">{ti('cost_per_unit')}</Label>
-          <Input
-            id="ing_cost"
-            name="cost_per_unit"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue="0"
-            className="text-right font-mono tabular-nums"
+
+        {/* Unit conversions — e.g. fish priced per kq but bought/used as pieces:
+            "1 ədəd = 0.45 kq". Costs the alt unit at the base price. */}
+        <div className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3">
+          <Label className="text-xs">{ti('conversions_title')}</Label>
+          <p className="text-xs text-muted-foreground">
+            {ti('conversions_help', { base: baseUnit || '—' })}
+          </p>
+          {convRows.map((r, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-xs text-muted-foreground">1</span>
+              <select
+                value={r.unit}
+                onChange={(e) =>
+                  setConvRows((rows) =>
+                    rows.map((x, j) => (j === i ? { ...x, unit: e.target.value } : x))
+                  )
+                }
+                aria-label={ti('conversions_unit')}
+                className="flex h-9 w-28 rounded-md border border-input bg-card px-2 text-sm"
+              >
+                <option value="">{ti('select_unit')}</option>
+                {UNIT_OPTIONS.filter((o) => o.value !== baseUnit).map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {ti(`units.${o.key}`)}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm text-muted-foreground">=</span>
+              <Input
+                type="number"
+                inputMode="decimal"
+                step="0.000001"
+                min="0"
+                value={r.factor}
+                onChange={(e) =>
+                  setConvRows((rows) =>
+                    rows.map((x, j) => (j === i ? { ...x, factor: e.target.value } : x))
+                  )
+                }
+                aria-label={ti('conversions_factor', { base: baseUnit || '—' })}
+                className="h-9 w-24 text-right font-mono tabular-nums"
+              />
+              <span className="text-sm text-muted-foreground">{baseUnit || '—'}</span>
+              {Number(r.factor) > 0 && Number(costVal) > 0 && (
+                <span className="font-mono text-xs text-primary">
+                  ≈ {(Number(r.factor) * Number(costVal)).toFixed(2)} AZN
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setConvRows((rows) => rows.filter((_, j) => j !== i))}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={ti('conversions_remove')}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          {baseUnit && packPresetsFor(baseUnit).length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">
+                {ti('conversions_presets')}
+              </span>
+              {packPresetsFor(baseUnit).map((pz) => (
+                <button
+                  key={pz.label}
+                  type="button"
+                  onClick={() =>
+                    setConvRows((rows) => [
+                      ...rows.filter((r) => r.unit || r.factor),
+                      { unit: pz.unit, factor: String(pz.factor) },
+                    ])
+                  }
+                  className="rounded-md border border-border bg-card px-2 py-0.5 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                >
+                  {pz.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setConvRows((rows) => [...rows, { unit: '', factor: '' }])}
+          >
+            + {ti('conversions_add')}
+          </Button>
+          <input
+            type="hidden"
+            name="conversions"
+            value={JSON.stringify(
+              convRows
+                .filter((r) => r.unit && Number(r.factor) > 0)
+                .map((r) => ({ unit: r.unit, factor: Number(r.factor) }))
+            )}
           />
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="ing_supplier">{ti('supplier')}</Label>
-          <select id="ing_supplier" name="supplier_id" defaultValue="" className={selectCls}>
-            <option value="">{ti('no_supplier')}</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="col-span-2 flex items-center gap-2 sm:col-span-4">
+
+        <div className="flex items-center gap-2">
           <SubmitButton pendingText={t('adding')} className="gap-1.5">
             <Plus className="h-4 w-4" />
             {t('add')}
