@@ -356,10 +356,12 @@ export async function confirmDailySales(
 // correction — history is never edited.
 export async function voidDailySales(
   locale: string,
-  dayId: string
+  dayId: string,
+  reason: string
 ): Promise<SalesResult> {
   const ctx = await requireTenant(locale)
   if (!canWrite(ctx.role)) return { error: 'forbidden' }
+  if (!reason.trim()) return { error: 'reason_required' }
 
   const supabase = createClient()
   const { data: day } = await supabase
@@ -371,7 +373,10 @@ export async function voidDailySales(
   if (!day) return { error: 'validation' }
   if (day.status !== 'confirmed') return { error: 'not_confirmed' }
 
-  const { error } = await supabase.rpc('void_daily_sales', { p_day_id: dayId })
+  const { error } = await supabase.rpc('void_daily_sales', {
+    p_day_id: dayId,
+    p_reason: reason.trim(),
+  })
   if (error) return { error: 'generic' }
 
   // Drop the frozen theoretical-usage snapshot; a re-confirm rewrites it (#4).

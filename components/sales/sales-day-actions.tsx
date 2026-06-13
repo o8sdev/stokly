@@ -27,10 +27,17 @@ export function SalesDayActions({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [askVoid, setAskVoid] = useState(false)
+  const [voidReason, setVoidReason] = useState('')
   const [err, setErr] = useState<string | null>(null)
 
   const errText = err
-    ? t(err === 'stock_elsewhere' ? 'confirm_kitchen_short' : 'error')
+    ? t(
+        err === 'stock_elsewhere'
+          ? 'confirm_kitchen_short'
+          : err === 'reason_required'
+            ? 'void_reason_required'
+            : 'error'
+      )
     : null
 
   function confirmDay() {
@@ -44,7 +51,7 @@ export function SalesDayActions({
   function voidDay() {
     setErr(null)
     startTransition(async () => {
-      const res = await voidDailySales(locale, dayId)
+      const res = await voidDailySales(locale, dayId, voidReason)
       if (res?.error) setErr(res.error)
       else {
         setAskVoid(false)
@@ -67,11 +74,18 @@ export function SalesDayActions({
         {askVoid ? (
           <div className="mt-3 space-y-2">
             <p className="text-xs text-foreground">{t('void_confirm')}</p>
+            <textarea
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              placeholder={t('void_reason_label')}
+              rows={2}
+              className="w-full rounded-md border border-input bg-card px-2 py-1.5 text-xs focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            />
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={voidDay}
-                disabled={pending}
+                disabled={pending || !voidReason.trim()}
                 className="inline-flex items-center gap-1.5 rounded-md bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground disabled:opacity-50"
               >
                 <Undo2 className="h-3.5 w-3.5" />
@@ -79,7 +93,10 @@ export function SalesDayActions({
               </button>
               <button
                 type="button"
-                onClick={() => setAskVoid(false)}
+                onClick={() => {
+                  setAskVoid(false)
+                  setVoidReason('')
+                }}
                 disabled={pending}
                 className="rounded-md border border-border px-3 py-1.5 text-xs font-medium"
               >

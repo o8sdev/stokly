@@ -999,7 +999,7 @@ export interface Database {
         Returns: undefined
       }
       void_daily_sales: {
-        Args: { p_day_id: string }
+        Args: { p_day_id: string; p_reason?: string | null }
         Returns: undefined
       }
       transfer_stock: {
@@ -1048,7 +1048,7 @@ export interface Database {
         Returns: undefined
       }
       write_off_expired: {
-        Args: { p_tenant: string }
+        Args: { p_tenant: string; p_reason?: string | null }
         Returns: number
       }
       submit_demo_request: {

@@ -31,6 +31,10 @@ const CATEGORY_META: Record<string, { icon: LucideIcon; key: string }> = {
   Other: { icon: MoreHorizontal, key: 'other' },
 }
 
+// Above this waste value (qty × unit cost) a reason becomes mandatory — large
+// write-offs are the ones worth documenting (they're how shrinkage gets hidden).
+const LARGE_WASTE_VALUE = 50
+
 export function WasteForm({
   locale,
   defaultDate,
@@ -74,6 +78,9 @@ export function WasteForm({
   const onHand = ingredientId ? (stockLevels[ingredientId] ?? 0) : 0
   const value = qtyNum * (selected?.cost_per_unit ?? 0)
   const overStock = !!selected && qtyNum > onHand
+  // Large write-offs must carry a reason (documented shrinkage).
+  const reasonRequired = value >= LARGE_WASTE_VALUE
+  const reasonMissing = reasonRequired && !reason.trim()
 
   // Where this ingredient physically sits, and whether the routed waste station
   // actually holds enough (consumption is strict per-location). If the station
@@ -108,7 +115,8 @@ export function WasteForm({
   )
 
   function save() {
-    if (!ingredientId || !categoryId || qtyNum <= 0 || pending) return
+    if (!ingredientId || !categoryId || qtyNum <= 0 || reasonMissing || pending)
+      return
     const fd = new FormData()
     fd.set('payload', payload)
     startTransition(async () => {
@@ -274,13 +282,22 @@ export function WasteForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="reason">{t('inventory.waste_reason')}</Label>
+        <Label htmlFor="reason">
+          {t('inventory.waste_reason')}
+          {reasonRequired && <span className="text-destructive"> *</span>}
+        </Label>
         <Input
           id="reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder={t('inventory.waste_reason_ph')}
+          aria-invalid={reasonMissing}
         />
+        {reasonRequired && (
+          <p className="text-xs text-amber-600">
+            {t('inventory.large_waste_hint')}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -325,7 +342,9 @@ export function WasteForm({
       <Button
         type="button"
         onClick={save}
-        disabled={!ingredientId || !categoryId || qtyNum <= 0 || pending}
+        disabled={
+          !ingredientId || !categoryId || qtyNum <= 0 || reasonMissing || pending
+        }
       >
         {pending ? t('common.saving') : t('inventory.log_waste')}
       </Button>
