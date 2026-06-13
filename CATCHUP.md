@@ -296,6 +296,41 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Per-location stock done right: strict consumption + per-location counts + recipe routing (migrations 051–052)
+Owner reported "waste doesn't deduct from Cari stok" and asked for per-location counts + an explicit
+recipe consumption point. Root cause of the first: the **Anbar (receiving) → Mətbəx (consumption)**
+split — deliveries land in Anbar, consumption deducts from the routed station, and migration 043 had
+made the RPCs silently absorb any shortfall from **any** location (a cross-location fallback that
+blurred per-location stock). Decision: **strict per-location + clear transfer UX** (not fallback).
+
+- **Phase 1 — strict consumption (migration 051).** `confirm_daily_sales` / `record_waste` /
+  `execute_production_run`: after FIFO at the routed station leaves a shortfall, if the ingredient
+  has active stock at **another** location → `raise location_short` (the app prompts a transfer);
+  only when nothing exists elsewhere is it absorbed as negative at the station (true oversell kept).
+  `submitDelivery` lands new stock in the sole consumption point for single-station tenants (no
+  Anbar stranding). Waste form shows the per-location split + an amber "move from X to Y" prompt with
+  a prefilled transfer link; the transfer page accepts `ingredient/from/to/qty` query prefill. Sales
+  confirm + waste map `location_short` → an actionable message. SQL-verified on a 2-location tenant
+  (waste 500 with 499 in Mətbəx + 1 in Anbar → refuse; waste 10 → OK).
+- **Phase 2 — per-location counts (migration 052).** `record_stock_count(p_lines)` counts ONE
+  station at a time and reconciles that station's batches to the counted figure (FIFO-reduce a
+  shortfall, add a costed batch for a surplus), recording a `count` movement carrying the **delta**
+  with `from_location_id` = the station. `stock-level.ts` gained `case 'count'` (delta) in both
+  reducers (legacy is_absolute counts still handled). Count form gained a **station selector**
+  (hidden for single-location tenants); the shown on-hand is the selected station's; switching
+  stations starts a fresh sheet. The batch-based inventory view + filter now reflect counts; the core
+  invariant holds per station. SQL-verified: kitchen 499→8 leaves Anbar at 1, total 9.
+- **Phase 3 — recipe consumption point always identified.** Recipe form shows the station picker
+  whenever there are 2+ consumption points (dropped the separate multi_location gate) and defaults to
+  the default station (no blank option); the action stores a **concrete** `consumption_location_id`
+  (chosen-if-valid else default — never null).
+- **Phase 4 — `QA-WALKTHROUGH.md`** added: a top-to-bottom manual test script (pre-flight, golden
+  path, feature-by-feature, invariants, flaw hunt, admin) reflecting the above.
+
+Migrations 051–052 applied live (`anbvxpoxdalizlsdcsdb`). Single-location tenants are behaviorally
+unaffected (no "other location" to refuse against / no station selector). Known follow-up:
+per-location *period reports* (period totals stay global for now).
+
 ### Done — Journals are home; entry forms are a "+ qeyd et" button (no migration)
 Follow-up to the sidebar restructure: the standalone entry rows (İtki qeyd et, Satışlar, Alışlar)
 are **removed** from the sidebar. Each **journal** page is now the single sidebar home for its
