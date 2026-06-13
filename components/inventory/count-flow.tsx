@@ -20,12 +20,14 @@ export function CountFlow({
   preCount,
   locations,
   defaultLocationId,
+  blind = false,
 }: {
   locale: string
   items: CountItem[]
   preCount: PreCountInfo
   locations: { id: string; name: string }[]
   defaultLocationId: string
+  blind?: boolean
 }) {
   const t = useTranslations()
   const router = useRouter()
@@ -89,6 +91,7 @@ export function CountFlow({
         items={items}
         locations={locations}
         defaultLocationId={defaultLocationId}
+        blind={blind}
       />
 
       <MissingSalesPanel

@@ -26,11 +26,13 @@ export function StockCountForm({
   items,
   locations,
   defaultLocationId,
+  blind = false,
 }: {
   locale: string
   items: CountItem[]
   locations: { id: string; name: string }[]
   defaultLocationId: string
+  blind?: boolean
 }) {
   const t = useTranslations()
   const [query, setQuery] = useState('')
@@ -44,6 +46,11 @@ export function StockCountForm({
   const [locationId, setLocationId] = useState(
     defaultLocationId || locations[0]?.id || ''
   )
+  // Blind mode: the expected on-hand stays hidden while counting; the user taps
+  // "Reveal variance" to compare expected vs counted before the final save, so
+  // a count can't simply be typed to match the system number.
+  const [revealed, setRevealed] = useState(false)
+  const showExpected = !blind || revealed
 
   const action = submitStockCount.bind(null, locale)
   const [state, formAction] = useFormState<InventoryActionResult, FormData>(
@@ -91,6 +98,17 @@ export function StockCountForm({
         {t('inventory.count_help')}
       </p>
 
+      {blind && !revealed && (
+        <p className="rounded-md border border-dashed border-border bg-secondary/30 px-3 py-2 text-xs text-muted-foreground">
+          {t('inventory.blind_count_hint')}
+        </p>
+      )}
+      {revealed && (
+        <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+          {t('inventory.variance_revealed')}
+        </p>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="count_date">{t('inventory.count_date')}</Label>
         <Input
@@ -113,6 +131,7 @@ export function StockCountForm({
             onChange={(e) => {
               setLocationId(e.target.value)
               setCounts({}) // a different station = a fresh count sheet
+              setRevealed(false)
             }}
             className="flex h-[38px] w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
           >
@@ -151,13 +170,42 @@ export function StockCountForm({
             >
               <div className="min-w-0">
                 <p className="truncate text-base font-medium">{item.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t('inventory.current_stock')}:{' '}
-                  <span className="font-mono tabular-nums">
-                    {formatQuantity(item.byLocation[locationId] ?? 0)}
-                  </span>{' '}
-                  {item.unit}
-                </p>
+                {showExpected ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t('inventory.current_stock')}:{' '}
+                    <span className="font-mono tabular-nums">
+                      {formatQuantity(item.byLocation[locationId] ?? 0)}
+                    </span>{' '}
+                    {item.unit}
+                    {revealed &&
+                      changed &&
+                      (() => {
+                        const exp = item.byLocation[locationId] ?? 0
+                        const v =
+                          Math.round((Number(counts[item.id]) - exp) * 1000) /
+                          1000
+                        return (
+                          <span
+                            className={cn(
+                              'ml-2 font-mono font-semibold',
+                              v === 0
+                                ? 'text-muted-foreground'
+                                : v > 0
+                                  ? 'text-emerald-600'
+                                  : 'text-destructive'
+                            )}
+                          >
+                            ({v > 0 ? '+' : ''}
+                            {formatQuantity(v)})
+                          </span>
+                        )
+                      })()}
+                  </p>
+                ) : (
+                  <p className="text-xs italic text-muted-foreground/70">
+                    {t('inventory.count_hidden')}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-1.5">
                 <button
@@ -211,12 +259,22 @@ export function StockCountForm({
           <Button asChild variant="outline" type="button">
             <Link href="/app/inventory">{t('common.cancel')}</Link>
           </Button>
-          <SubmitButton
-            pendingText={t('common.saving')}
-            disabled={filledCount === 0}
-          >
-            {t('common.save')}
-          </SubmitButton>
+          {blind && !revealed ? (
+            <Button
+              type="button"
+              onClick={() => setRevealed(true)}
+              disabled={filledCount === 0}
+            >
+              {t('inventory.reveal_variance')}
+            </Button>
+          ) : (
+            <SubmitButton
+              pendingText={t('common.saving')}
+              disabled={filledCount === 0}
+            >
+              {t('common.save')}
+            </SubmitButton>
+          )}
         </div>
       </div>
     </form>

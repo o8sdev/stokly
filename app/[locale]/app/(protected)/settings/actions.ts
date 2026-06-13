@@ -23,6 +23,7 @@ const tenantSchema = z.object({
   count_cycle_days: z.coerce.number().int().min(1).max(365),
   business_type: z.string().optional(),
   default_food_cost_target: z.coerce.number().min(1).max(100),
+  blind_counts: z.coerce.boolean(),
 })
 
 export async function updateTenant(
@@ -40,6 +41,7 @@ export async function updateTenant(
     count_cycle_days: formData.get('count_cycle_days'),
     business_type: formData.get('business_type'),
     default_food_cost_target: formData.get('default_food_cost_target'),
+    blind_counts: formData.get('blind_counts') === 'on',
   })
   if (!parsed.success) return { error: 'validation' }
 
@@ -54,6 +56,7 @@ export async function updateTenant(
       count_cycle_days: parsed.data.count_cycle_days,
       business_type: bt && BUSINESS_TYPE_KEYS.includes(bt) ? bt : null,
       default_food_cost_target: parsed.data.default_food_cost_target,
+      blind_counts: parsed.data.blind_counts,
     })
     .eq('id', ctx.tenantId)
 

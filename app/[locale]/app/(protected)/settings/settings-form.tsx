@@ -109,6 +109,21 @@ export function SettingsForm({
         </p>
       </div>
 
+      <label className="flex max-w-md items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="blind_counts"
+          defaultChecked={tenant.blind_counts}
+          className="mt-0.5 h-4 w-4 accent-primary"
+        />
+        <span>
+          {t('settings.blind_counts_label')}
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            {t('settings.blind_counts_hint')}
+          </span>
+        </span>
+      </label>
+
       {state.error && (
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}

@@ -969,6 +969,10 @@
     "raw_col_preps": "Preplərdə",
     "raw_col_total": "Cəmi",
     "count_help": "Hər inqrediyent üçün sayılan miqdarı daxil edin",
+    "blind_count_hint": "Kor sayım: sistemdəki gözlənilən miqdar gizlidir. Sayın, sonra «Fərqi göstər»ə basın.",
+    "count_hidden": "Gözlənilən miqdar gizlidir",
+    "reveal_variance": "Fərqi göstər",
+    "variance_revealed": "Fərq göstərildi — yadda saxlamadan əvvəl yoxlayın",
     "count_date": "Sayım tarixi",
     "count_location": "Hansı məkanı sayırsınız?",
     "count_location_hint": "Hər məkanı ayrıca sayın — anbar, mətbəx, bar. Ümumi stok cəm olaraq görünür.",
@@ -1202,7 +1206,9 @@
     "count_cycle_days": "Sayım dövrü (gün)",
     "count_cycle_days_hint": "Yalnız xatırlatma üçün — sayımı istənilən vaxt apara bilərsiniz.",
     "food_cost_target": "Standart hədəf maya dəyəri %",
-    "food_cost_target_hint": "Bütün menyu üçün standart maya dəyəri limiti. Hər resept öz hədəfini təyin edə bilər."
+    "food_cost_target_hint": "Bütün menyu üçün standart maya dəyəri limiti. Hər resept öz hədəfini təyin edə bilər.",
+    "blind_counts_label": "Kor sayım",
+    "blind_counts_hint": "Sayım zamanı gözlənilən stok gizlədilir — işçilər sistem rəqəmini görmədən sayır (oğurluğa qarşı)."
   },
   "production": {
     "input_location": "Xammal nöqtəsi",

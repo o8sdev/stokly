@@ -4,6 +4,7 @@ import {
   getIngredients,
   getStockByLocation,
   getStorageLocations,
+  getTenant,
 } from '@/lib/data/queries'
 import { getPreCountInfo } from '@/lib/data/counts'
 import { PageHeader } from '@/components/layout/page-header'
@@ -19,11 +20,12 @@ export default async function StockCountPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, byLoc, locations, preCount] = await Promise.all([
+  const [ingredients, byLoc, locations, preCount, tenant] = await Promise.all([
     getIngredients(ctx.tenantId),
     getStockByLocation(ctx.tenantId),
     getStorageLocations(ctx.tenantId),
     getPreCountInfo(ctx.tenantId),
+    getTenant(ctx.tenantId),
   ])
 
   // Per-ingredient current stock keyed by location, so the form shows the
@@ -56,6 +58,7 @@ export default async function StockCountPage({
         preCount={preCount}
         locations={locationOptions}
         defaultLocationId={defaultLocationId}
+        blind={!!tenant?.blind_counts}
       />
     </div>
   )

@@ -83,6 +83,7 @@ export interface Database {
           business_type: string | null
           onboarding_dismissed_at: string | null
           default_food_cost_target: number
+          blind_counts: boolean
           created_at: string
         }
         Insert: {
@@ -103,6 +104,7 @@ export interface Database {
           business_type?: string | null
           onboarding_dismissed_at?: string | null
           default_food_cost_target?: number
+          blind_counts?: boolean
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['tenants']['Insert']>
