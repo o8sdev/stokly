@@ -1402,7 +1402,22 @@
       "demo": "Demo tələb et",
       "login": "Daxil ol",
       "blog": "Bloq",
-      "pricing": "Qiymət"
+      "pricing": "Qiymət",
+      "product": "Məhsul"
+    },
+    "features": {
+      "menu_label": "Bir platformada bütün inventar əməliyyatları",
+      "inventory": "İnventar idarəetməsi",
+      "stock_visibility": "Canlı stok görünüşü",
+      "recipes": "Reseptlər və yarımfabrikatlar",
+      "purchasing": "Alış və təchizatçılar",
+      "waste": "İtki qeydiyyatı",
+      "counting": "Məkana görə sayım",
+      "transfers": "Stok köçürmələri",
+      "analytics": "Maya dəyəri və menyu təhlili",
+      "audit": "Audit jurnalı",
+      "ai_soon": "Anomaliya aşkarlanması (AI)",
+      "soon_badge": "Tezliklə"
     },
     "pricing": {
       "kicker": "Qiymətlər",
@@ -1687,13 +1702,24 @@
       "tagline": "HoReCa üçün inventar və maya dəyəri idarəetməsi.",
       "rights": "© 2026 Stokly. Bütün hüquqlar qorunur.",
       "product": "Məhsul",
+      "resources": "Resurslar",
       "company": "Şirkət",
+      "legal": "Hüquqi",
       "links": {
         "services": "İmkanlar",
         "how": "Necə işləyir",
         "demo": "Demo",
         "login": "Daxil ol",
-        "signup": "Qeydiyyat"
+        "signup": "Qeydiyyat",
+        "faq": "Tez-tez verilən suallar",
+        "blog": "Bloq",
+        "about": "Haqqımızda",
+        "contact": "Əlaqə",
+        "careers": "Karyera",
+        "pricing": "Qiymət",
+        "terms": "İstifadə şərtləri",
+        "privacy": "Məxfilik siyasəti",
+        "cookies": "Kuki siyasəti"
       }
     }
   }

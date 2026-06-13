@@ -296,6 +296,21 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Marketing: Product mega-dropdown nav + 4-column footer + legal/company pages (no migration)
+Supy.io-style marketing chrome. **Nav** (`components/marketing/marketing-nav.tsx`) gained a
+**"Məhsul / Продукт" mega-dropdown** listing the 10 product features (icon + label, 2-col grid,
+desktop hover/click + mobile expandable); the AI item carries a "Tezliklə / Скоро" coming-soon badge
+and doesn't link. The feature list is a shared `components/marketing/product-links.ts`
+(`PRODUCT_FEATURES`) reused by the footer. **Footer** (`components/marketing/shell.tsx`) expanded from
+one column to **four**: Product (the feature list), Resources (Blog, Necə işləyir, FAQ, Demo), Company
+(About, Contact, Careers, Pricing), Legal (Terms, Privacy, Cookies). Added `MarketingShell` +
+`MarketingDoc` (ledger-styled doc layout) to shell. **New (marketing) pages:** `/about`, `/contact`
+(mailto + demo CTA), `/careers` (coming-soon), `/legal/terms`, `/legal/privacy`, `/legal/cookies`;
+Pricing links to the landing `#pricing` section. Page prose lives in `lib/marketing-pages.ts` (az/ru,
+legal copy is a starting template to review with counsel; contact email placeholder
+`salam@stokly.app`). Bilingual labels under `landing.nav.product` / `landing.features.*` /
+`landing.footer.*`. Verified in-browser (dropdown, footer, terms + careers render) + clean build.
+
 ### Done — Per-location stock done right: strict consumption + per-location counts + recipe routing (migrations 051–052)
 Owner reported "waste doesn't deduct from Cari stok" and asked for per-location counts + an explicit
 recipe consumption point. Root cause of the first: the **Anbar (receiving) → Mətbəx (consumption)**
