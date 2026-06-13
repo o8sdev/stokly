@@ -245,6 +245,7 @@ export async function createRecipe(
       serving_size: toNumberOrNull(data.serving_size),
       serving_unit: data.serving_unit || null,
       sale_price: toNumberOrNull(data.sale_price),
+      target_food_cost_percent: toNumberOrNull(data.target_food_cost_percent),
       yield_percent:
         data.yield_percent === '' || data.yield_percent === undefined
           ? 1
@@ -327,6 +328,7 @@ export async function updateRecipe(
       serving_size: toNumberOrNull(data.serving_size),
       serving_unit: data.serving_unit || null,
       sale_price: toNumberOrNull(data.sale_price),
+      target_food_cost_percent: toNumberOrNull(data.target_food_cost_percent),
       yield_percent:
         data.yield_percent === '' || data.yield_percent === undefined
           ? 1

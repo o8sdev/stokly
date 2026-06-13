@@ -759,6 +759,16 @@
     "low_stock_count": "Az stok",
     "waste_week": "Bu həftə itki",
     "low_stock": "Az stoklar",
+    "fcm_title": "Resept maya dəyəri analizi",
+    "fcm_current": "Cari maya dəyəri %",
+    "fcm_limit": "Limit",
+    "fcm_gap": "Fərq (cari − limit)",
+    "fcm_over_count": "{count} resept limitdən yuxarı",
+    "fcm_empty": "Qiyməti təyin edilmiş resept yoxdur",
+    "fcm_ingredient": "İnqrediyent",
+    "fcm_prev": "Əvvəlki",
+    "fcm_curr": "Cari",
+    "fcm_change": "Dəyişiklik",
     "recent_movements": "Son hərəkətlər",
     "quick_actions": "Sürətli əməliyyatlar",
     "no_low_stock": "Az stokda inqrediyent yoxdur",
@@ -845,6 +855,9 @@
   "recipes": {
     "consumption_location": "İstehlak nöqtəsi",
     "consumption_location_hint": "Bu yemək harada hazırlanır / satıldıqda stok hansı nöqtədən silinir (məs. kokteyl → Bar).",
+    "target_food_cost": "Hədəf maya dəyəri %",
+    "target_food_cost_hint": "Bu yeməyin maya dəyəri limiti. Boş = biznes üzrə standart hədəf. İdarə panelində izlənir.",
+    "target_food_cost_ph": "məs. 30",
     "consumption_default": "Əsas (standart)",
     "yield": "Çıxım (yield) %",
     "yield_hint": "Hazırlanma zamanı itən həcm. Məs. 1 kq xammaldan 0.8 kq sous alınırsa, çıxım 80%-dir. Maya dəyəri və nəzəri istifadə bu nisbətə görə artırılır. Yalnız yarı-reseptlər üçün.",
@@ -1160,7 +1173,9 @@
     "edit_supplier": "Təchizatçını redaktə et",
     "no_suppliers": "Hələ təchizatçı yoxdur",
     "count_cycle_days": "Sayım dövrü (gün)",
-    "count_cycle_days_hint": "Yalnız xatırlatma üçün — sayımı istənilən vaxt apara bilərsiniz."
+    "count_cycle_days_hint": "Yalnız xatırlatma üçün — sayımı istənilən vaxt apara bilərsiniz.",
+    "food_cost_target": "Standart hədəf maya dəyəri %",
+    "food_cost_target_hint": "Bütün menyu üçün standart maya dəyəri limiti. Hər resept öz hədəfini təyin edə bilər."
   },
   "production": {
     "input_location": "Xammal nöqtəsi",

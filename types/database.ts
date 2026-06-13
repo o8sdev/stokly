@@ -82,6 +82,7 @@ export interface Database {
           count_cycle_days: number
           business_type: string | null
           onboarding_dismissed_at: string | null
+          default_food_cost_target: number
           created_at: string
         }
         Insert: {
@@ -101,6 +102,7 @@ export interface Database {
           count_cycle_days?: number
           business_type?: string | null
           onboarding_dismissed_at?: string | null
+          default_food_cost_target?: number
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['tenants']['Insert']>
@@ -381,6 +383,7 @@ export interface Database {
           consumption_location_id: string | null
           category_id: string | null
           produced_ingredient_id: string | null
+          target_food_cost_percent: number | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -399,6 +402,7 @@ export interface Database {
           consumption_location_id?: string | null
           category_id?: string | null
           produced_ingredient_id?: string | null
+          target_food_cost_percent?: number | null
           notes?: string | null
           created_at?: string
           updated_at?: string

@@ -26,6 +26,10 @@ export const recipeSchema = z.object({
   sale_price: z
     .union([z.coerce.number().nonnegative(), z.literal('')])
     .optional(),
+  // Per-recipe food-cost target % override ('' = use the tenant default).
+  target_food_cost_percent: z
+    .union([z.coerce.number().positive().max(100), z.literal('')])
+    .optional(),
   // Sub-recipe yield as a 0–100 percentage (the action converts to a 0–1
   // fraction; default 1 = 100%). Only meaningful for sub-recipes.
   yield_percent: z

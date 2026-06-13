@@ -25,6 +25,7 @@ import {
   PanelsSection,
   OpsSection,
 } from '@/components/dashboard/dashboard-sections'
+import { FoodCostSection } from '@/components/dashboard/food-cost-section'
 
 /* The owner's command center, streamed: the shell (greeting, quick actions,
    range selector) renders immediately from a handful of cheap lookups; the
@@ -105,6 +106,16 @@ export default async function DashboardPage({
         }
       >
         <PanelsSection tenantId={ctx.tenantId} range={range} />
+      </Suspense>
+
+      <Suspense
+        fallback={
+          <div className="mt-4">
+            <CardSkeleton lines={6} />
+          </div>
+        }
+      >
+        <FoodCostSection tenantId={ctx.tenantId} />
       </Suspense>
 
       <Suspense

@@ -90,6 +90,25 @@ export function SettingsForm({
         </p>
       </div>
 
+      <div className="max-w-[14rem] space-y-2">
+        <Label htmlFor="default_food_cost_target">
+          {t('settings.food_cost_target')}
+        </Label>
+        <Input
+          id="default_food_cost_target"
+          name="default_food_cost_target"
+          type="number"
+          min="1"
+          max="100"
+          step="0.1"
+          defaultValue={tenant.default_food_cost_target ?? 30}
+          required
+        />
+        <p className="text-xs text-muted-foreground">
+          {t('settings.food_cost_target_hint')}
+        </p>
+      </div>
+
       {state.error && (
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}

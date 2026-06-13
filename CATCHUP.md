@@ -296,6 +296,23 @@ footer is a till-slip sign-off (`* * * rights * * *`). Section heads use `№ 01
   closing rule. Verified in browser preview (desktop 1100px full page, mobile 390px) + build green.
 - `.claude/launch.json`: `autoPort: true` for stokly-dev (user's own server holds :3000).
 
+### Done — Dashboard recipe food-cost monitor + per-recipe target (migration 053)
+A color-coded recipe food-cost analysis on the dashboard. Migration 053:
+`tenants.default_food_cost_target` (numeric, default 30) + `recipes.target_food_cost_percent`
+(numeric null override). New `components/dashboard/food-cost-monitor.tsx` (client, expandable) +
+`food-cost-section.tsx` (server, streamed via Suspense; reuses request-cached
+recipes/ingredients/recipeIngredients/movements). Each priced dish shows current food-cost % (badge
+coloured by status vs its limit — green under, amber within 5pts, red over), the **limit** (recipe
+target → tenant default), and the **gap** (current − limit) as an alert; rows sorted worst-first,
+header shows an over-limit count. Expanding a row reveals a per-ingredient breakdown:
+**previous → current unit cost + change %** (▲ red / ▼ green), sorted by cost contribution — so when a
+dish's cost rises you see which ingredient drove it. Calc in `lib/calculations/food-cost-monitor.ts`
+(`buildPriceChanges` = current `cost_per_unit` vs the most recent DIFFERENT delivery price;
+`buildFoodCostRows` reuses `resolveRecipeCost`/`foodCostPercent`). Inputs: recipe form gained an
+optional "Hədəf maya dəyəri %" field (`recipeSchema` + action); Settings gained "Standart hədəf maya
+dəyəri %" (`updateTenant`). Bilingual az/ru. Verified in-browser on the demo tenant (monitor rows +
+expanded breakdown screenshotted) + clean build.
+
 ### Done — Marketing: Product mega-dropdown nav + 4-column footer + legal/company pages (no migration)
 Supy.io-style marketing chrome. **Nav** (`components/marketing/marketing-nav.tsx`) gained a
 **"Məhsul / Продукт" mega-dropdown** listing the 10 product features (icon + label, 2-col grid,

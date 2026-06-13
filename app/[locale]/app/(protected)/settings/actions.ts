@@ -23,6 +23,7 @@ const tenantSchema = z.object({
   locale: z.enum(['az', 'ru']),
   count_cycle_days: z.coerce.number().int().min(1).max(365),
   business_type: z.string().optional(),
+  default_food_cost_target: z.coerce.number().min(1).max(100),
 })
 
 export async function updateTenant(
@@ -39,6 +40,7 @@ export async function updateTenant(
     locale: formData.get('locale'),
     count_cycle_days: formData.get('count_cycle_days'),
     business_type: formData.get('business_type'),
+    default_food_cost_target: formData.get('default_food_cost_target'),
   })
   if (!parsed.success) return { error: 'validation' }
 
@@ -52,6 +54,7 @@ export async function updateTenant(
       locale: parsed.data.locale,
       count_cycle_days: parsed.data.count_cycle_days,
       business_type: bt && BUSINESS_TYPE_KEYS.includes(bt) ? bt : null,
+      default_food_cost_target: parsed.data.default_food_cost_target,
     })
     .eq('id', ctx.tenantId)
 

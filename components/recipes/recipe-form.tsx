@@ -83,6 +83,13 @@ export function RecipeForm({
   const [salePrice, setSalePrice] = useState(
     recipe?.sale_price != null ? String(recipe.sale_price) : ''
   )
+  // Per-recipe food-cost target % override ('' = use the tenant default). Drives
+  // the dashboard food-cost monitor's limit/alert for this dish.
+  const [targetFoodCost, setTargetFoodCost] = useState(
+    recipe?.target_food_cost_percent != null
+      ? String(recipe.target_food_cost_percent)
+      : ''
+  )
   const [notes, setNotes] = useState(recipe?.notes ?? '')
   // Sub-recipe yield as a 0–100 percentage (stored as a 0–1 fraction).
   const [yieldPercent, setYieldPercent] = useState(
@@ -229,6 +236,8 @@ export function RecipeForm({
         serving_size: servingSize === '' ? '' : Number(servingSize),
         serving_unit: servingUnit,
         sale_price: salePrice === '' ? '' : Number(salePrice),
+        target_food_cost_percent:
+          targetFoodCost === '' ? '' : Number(targetFoodCost),
         yield_percent: yieldPercent === '' ? '' : Number(yieldPercent),
         consumption_location_id: consumptionLocationId,
         category_id: categoryId,
@@ -253,6 +262,7 @@ export function RecipeForm({
       servingSize,
       servingUnit,
       salePrice,
+      targetFoodCost,
       yieldPercent,
       consumptionLocationId,
       categoryId,
@@ -521,6 +531,29 @@ export function RecipeForm({
             salePrice={salePrice}
             onSalePriceChange={setSalePrice}
           />
+          <div className="space-y-1.5 stokly-card p-4">
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="target_fc">
+                {t('recipes.target_food_cost')}
+              </Label>
+              <FieldHint text={t('recipes.target_food_cost_hint')} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                id="target_fc"
+                type="number"
+                inputMode="decimal"
+                min="1"
+                max="100"
+                step="0.1"
+                value={targetFoodCost}
+                onChange={(e) => setTargetFoodCost(e.target.value)}
+                placeholder={t('recipes.target_food_cost_ph')}
+                className="font-mono tabular-nums sm:max-w-[10rem]"
+              />
+              <span className="text-sm text-muted-foreground">%</span>
+            </div>
+          </div>
           {state.error && (
             <p className="text-sm text-destructive">
               {state.error === 'unit'
