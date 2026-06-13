@@ -2,7 +2,6 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/lib/i18n/navigation'
 import { requireTenant } from '@/lib/auth/tenant'
-import { getGlobalLibrary } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { ImportClient } from '@/components/import/import-client'
@@ -15,7 +14,6 @@ export default async function ImportPage({
   setRequestLocale(locale)
   const t = await getTranslations()
   await requireTenant(locale)
-  const library = await getGlobalLibrary()
 
   return (
     <div>
@@ -31,7 +29,7 @@ export default async function ImportPage({
           </Button>
         }
       />
-      <ImportClient locale={locale} library={library} />
+      <ImportClient locale={locale} />
     </div>
   )
 }

@@ -12,7 +12,6 @@ import type {
   Tenant,
 } from '@/types/database'
 import type { IngredientBatch, IngredientWithConversions } from '@/types/app'
-import type { GlobalIngredient } from '@/types/database'
 import { deriveAllStockLevels } from '@/lib/calculations/stock-level'
 import { computeTheoreticalUsage } from '@/lib/calculations/theoretical-usage'
 import {
@@ -652,31 +651,6 @@ export const getActiveBatches = cache(async (
     .order('received_date', { ascending: true })
   return (data ?? []) as IngredientBatch[]
 })
-
-// The global quick-start catalog (not tenant-scoped; public read).
-// Full library, unfiltered — for the system-admin catalog page.
-export async function getGlobalLibrary(): Promise<GlobalIngredient[]> {
-  const supabase = createClient()
-  const { data } = await supabase
-    .from('global_ingredient_library')
-    .select('*')
-    .order('category', { ascending: true })
-    .order('name_az', { ascending: true })
-  return data ?? []
-}
-
-// Everyday basics (is_common) for the one-click quick-add chips — the full set,
-// shown to every tenant regardless of business type.
-export async function getCommonLibrary(): Promise<GlobalIngredient[]> {
-  const supabase = createClient()
-  const { data } = await supabase
-    .from('global_ingredient_library')
-    .select('*')
-    .eq('is_common', true)
-    .order('category', { ascending: true })
-    .order('name_az', { ascending: true })
-  return data ?? []
-}
 
 export const getTenant = cache(async (tenantId: string): Promise<Tenant | null> => {
   const supabase = createClient()

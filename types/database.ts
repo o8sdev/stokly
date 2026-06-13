@@ -735,32 +735,6 @@ export interface Database {
         >
         Relationships: []
       }
-      global_ingredient_library: {
-        Row: {
-          id: string
-          name_az: string
-          name_ru: string | null
-          category: string
-          default_unit: string
-          default_yield_percent: number | null
-          sort_order: number | null
-          is_common: boolean
-        }
-        Insert: {
-          id?: string
-          name_az: string
-          name_ru?: string | null
-          category: string
-          default_unit: string
-          default_yield_percent?: number | null
-          sort_order?: number | null
-          is_common?: boolean
-        }
-        Update: Partial<
-          Database['public']['Tables']['global_ingredient_library']['Insert']
-        >
-        Relationships: []
-      }
       plans: {
         Row: {
           key: string
@@ -1228,8 +1202,6 @@ export type ProductionRunInputRow =
 export type DemoRequest =
   Database['public']['Tables']['demo_requests']['Row']
 export type DemoRequestStatus = DemoRequest['status']
-export type GlobalIngredient =
-  Database['public']['Tables']['global_ingredient_library']['Row']
 export type DailySale = Database['public']['Tables']['daily_sales']['Row']
 export type DailySaleItem =
   Database['public']['Tables']['daily_sales_items']['Row']

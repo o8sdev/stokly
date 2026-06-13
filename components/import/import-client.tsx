@@ -3,28 +3,20 @@
 import { useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import * as XLSX from 'xlsx'
-import { Download, UploadCloud, FileSpreadsheet, ClipboardPaste, BookOpen } from 'lucide-react'
+import { Download, UploadCloud, FileSpreadsheet, ClipboardPaste } from 'lucide-react'
 import {
   rowsFromMatrix,
   rowsFromPaste,
   type DraftRow,
 } from '@/lib/import/parse-ingredients'
-import type { GlobalIngredient } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ImportPreview } from './import-preview'
-import { LibrarySelector } from './library-selector'
 
-type Tab = 'excel' | 'library' | 'paste'
+type Tab = 'excel' | 'paste'
 const MAX_BYTES = 5 * 1024 * 1024
 
-export function ImportClient({
-  locale,
-  library,
-}: {
-  locale: string
-  library: GlobalIngredient[]
-}) {
+export function ImportClient({ locale }: { locale: string }) {
   const t = useTranslations('import')
   const [tab, setTab] = useState<Tab>('excel')
   const [drafts, setDrafts] = useState<DraftRow[] | null>(null)
@@ -82,7 +74,6 @@ export function ImportClient({
 
   const tabs: { id: Tab; label: string; icon: typeof FileSpreadsheet }[] = [
     { id: 'excel', label: t('tab_excel'), icon: FileSpreadsheet },
-    { id: 'library', label: t('tab_library'), icon: BookOpen },
     { id: 'paste', label: t('tab_paste'), icon: ClipboardPaste },
   ]
 
@@ -150,10 +141,6 @@ export function ImportClient({
               </label>
             </div>
           </div>
-        )}
-
-        {tab === 'library' && (
-          <LibrarySelector locale={locale} library={library} />
         )}
 
         {tab === 'paste' && (

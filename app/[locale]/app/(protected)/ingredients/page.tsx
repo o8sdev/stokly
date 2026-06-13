@@ -8,7 +8,6 @@ import {
   getArchivedIngredients,
   getSuppliers,
   getStockMovements,
-  getCommonLibrary,
 } from '@/lib/data/queries'
 import {
   deriveAllStockLevels,
@@ -18,7 +17,6 @@ import type { IngredientWithStock } from '@/types/app'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { IngredientTable } from '@/components/ingredients/ingredient-table'
-import { QuickAdd } from '@/components/ingredients/quick-add'
 
 export default async function IngredientsPage({
   params: { locale },
@@ -29,24 +27,15 @@ export default async function IngredientsPage({
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const [ingredients, archivedIngredients, suppliers, movements, common] =
+  const [ingredients, archivedIngredients, suppliers, movements] =
     await Promise.all([
       getIngredients(ctx.tenantId),
       getArchivedIngredients(ctx.tenantId),
       getSuppliers(ctx.tenantId),
       getStockMovements(ctx.tenantId),
-      getCommonLibrary(),
     ])
 
-  const [canImport, canLibrary] = await Promise.all([
-    tenantHasFeature(ctx.tenantId, 'bulk_import'),
-    tenantHasFeature(ctx.tenantId, 'ingredient_library'),
-  ])
-  // Common basics the tenant hasn't added yet (matched by name).
-  const have = new Set(ingredients.map((i) => i.name.trim().toLowerCase()))
-  const commonItems = canLibrary
-    ? common.filter((g) => !have.has(g.name_az.trim().toLowerCase()))
-    : []
+  const canImport = await tenantHasFeature(ctx.tenantId, 'bulk_import')
   const levels = deriveAllStockLevels(movements)
   const supplierName = new Map(suppliers.map((s) => [s.id, s.name]))
 
@@ -84,7 +73,6 @@ export default async function IngredientsPage({
           </div>
         }
       />
-      <QuickAdd locale={locale} items={commonItems} />
       <IngredientTable locale={locale} rows={rows} archivedRows={archivedRows} />
     </div>
   )

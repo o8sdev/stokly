@@ -309,7 +309,6 @@
       "plans": "Planlar",
       "flags": "Feature Flags",
       "logs": "Audit Log",
-      "library": "Kitabxana",
       "admins": "Adminlər",
       "blog": "Bloq",
       "new_business": "Yeni biznes",
@@ -674,21 +673,6 @@
       "err_forbidden": "İcazə yoxdur",
       "err_generic": "Alınmadı. Yenidən cəhd edin."
     },
-    "library": {
-      "title": "Qlobal inqrediyent kitabxanası",
-      "subtitle": "Sürətli başlanğıc kataloqunu idarə edin.",
-      "add": "Əlavə et",
-      "name_az": "Ad (AZ)",
-      "name_ru": "Ad (RU)",
-      "category": "Kateqoriya",
-      "unit": "Vahid",
-      "yield": "Çıxım %",
-      "empty": "Kitabxana boşdur",
-      "col_name": "Ad",
-      "col_category": "Kateqoriya",
-      "col_unit": "Vahid",
-      "common": "Ümumi"
-    },
     "blog": {
       "title": "Bloq",
       "subtitle": "Açıq sayt üçün məqalələr.",
@@ -896,10 +880,7 @@
     "shelf_life": "Raf ömrü (gün)",
     "storage_location": "Saxlama yeri",
     "storage_placeholder": "məs. Soyuducu, Dondurucu, Anbar",
-    "import_button": "İdxal et / Kitabxana",
-    "quick_add_title": "Tez əlavə et",
-    "quick_add_hint": "Bir kliklə əlavə et — qiyməti sonra doldurarsan",
-    "quick_add_all": "Hamısını əlavə et"
+    "import_button": "İdxal et"
   },
   "recipes": {
     "consumption_location": "Satış nöqtəsi",
@@ -1297,7 +1278,6 @@
     "title": "İnqrediyent idxalı",
     "subtitle": "Mövcud siyahınızı bir neçə dəqiqəyə yükləyin.",
     "tab_excel": "Excel / CSV idxal",
-    "tab_library": "Kitabxanadan seç",
     "tab_paste": "Yapışdır",
     "step_download": "1. Şablonu yükləyin",
     "step_download_desc": "Sütunları olan Excel şablonunu yükləyin və doldurun.",
@@ -1331,18 +1311,6 @@
     "err_invalid_yield": "1–100 arası olmalıdır",
     "err_too_long": "Çox uzundur",
     "warn_no_cost": "Qiymət yoxdur"
-  },
-  "library": {
-    "title": "Sürətli başlanğıc — Kitabxanadan seçin",
-    "subtitle": "Restoranınızda istifadə etdiyiniz inqrediyentləri seçin. Onları kataloğunuza bir kliklə əlavə edin.",
-    "all": "Hamısı",
-    "select_all": "Hamısını seç",
-    "selected": "{count} inqrediyent seçildi",
-    "add": "Kataloqa əlavə et",
-    "adding": "Əlavə edilir...",
-    "cancel": "Ləğv et",
-    "empty": "Kitabxana boşdur",
-    "success": "{count} inqrediyent əlavə edildi. İndi qiymətləri daxil edin."
   },
   "business_type": {
     "restaurant": "Restoran",
@@ -1385,9 +1353,6 @@
     "import_title": "Excel-dən idxal et",
     "import_desc": "Mövcud siyahınızı yükləyin",
     "import_btn": "İdxal et",
-    "library_title": "Kitabxanadan seçin",
-    "library_desc": "Hazır siyahıdan seçin",
-    "library_btn": "Seçin",
     "manual_title": "Əl ilə əlavə edin",
     "manual_desc": "Hər birini ayrıca əlavə edin",
     "manual_btn": "Əlavə et",
