@@ -437,7 +437,10 @@ function IngredientsStep({
             </select>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="ing_cost">{ti('cost')}</Label>
+            <Label htmlFor="ing_cost">
+              {ti('cost')}
+              {baseUnit ? ` · 1 ${baseUnit}` : ''}
+            </Label>
             <Input
               id="ing_cost"
               name="cost_per_unit"
@@ -469,6 +472,7 @@ function IngredientsStep({
           <p className="text-xs text-muted-foreground">
             {ti('conversions_help', { base: baseUnit || '—' })}
           </p>
+          <p className="text-xs text-muted-foreground">{t('ing_conv_tip')}</p>
           {convRows.map((r, i) => (
             <div key={i} className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs text-muted-foreground">1</span>

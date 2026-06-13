@@ -1355,6 +1355,7 @@
     "sup_phone": "Telefon",
     "ing_help": "İstifadə etdiyiniz inqrediyentləri əlavə edin (ad, vahid, dəyər, təchizatçı).",
     "ing_name_ph": "məs. Toyuq",
+    "ing_conv_tip": "Ölçüsü dəyişən məhsullar (balıq, qarpız) üçün baza vahidi kq seçin və “1 ədəd = … kq” çevrilməsi əlavə edin — hər vahidin dəyəri kq-a görə avtomatik hesablanır.",
     "rec_help": "Ən azı bir yemək (resept) yaradın və onu satış nöqtəsinə bağlayın.",
     "create_recipe_cta": "Resept yarat",
     "stock_help": "Alış əvvəlcə Anbara gəlir, sonra satış nöqtəsinə köçürülür. Başlamaq üçün açılış sayımı edin və ya ilk alışı qeyd edin.",
