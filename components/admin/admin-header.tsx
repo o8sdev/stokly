@@ -2,13 +2,14 @@
 
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
-import { Menu, X, LogOut } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { AdminNavLinks } from './admin-sidebar'
 import { AdminCommandMenu } from './admin-command-menu'
 import { AdminNotificationsBell } from './admin-notifications-bell'
 import type { AdminNotification } from '@/types/database'
 import type { SearchResult } from '@/lib/admin/search'
 import { StoklyLogo } from '@/components/brand/logo'
+import { SignOutButton } from '@/components/layout/sign-out'
 
 export function AdminHeader({
   locale,
@@ -89,15 +90,12 @@ export function AdminHeader({
                   {roleLabel}
                 </p>
               </div>
-              <form action={onSignout}>
-                <button
-                  type="submit"
-                  title={t('signout')}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted hover:bg-white/5 hover:text-white"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </form>
+              <SignOutButton
+                action={onSignout}
+                label={t('signout')}
+                variant="admin"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted hover:bg-white/5 hover:text-white disabled:opacity-60"
+              />
             </div>
           </div>
         </div>

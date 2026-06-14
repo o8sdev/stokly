@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { LogOut, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { usePathname, Link } from '@/lib/i18n/navigation'
 import { NAV_SECTIONS, isNavGroup, type NavItem } from './nav-items'
 import { cn } from '@/lib/utils'
 import { StoklyLogo } from '@/components/brand/logo'
+import { SignOutButton } from './sign-out'
 import type { Role } from '@/types/database'
 
 // Pick the single best-matching nav href for the current path (longest prefix),
@@ -143,15 +144,12 @@ export function Sidebar({
             {roleLabel}
           </p>
         </div>
-        <form action={onSignout}>
-          <button
-            type="submit"
-            title={t('signout')}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-white/5 hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </form>
+        <SignOutButton
+          action={onSignout}
+          label={t('signout')}
+          variant="tenant"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-white/5 hover:text-white disabled:opacity-60"
+        />
       </div>
     </aside>
   )

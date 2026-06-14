@@ -2,11 +2,12 @@
 
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { Bell, LogOut } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { usePathname, useRouter } from '@/lib/i18n/navigation'
 import { NAV_SECTIONS, isNavGroup, TITLE_ALIASES } from './nav-items'
 import { cn } from '@/lib/utils'
 import { StoklyLogo } from '@/components/brand/logo'
+import { SignOutButton } from './sign-out'
 
 // Resolve the current page's nav label key from the longest matching href.
 // Groups are expanded into their child links so /app/purchases resolves too.
@@ -106,15 +107,14 @@ export function Header({
           {initial}
         </div>
         {/* Mobile sign-out (desktop uses the sidebar footer). */}
-        <form action={onSignout} className="md:hidden">
-          <button
-            type="submit"
-            title={t('signout')}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </form>
+        <div className="md:hidden">
+          <SignOutButton
+            action={onSignout}
+            label={t('signout')}
+            variant="tenant"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-60"
+          />
+        </div>
       </div>
     </header>
   )

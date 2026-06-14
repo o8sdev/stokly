@@ -1,11 +1,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { LogOut } from 'lucide-react'
 import { usePathname, Link } from '@/lib/i18n/navigation'
 import { ADMIN_NAV_SECTIONS, ADMIN_NAV_HREFS } from './admin-nav-items'
 import { cn } from '@/lib/utils'
 import { StoklyLogo } from '@/components/brand/logo'
+import { SignOutButton } from '@/components/layout/sign-out'
 
 // Longest-prefix match so /admin/tenants/123 highlights "Tenants", and the bare
 // /admin only matches the Dashboard item.
@@ -96,15 +96,12 @@ export function AdminSidebar({
           </p>
           <p className="text-[11px] capitalize text-sidebar-muted">{roleLabel}</p>
         </div>
-        <form action={onSignout}>
-          <button
-            type="submit"
-            title={t('signout')}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-white/5 hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </form>
+        <SignOutButton
+          action={onSignout}
+          label={t('signout')}
+          variant="admin"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-white/5 hover:text-white disabled:opacity-60"
+        />
       </div>
     </aside>
   )

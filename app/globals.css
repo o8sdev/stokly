@@ -121,6 +121,42 @@
   animation: stokly-line-in 200ms ease-out;
 }
 
+/* ── Sign-out curtain ─────────────────────────────────────────────────────
+   Full-screen "signing out…" overlay shown while the logout server action
+   runs. The Stokly mark's six spokes fade on a staggered loop (a spinner),
+   and the trailing dots pulse. Fades in fast so the logout reads instantly. */
+.stokly-logout-overlay {
+  animation: stokly-overlay-in 220ms ease-out both;
+}
+@keyframes stokly-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.stokly-spoke {
+  animation: stokly-spoke-fade 0.78s linear infinite;
+}
+@keyframes stokly-spoke-fade {
+  0% { opacity: 1; }
+  100% { opacity: 0.12; }
+}
+.stokly-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.25;
+  animation: stokly-dot-pulse 1s ease-in-out infinite;
+}
+@keyframes stokly-dot-pulse {
+  0%, 100% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stokly-logout-overlay { animation: none; }
+  .stokly-spoke,
+  .stokly-dot { animation: none; opacity: 1; }
+}
+
 /* ── Skeleton shimmer (loading placeholders) ──────────────────────────────
    .skeleton  → light app surfaces · .skeleton-d → dark admin console.
    A muted base block with a soft gradient sweep traveling left→right. The
