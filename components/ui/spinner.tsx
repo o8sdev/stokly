@@ -1,25 +1,19 @@
+import { StoklySpinner } from '@/components/brand/logo'
 import { cn } from '@/lib/utils'
 
 /**
- * Indeterminate ring spinner. Brand-teal by default; inherits `currentColor`
- * for the track so it reads on both the light app and the dark admin console.
+ * Indeterminate loading spinner — the Stokly mark whose spokes fade on a
+ * staggered loop. Brand-teal by default via `text-brand`; pass a `className`
+ * with a text color to recolor (it inherits `currentColor`).
  */
 export function Spinner({
+  size = 20,
   className,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) {
-  return (
-    <span
-      role="status"
-      aria-label="Yüklənir"
-      className={cn(
-        'inline-block aspect-square w-5 shrink-0 animate-spin rounded-full',
-        'border-2 border-current/25 border-t-current text-brand align-[-0.125em]',
-        className
-      )}
-      {...props}
-    />
-  )
+}: {
+  size?: number
+  className?: string
+}) {
+  return <StoklySpinner size={size} className={cn('text-brand', className)} />
 }
 
 /**
@@ -40,7 +34,7 @@ export function LoadingScreen({
         className
       )}
     >
-      <Spinner className="w-8 border-[3px]" />
+      <Spinner size={40} />
       {label && <p className="text-sm text-muted-foreground">{label}</p>}
     </div>
   )

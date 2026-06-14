@@ -3,48 +3,10 @@
 import { useFormStatus, createPortal } from 'react-dom'
 import { LogOut } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { StoklyLogo } from '@/components/brand/logo'
+import { StoklyLogo, StoklySpinner } from '@/components/brand/logo'
 import { cn } from '@/lib/utils'
 
 type Variant = 'admin' | 'tenant'
-
-// Six-spoke version of the Stokly mark where each spoke fades on a staggered
-// loop — the asterisk reads as a spinner while the sign-out action runs.
-function StoklySpinner({ size = 52 }: { size?: number }) {
-  const spokes = []
-  for (let i = 0; i < 6; i++) {
-    const a = ((i * 60 + 8) * Math.PI) / 180
-    const x1 = 24 + Math.cos(a) * 5.5
-    const y1 = 24 + Math.sin(a) * 5.5
-    const x2 = 24 + Math.cos(a) * 19
-    const y2 = 24 + Math.sin(a) * 19
-    spokes.push(
-      <line
-        key={i}
-        x1={x1.toFixed(2)}
-        y1={y1.toFixed(2)}
-        x2={x2.toFixed(2)}
-        y2={y2.toFixed(2)}
-        className="stokly-spoke"
-        style={{ animationDelay: `${-(5 - i) * 0.13}s` }}
-      />
-    )
-  }
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 48 48"
-      fill="none"
-      stroke="#00C896"
-      strokeWidth="7"
-      strokeLinecap="round"
-      aria-hidden
-    >
-      {spokes}
-    </svg>
-  )
-}
 
 // Full-screen branded "signing out…" curtain, rendered to <body> so no
 // transformed/overflow-hidden ancestor can clip it.
@@ -62,7 +24,7 @@ function SignOutOverlay({ variant }: { variant: Variant }) {
         dark ? 'bg-[#0a1622] text-white' : 'bg-background text-foreground'
       )}
     >
-      <StoklySpinner />
+      <StoklySpinner size={52} color="#00C896" label={t('signing_out')} />
       <StoklyLogo tone={dark ? 'paper' : 'ink'} size="lg" />
       <p
         className={cn(

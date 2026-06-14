@@ -1,7 +1,7 @@
 'use client'
 
 import { useFormStatus } from 'react-dom'
-import { Loader2 } from 'lucide-react'
+import { StoklySpinner } from '@/components/brand/logo'
 import { Button, type ButtonProps } from './button'
 
 // Submit button wired to the enclosing <form>'s pending state via
@@ -19,7 +19,7 @@ export function SubmitButton({
     <Button type="submit" disabled={pending || disabled} {...props}>
       {pending ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <StoklySpinner size={16} />
           {pendingText ?? children}
         </>
       ) : (

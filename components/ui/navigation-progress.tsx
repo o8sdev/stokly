@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { StoklySpinner } from '@/components/brand/logo'
 
 // A URL points to the *same route* (only the hash differs, or it's identical)
 // when its pathname + query match the current location. In-page anchor jumps
@@ -203,7 +204,11 @@ export function NavigationProgress() {
         }}
       >
         <div className="absolute inset-0 bg-black/15 backdrop-blur-[6px]" />
-        <span className="relative h-11 w-11 animate-spin rounded-full border-[3px] border-brand/25 border-t-brand [filter:drop-shadow(0_2px_10px_rgba(0,0,0,0.18))]" />
+        <StoklySpinner
+          size={46}
+          color="#00C896"
+          className="relative [filter:drop-shadow(0_2px_10px_rgba(0,0,0,0.18))]"
+        />
       </div>
     </>
   )

@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { Mail, Loader2, Check } from 'lucide-react'
+import { Mail, Check } from 'lucide-react'
+import { StoklySpinner } from '@/components/brand/logo'
 import { emailPeriodReport } from '@/app/[locale]/app/(protected)/reports/period/actions'
 import { Button } from '@/components/ui/button'
 
@@ -40,7 +41,7 @@ export function EmailReportButton({
         className="gap-2"
       >
         {pending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <StoklySpinner size={16} />
         ) : state === 'ok' ? (
           <Check className="h-4 w-4 text-emerald-600" />
         ) : (

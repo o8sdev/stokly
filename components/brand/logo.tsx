@@ -61,6 +61,58 @@ export function StoklyMark({
   )
 }
 
+// Loading spinner built from the brand mark: the six spokes fade on a
+// staggered loop (the `.stokly-spoke` keyframe in globals.css) so the asterisk
+// reads as a spinner. Inherits `currentColor` by default — pass `color` to pin
+// it (e.g. brand teal on a curtain). This is the app's canonical "loading".
+export function StoklySpinner({
+  size = 20,
+  color = 'currentColor',
+  className,
+  label = 'Yüklənir',
+}: {
+  size?: number
+  color?: string
+  className?: string
+  label?: string
+}) {
+  const spokes = []
+  for (let i = 0; i < 6; i++) {
+    const a = ((i * 60 + 8) * Math.PI) / 180
+    const x1 = 24 + Math.cos(a) * 5.5
+    const y1 = 24 + Math.sin(a) * 5.5
+    const x2 = 24 + Math.cos(a) * 19
+    const y2 = 24 + Math.sin(a) * 19
+    spokes.push(
+      <line
+        key={i}
+        x1={x1.toFixed(2)}
+        y1={y1.toFixed(2)}
+        x2={x2.toFixed(2)}
+        y2={y2.toFixed(2)}
+        className="stokly-spoke"
+        style={{ animationDelay: `${-(5 - i) * 0.13}s` }}
+      />
+    )
+  }
+  return (
+    <svg
+      role="status"
+      aria-label={label}
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke={color}
+      strokeWidth="7"
+      strokeLinecap="round"
+      className={className}
+    >
+      {spokes}
+    </svg>
+  )
+}
+
 // Lockup: wordmark + the mark riding the cap-height like a footnote star.
 export function StoklyLogo({
   tone = 'ink',
