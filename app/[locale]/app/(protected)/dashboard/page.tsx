@@ -79,7 +79,7 @@ export default async function DashboardPage({
     <div>
       {showGettingStarted && (
         <div className="mb-6">
-          <GettingStarted locale={locale} />
+          <GettingStarted locale={locale} tenantId={ctx.tenantId} />
         </div>
       )}
 

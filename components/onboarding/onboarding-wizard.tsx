@@ -90,8 +90,10 @@ export function OnboardingWizard({
     { key: 'stock', icon: ClipboardList, done: hasStock },
   ] as const
 
-  const firstUndone = steps.findIndex((s) => !s.done)
-  const [current, setCurrent] = useState(firstUndone === -1 ? 0 : firstUndone)
+  // Always open on step 1 and walk forward. (A brand-new tenant is auto-seeded
+  // with a default "Mətbəx" sales point, so jumping to the first *undone* step
+  // used to skip step 1 entirely — the owner never saw it.)
+  const [current, setCurrent] = useState(0)
   const step = steps[current]
 
   function exit() {
