@@ -52,7 +52,6 @@ export function RecipeForm({
   ingredientOptions,
   subRecipeOptions,
   consumptionLocations,
-  defaultConsumptionId,
   categories = [],
   recipe,
   existingLines,
@@ -61,7 +60,6 @@ export function RecipeForm({
   ingredientOptions: IngredientOption[]
   subRecipeOptions: SubRecipeOption[]
   consumptionLocations: { id: string; name: string }[]
-  defaultConsumptionId: string | null
   categories?: { id: string; name: string }[]
   recipe?: Recipe
   existingLines?: RecipeIngredient[]
@@ -97,10 +95,13 @@ export function RecipeForm({
       ? String(Math.round(recipe.yield_percent * 1000) / 10)
       : ''
   )
-  // Which consumption point (station) this dish is made at / deducted from.
-  // Defaults to the tenant's default station so the choice is always concrete.
+  // Which consumption point (station) this dish is sold / deducted from. New
+  // dishes start unset: when the venue has multiple stations the picker is
+  // required, so each dish is routed explicitly (cocktail → Bar, food →
+  // Kitchen) with no silent fallback. A single-station venue hides the picker
+  // and the server resolves to that one point.
   const [consumptionLocationId, setConsumptionLocationId] = useState(
-    recipe?.consumption_location_id ?? defaultConsumptionId ?? ''
+    recipe?.consumption_location_id ?? ''
   )
   // Menu section ('' = uncategorised).
   const [categoryId, setCategoryId] = useState(recipe?.category_id ?? '')
@@ -482,8 +483,12 @@ export function RecipeForm({
                   id="consumption_location_id"
                   value={consumptionLocationId}
                   onChange={(e) => setConsumptionLocationId(e.target.value)}
+                  required
                   className="flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:max-w-xs"
                 >
+                  <option value="" disabled>
+                    {t('recipes.consumption_location_select')}
+                  </option>
                   {consumptionLocations.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}

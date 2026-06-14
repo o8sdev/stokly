@@ -31,7 +31,6 @@ export default async function EditRecipePage({
         ingredientOptions={builderData.ingredientOptions}
         subRecipeOptions={builderData.subRecipeOptions}
         consumptionLocations={builderData.consumptionLocations}
-        defaultConsumptionId={builderData.defaultConsumptionId}
         categories={builderData.categories}
         recipe={recipe}
         existingLines={lines}
