@@ -14,7 +14,6 @@ export interface ActionResult {
 
 // Parse the raw form payload into the storage shape (yield as 0–1 fraction).
 function parsePayload(formData: FormData) {
-  const yieldDisplay = Number(formData.get('yield_percent_display') ?? 0)
   const supplierRaw = String(formData.get('supplier_id') ?? '')
   const thresholdRaw = String(formData.get('low_stock_threshold') ?? '')
   const parRaw = String(formData.get('par_level') ?? '')
@@ -28,7 +27,6 @@ function parsePayload(formData: FormData) {
     name_ru: formData.get('name_ru') || undefined,
     unit: formData.get('unit'),
     cost_per_unit: formData.get('cost_per_unit'),
-    yield_percent: yieldDisplay / 100,
     supplier_id: supplierRaw ? supplierRaw : null,
     low_stock_threshold: thresholdRaw === '' ? null : Number(thresholdRaw),
     par_level: parRaw === '' ? null : Number(parRaw),
@@ -60,7 +58,6 @@ export async function createIngredient(
       name_ru: parsed.data.name_ru || null,
       unit: parsed.data.unit,
       cost_per_unit: parsed.data.cost_per_unit,
-      yield_percent: parsed.data.yield_percent,
       supplier_id: parsed.data.supplier_id ?? null,
       low_stock_threshold: parsed.data.low_stock_threshold ?? null,
       par_level: parsed.data.par_level ?? null,
@@ -275,7 +272,6 @@ export async function updateIngredient(
       name_ru: parsed.data.name_ru || null,
       unit: parsed.data.unit,
       cost_per_unit: parsed.data.cost_per_unit,
-      yield_percent: parsed.data.yield_percent,
       supplier_id: parsed.data.supplier_id ?? null,
       low_stock_threshold: parsed.data.low_stock_threshold ?? null,
       par_level: parsed.data.par_level ?? null,

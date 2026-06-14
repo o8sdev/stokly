@@ -228,11 +228,7 @@ export function RecipeIngredientsEditor({
               min="0"
               max="100"
               value={line.yieldOverride}
-              placeholder={
-                line.kind === 'ingredient' && opt
-                  ? String(Math.round((opt.yield_percent ?? 1) * 100))
-                  : '%'
-              }
+              placeholder={line.kind === 'ingredient' ? '100' : '%'}
               disabled={line.kind === 'sub_recipe'}
               onChange={(e) =>
                 onChange(line.key, { yieldOverride: e.target.value })

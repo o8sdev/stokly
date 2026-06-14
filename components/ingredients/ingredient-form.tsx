@@ -37,10 +37,6 @@ export function IngredientForm({
 
   const [state, formAction] = useFormState<ActionResult, FormData>(action, {})
 
-  const yieldDisplay = ingredient
-    ? Math.round(ingredient.yield_percent * 1000) / 10
-    : 100
-
   // Produced-good toggle controls visibility of shelf-life + storage fields.
   const [isProduced, setIsProduced] = useState(
     ingredient?.is_produced ?? false
@@ -137,25 +133,6 @@ export function IngredientForm({
             step="0.0001"
             min="0"
             required
-            className="mt-auto text-right font-mono tabular-nums"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-1.5">
-            <Label htmlFor="yield_percent_display">
-              {t('ingredients.yield')}
-            </Label>
-            <FieldHint text={t('ingredients.yield_hint')} />
-          </div>
-          <Input
-            id="yield_percent_display"
-            name="yield_percent_display"
-            type="number"
-            step="0.1"
-            min="0.1"
-            max="100"
-            required
-            defaultValue={yieldDisplay}
             className="mt-auto text-right font-mono tabular-nums"
           />
         </div>

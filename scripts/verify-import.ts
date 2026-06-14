@@ -17,13 +17,13 @@ const check = (name: string, actual: unknown, expected: unknown) => {
   if (!ok) failed++
 }
 
-// Template columns: Ad* | Ad(Rus) | Vahid* | Dəyər | Çıxım% | Təchizatçı | Az stok
+// Template columns: Ad* | Ad(Rus) | Vahid* | Dəyər | Təchizatçı | Az stok
 const matrix = [
-  ['Ad *', 'Ad (Rus)', 'Ölçü vahidi *', 'Vahid dəyəri (AZN)', 'Çıxım faizi (%)', 'Təchizatçı', 'Az stok həddi'],
-  ['Toyuq döşü', 'Куриная грудка', 'kq', '4,20', '90%', 'Lider Ət', '5'],
-  ['Zeytun yağı', '', 'Litr (l)', 12.5, 100, '', ''],
-  ['Pis sətir', '', 'yanlışvahid', 'abc', '101', '', '-1'],
-  ['', '', '', '', '', '', ''],
+  ['Ad *', 'Ad (Rus)', 'Ölçü vahidi *', 'Vahid dəyəri (AZN)', 'Təchizatçı', 'Az stok həddi'],
+  ['Toyuq döşü', 'Куриная грудка', 'kq', '4,20', 'Lider Ət', '5'],
+  ['Zeytun yağı', '', 'Litr (l)', 12.5, '', ''],
+  ['Pis sətir', '', 'yanlışvahid', 'abc', '', '-1'],
+  ['', '', '', '', '', ''],
 ]
 
 const wb = XLSX.utils.book_new()
@@ -43,7 +43,6 @@ check('rows parsed (blank dropped)', drafts.length, 3)
 check('valid rows', result.valid.length, 2)
 const r1 = result.valid[0]
 check('comma decimal cost 4,20 → 4.2', r1.cost_per_unit, 4.2)
-check('percent sign 90% → 0.9 fraction', r1.yield_percent, 0.9)
 check('unit kept kq', r1.unit, 'kq')
 check('supplier mapped', r1.supplier_name, 'Lider Ət')
 check('low stock 5', r1.low_stock_threshold, 5)

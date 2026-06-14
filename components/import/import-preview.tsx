@@ -124,7 +124,6 @@ export function ImportPreview({
               <th className="px-2 py-2 text-left font-semibold">{t('col_name')}</th>
               <th className="px-2 py-2 text-left font-semibold">{t('col_unit')}</th>
               <th className="px-2 py-2 text-left font-semibold">{t('col_cost')}</th>
-              <th className="px-2 py-2 text-left font-semibold">{t('col_yield')}</th>
               <th className="px-2 py-2 text-left font-semibold">
                 {t('col_supplier')}
               </th>
@@ -136,7 +135,7 @@ export function ImportPreview({
             {validated.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={7}
                   className="px-4 py-10 text-center text-muted-foreground"
                 >
                   {t('empty')}
@@ -163,7 +162,6 @@ export function ImportPreview({
                     <td className="px-1.5 py-1.5">{field(v, 'name')}</td>
                     <td className="px-1.5 py-1.5 w-20">{field(v, 'unit')}</td>
                     <td className="px-1.5 py-1.5 w-24">{field(v, 'cost')}</td>
-                    <td className="px-1.5 py-1.5 w-20">{field(v, 'yield')}</td>
                     <td className="px-1.5 py-1.5">{field(v, 'supplier')}</td>
                     <td className="px-1.5 py-1.5 w-24">{field(v, 'low_stock')}</td>
                     <td className="px-1.5 py-1.5">

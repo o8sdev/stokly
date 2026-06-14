@@ -82,7 +82,6 @@ export async function importIngredients(
     name_ru: r.name_ru?.trim() || null,
     unit: r.unit,
     cost_per_unit: r.cost_per_unit ?? 0,
-    yield_percent: r.yield_percent ?? 1,
     supplier_id: r.supplier_name
       ? supplierIdByLower.get(r.supplier_name.trim().toLowerCase()) ?? null
       : null,

@@ -212,7 +212,7 @@ export function TenantDetailTabs({
           className="mb-3 h-9 w-full max-w-xs rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-slate-500 focus:border-brand focus:outline-none"
         />
         <TableShell
-          head={[t('name'), t('unit'), t('cost'), t('yield'), t('stock')]}
+          head={[t('name'), t('unit'), t('cost'), t('stock')]}
           empty={ingFiltered.length === 0 ? t('no_ingredients') : null}
         >
           {ingFiltered.map((i) => (
@@ -220,9 +220,6 @@ export function TenantDetailTabs({
               <td className={TD + ' font-medium text-white'}>{i.name}</td>
               <td className={TD + ' font-mono text-slate-300'}>{i.unit}</td>
               <td className={TD + ' font-mono text-slate-300'}>{formatMoney(i.cost)}</td>
-              <td className={TD + ' font-mono text-slate-300'}>
-                {Math.round(i.yield * 100)}%
-              </td>
               <td className={TD + ' font-mono text-slate-300'}>{i.stock}</td>
             </tr>
           ))}

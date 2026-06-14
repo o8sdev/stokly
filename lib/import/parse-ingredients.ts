@@ -8,7 +8,6 @@ export type DraftRow = {
   name_ru: string
   unit: string
   cost: string
-  yield: string
   supplier: string
   low_stock: string
 }
@@ -19,7 +18,6 @@ export type ImportRow = {
   name_ru?: string
   unit: string
   cost_per_unit?: number
-  yield_percent?: number // stored 0–1 fraction
   supplier_name?: string
   low_stock_threshold?: number
 }
@@ -136,14 +134,6 @@ export function validateDraft(draft: DraftRow): ValidatedRow {
     else cost = v
   }
 
-  let yieldFraction: number | undefined
-  if (draft.yield.trim() !== '') {
-    // The column header says "(%)", so people type "90%" — strip the sign.
-    const v = Number(draft.yield.replace(',', '.').replace(/%\s*$/, ''))
-    if (!Number.isFinite(v) || v < 1 || v > 100) errors.yield = 'invalid_yield'
-    else yieldFraction = Math.round((v / 100) * 10000) / 10000
-  }
-
   let lowStock: number | undefined
   if (draft.low_stock.trim() !== '') {
     const v = Number(draft.low_stock.replace(',', '.'))
@@ -161,7 +151,6 @@ export function validateDraft(draft: DraftRow): ValidatedRow {
         name_ru: draft.name_ru.trim() || undefined,
         unit,
         cost_per_unit: cost,
-        yield_percent: yieldFraction,
         supplier_name: draft.supplier.trim() || undefined,
         low_stock_threshold: lowStock,
       }
@@ -192,8 +181,8 @@ export function toParseResult(validated: ValidatedRow[]): ParseResult {
 
 const HEADER_RE = /^(ad|name|название|ад)\b/i
 
-// Convert a SheetJS 2D array (header:1) into draft rows. Columns A–G:
-// name, name_ru, unit, cost, yield, supplier, low_stock. Skips the header row
+// Convert a SheetJS 2D array (header:1) into draft rows. Columns A–F:
+// name, name_ru, unit, cost, supplier, low_stock. Skips the header row
 // and fully-empty rows.
 export function rowsFromMatrix(matrix: unknown[][]): DraftRow[] {
   const out: DraftRow[] = []
@@ -208,9 +197,8 @@ export function rowsFromMatrix(matrix: unknown[][]): DraftRow[] {
       name_ru: c(1),
       unit: c(2),
       cost: c(3),
-      yield: c(4),
-      supplier: c(5),
-      low_stock: c(6),
+      supplier: c(4),
+      low_stock: c(5),
     })
   })
   return out
@@ -232,7 +220,6 @@ export function rowsFromPaste(text: string): DraftRow[] {
         name_ru: '',
         unit: p(1) || 'kq',
         cost: p(2),
-        yield: '',
         supplier: '',
         low_stock: '',
       }

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 
 // GET /api/templates/ingredients — a downloadable Excel template for the bulk
-// ingredient import. Columns A–G match lib/import/parse-ingredients. (Cell
+// ingredient import. Columns A–F match lib/import/parse-ingredients. (Cell
 // fill/font styling is a SheetJS Pro feature; the community build still writes
 // a clean, correctly-structured workbook with sized columns + an example row.)
 export function GET() {
@@ -11,7 +11,6 @@ export function GET() {
     'Ad (Rus)',
     'Ölçü vahidi *',
     'Vahid dəyəri (AZN)',
-    'Çıxım faizi (%)',
     'Təchizatçı',
     'Az stok həddi',
   ]
@@ -20,11 +19,10 @@ export function GET() {
     'Куриная грудка',
     'kq',
     '4.20',
-    '90',
     'Lider Ət',
     '5',
   ]
-  const blanks = Array.from({ length: 30 }, () => ['', '', '', '', '', '', ''])
+  const blanks = Array.from({ length: 30 }, () => ['', '', '', '', '', ''])
 
   const ws = XLSX.utils.aoa_to_sheet([headers, example, ...blanks])
   ws['!cols'] = [
@@ -32,7 +30,6 @@ export function GET() {
     { wch: 18 },
     { wch: 14 },
     { wch: 18 },
-    { wch: 16 },
     { wch: 18 },
     { wch: 14 },
   ]

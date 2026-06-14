@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button'
 import {
   DataTable,
   MonoValue,
-  NeutralPill,
   StockBadge,
   EmptyState,
   type StockStatus,
@@ -118,7 +117,6 @@ export function IngredientTable({
             { label: t('ingredients.name') },
             { label: t('ingredients.unit') },
             { label: t('ingredients.cost'), align: 'right' },
-            { label: t('ingredients.yield'), align: 'right' },
             { label: t('ingredients.current_stock'), align: 'right' },
             { label: t('ingredients.supplier') },
             { label: t('common.actions'), align: 'right' },
@@ -137,11 +135,6 @@ export function IngredientTable({
                 </TableCell>
                 <TableCell className="text-right">
                   <MonoValue value={formatMoney(row.cost_per_unit)} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <NeutralPill>
-                    {Math.round(row.yield_percent * 100)}%
-                  </NeutralPill>
                 </TableCell>
                 <TableCell className="text-right">
                   <span className="inline-flex items-center justify-end gap-2">
