@@ -98,10 +98,10 @@ export const NAV_SECTIONS: NavSection[] = [
           },
         ],
       },
-      // Every report in one place, finances included.
+      // Money: P&L summary, food-cost margins, stock value, supplier pricing.
       {
-        labelKey: 'reports',
-        icon: TrendingUp,
+        labelKey: 'finances',
+        icon: Coins,
         children: [
           { href: '/app/data/finances', labelKey: 'data_finances', icon: Coins },
           { href: '/app/reports/food-cost', labelKey: 'food_cost', icon: TrendingUp },
@@ -110,6 +110,18 @@ export const NAV_SECTIONS: NavSection[] = [
             labelKey: 'inventory_value',
             icon: Wallet,
           },
+          {
+            href: '/app/reports/supplier-pricing',
+            labelKey: 'supplier_pricing',
+            icon: LineChart,
+          },
+        ],
+      },
+      // Operational analytics — counts, stock, menu, locations, activity.
+      {
+        labelKey: 'reports',
+        icon: TrendingUp,
+        children: [
           {
             href: '/app/reports/period',
             labelKey: 'period_reports',
@@ -129,11 +141,6 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/app/reports/by-location',
             labelKey: 'by_location',
             icon: Warehouse,
-          },
-          {
-            href: '/app/reports/supplier-pricing',
-            labelKey: 'supplier_pricing',
-            icon: LineChart,
           },
           {
             href: '/app/data/activity',
