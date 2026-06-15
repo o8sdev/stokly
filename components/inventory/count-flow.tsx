@@ -7,6 +7,7 @@ import { Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/lib/utils'
 import { StockCountForm, type CountItem } from './stock-count-form'
+import { OpeningCountWizard } from './opening-count-wizard'
 import { PreCountModal } from './pre-count-modal'
 import { MissingSalesPanel } from './missing-sales-panel'
 import type { PreCountInfo } from '@/lib/data/counts'
@@ -39,6 +40,16 @@ export function CountFlow({
     setMissing((prev) => prev.filter((d) => !saved.includes(d)))
     setPanelOpen(false)
     router.refresh()
+  }
+
+  // Day-0 opening count: a strict step-by-step wizard (one location per step,
+  // every ingredient required even if 0, and submittable only on the final
+  // review step behind a confirmation). There is no prior period to reconcile,
+  // so the pre-count sales checklist is skipped entirely.
+  if (!preCount.hasPreviousCount) {
+    return (
+      <OpeningCountWizard locale={locale} items={items} locations={locations} />
+    )
   }
 
   if (!started) {
