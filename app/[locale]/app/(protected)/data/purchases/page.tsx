@@ -1,34 +1,30 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { requireTenant } from '@/lib/auth/tenant'
-import {
-  resolveRange,
-  RANGE_PRESETS,
-  type RangePreset,
-} from '@/lib/data/overview'
+import { resolveRange } from '@/lib/data/overview'
 import { getPurchaseLog } from '@/lib/data/queries'
 import { PageHeader } from '@/components/layout/page-header'
 import { EntryLinkButton } from '@/components/data/entry-link-button'
-import { RangeSelector } from '@/components/dashboard/range-selector'
-import { PurchasesExplorer } from '@/components/data/purchases-explorer'
+import { PurchasesJournal } from '@/components/data/purchases-journal'
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 export default async function PurchasesDataPage({
   params: { locale },
   searchParams,
 }: {
   params: { locale: string }
-  searchParams: { range?: string }
+  searchParams: { from?: string; to?: string }
 }) {
   setRequestLocale(locale)
   const t = await getTranslations()
   const ctx = await requireTenant(locale)
 
-  const preset: RangePreset = RANGE_PRESETS.includes(
-    searchParams.range as RangePreset
-  )
-    ? (searchParams.range as RangePreset)
-    : 'this_month'
-  const range = resolveRange(preset)
-  const rows = await getPurchaseLog(ctx.tenantId, range.from, range.to)
+  // The journal's from/to inputs drive the query — any specific day or range
+  // works. First visit (no params) defaults to the current month.
+  const def = resolveRange('this_month')
+  const from = searchParams.from && DATE_RE.test(searchParams.from) ? searchParams.from : def.from
+  const to = searchParams.to && DATE_RE.test(searchParams.to) ? searchParams.to : def.to
+  const rows = await getPurchaseLog(ctx.tenantId, from, to)
 
   return (
     <div>
@@ -36,19 +32,10 @@ export default async function PurchasesDataPage({
         title={t('data.purchases_title')}
         description={t('data.purchases_desc')}
         action={
-          <EntryLinkButton
-            href="/app/purchases"
-            label={t('data.add_purchase')}
-          />
+          <EntryLinkButton href="/app/purchases" label={t('data.add_purchase')} />
         }
       />
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {range.from} — {range.to}
-        </p>
-        <RangeSelector />
-      </div>
-      <PurchasesExplorer rows={rows} />
+      <PurchasesJournal rows={rows} from={from} to={to} />
     </div>
   )
 }
