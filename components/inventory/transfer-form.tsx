@@ -87,11 +87,11 @@ export function TransferForm({
     'flex h-[38px] w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15'
 
   const errorKey =
-    state.error === 'insufficient'
+    state?.error === 'insufficient'
       ? 'inventory.transfer_insufficient'
-      : state.error === 'same_location'
+      : state?.error === 'same_location'
         ? 'inventory.transfer_same_location'
-        : state.error
+        : state?.error
           ? 'common.error'
           : null
 

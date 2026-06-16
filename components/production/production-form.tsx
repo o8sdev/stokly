@@ -162,9 +162,9 @@ export function ProductionForm({
   const selectCls =
     'flex h-9 w-full rounded-md border border-input bg-card px-2 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15'
   const errKey =
-    state.error === 'kitchen_short'
+    state?.error === 'kitchen_short'
       ? 'production.kitchen_short'
-      : state.error
+      : state?.error
         ? 'common.error'
         : null
 

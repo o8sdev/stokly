@@ -285,7 +285,7 @@ export function StockCountForm({
         })}
       </div>
 
-      {state.error && (
+      {state?.error && (
         <p className="text-sm text-destructive">{t('common.error')}</p>
       )}
 

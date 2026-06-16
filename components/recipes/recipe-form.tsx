@@ -559,7 +559,7 @@ export function RecipeForm({
               <span className="text-sm text-muted-foreground">%</span>
             </div>
           </div>
-          {state.error && (
+          {state?.error && (
             <p className="text-sm text-destructive">
               {state.error === 'unit'
                 ? t('recipes.unit_error')
