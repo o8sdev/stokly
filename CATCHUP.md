@@ -5,24 +5,50 @@
 > architecture rules that must never be broken, how to run it, and what comes
 > next. **Every working session must update this file** as work is done.
 
-_Last updated: 2026-06-11 (Owner's overview Phase 1: the tenant dashboard is now a period-scoped
-command center — selector (7d/30d/this/last month) drives a 6-KPI band (revenue, food-cost %, gross
-profit, purchases, waste, inventory value) with deltas + a daily-sales trend, reusing the
-period-report engine over a rolling range; no migration. Prior: Multiple consumption points (Bar + Kitchen): locations gained a
-`kind` + multiple `is_consumption_point`s with one `is_default_consumption`; recipes route
-to a consumption location; sales/waste/production deduct per location (migrations 036–039,
-`is_kitchen` dropped); `multi_location` feature gate (Pro+); per-location report. Prior:
-Tier C (C1/C2/C3 KPIs, C5 stock aging, C6 menu engineering); Tier B (B1 par+shopping list
-mig 034, B2 price variance, B3 sub-recipe yield mig 035). Remaining roadmap: B4 custom
-units + C4 prime cost (labor))._
+_Last updated: 2026-06-17. **Migrations live through `062`.** Active test tenant: **Forno Vivo**
+(pizzeria + bar; business login `forno@stokly.test`), seeded with suppliers/ingredients/recipes +
+a completed Day-0 opening count. Work since the 06-13 supplier-pricing report:_
+
+_**Data-integrity & control (Phases A–E):** soft-delete/archive on master data (mig 054, nullable
+`archived_at` + restore + "Archived" views); blind stock counts; required reasons on voids /
+write-offs / large waste; tenant activity/audit log; variance/shrinkage alerts. **Multi-location
+counts:** count every station in one session with per-line location (mig 052); day-0 = baseline.
+**Per-recipe & tenant food-cost targets** (mig 053) + dashboard food-cost monitor. **Guided
+onboarding:** `/app/onboarding` wizard + dashboard "Getting started" checklist (shared
+`lib/data/onboarding.ts` `getOnboardingState` so wizard + card never drift)._
+
+_**Admin console pass (W1–W4):** MRR window/join fix, `bulkChangePlan` parity with `changePlan`,
+`recordPayment` period default; impersonation exit + audit-log gaps; perf RPCs + indexes (mig 059);
+manage-admins UI (mig 060, super-only); confirmation modals on every destructive admin action._
+
+_**Latest session:** removed the **global ingredient library** entirely (mig 061 drops the table;
+admin catalog + tenant quick-add/browse/import-tab all gone, CSV/paste import kept); audit-log
+"Əməliyyat" column now shows human-readable i18n labels; **plans reduced to Trial + Standart only**
+(mig 062 deletes the 4 inactive legacy tiers) to match the landing; app-wide branded loader — a
+**StoklySpinner** (brand asterisk) — plus a full-screen **sign-out curtain**; onboarding fixes
+(wizard opens on step 1; dashboard card mirrors the wizard's 5 steps; quick-add persists
+conversions); **yield moved off the ingredient onto the recipe line** (ingredient `yield_percent`
+column kept as a hidden 100% default, no longer user-set/shown; recipe-line `yield_override` is now
+the primary input, required when >1 sales point); **sales-point "Main" reframed as a default/fallback**
+("Defolt"/"По умолчанию") + recipe sales-point picker required on multi-point tenants; strict
+step-by-step **Day-0 opening-count wizard** (every location required, submit only on the review step
+behind a confirm dialog — `components/inventory/opening-count-wizard.tsx`, branched in CountFlow on
+`!preCount.hasPreviousCount`); **Sales & Purchases journals** rebuilt as per-day collapsible groups +
+from/to date filter + CSV export (replaced the flat DataExplorer versions); comp tag renamed
+**Komp → İkram / Комплимент**; Reports nav split into **Maliyyə (Finances)** + **Hesabatlar
+(Reports)**; fixed a purchase-submit crash (`useFormState` state is transiently `undefined` on a
+same-route `redirect()` → guarded `state?.error` across delivery/count/transfer/production/
+ingredient/recipe forms). Added `scripts/qa-logic.ts` (27-assertion costing/stock-engine harness).
+**QA:** pure-engine assertions ✓, ledger↔batches invariant 23/23 ✓, sale FIFO+location ✓,
+full-menu food-cost ✓, public UI (az/ru/mobile) clean. Prior history: see the git commit log._
 
 ---
 
 ## 0. READ FIRST — current state, roadmap, how to continue
 
 **Repo:** github.com/o8sdev/stokly (branch `main`). **Supabase project ref:**
-`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `039`** (the DB is already
-migrated; on a *fresh* DB apply `supabase/migrations/001 → 039` in filename order).
+`anbvxpoxdalizlsdcsdb`. **Migrations applied live through `062`** (the DB is already
+migrated; on a *fresh* DB apply `supabase/migrations/001 → 062` in filename order).
 Working tree is committed; latest commit messages are the quickest "what changed" log.
 
 ### The end-to-end loop that now works
@@ -44,9 +70,10 @@ theoretical-vs-actual variance, food-cost %). Reports: food-cost, inventory-valu
   `public.`-qualified, `FOR UPDATE` locks, idempotent): `confirm_/void_daily_sales`,
   `transfer_stock`, `execute_/void_production_run`, `record_/reverse_waste`,
   `write_off_expired`. Authz inside via `current_tenant_id()` / `is_platform_admin()`.
-- **Kitchen-only consumption:** sales/waste/production-inputs FIFO-consume batches in the
-  `is_kitchen` location and **raise if short** — with a **no-batch fallback** (ingredients
-  never batch-tracked, i.e. count-only, are not location-restricted).
+- **Per-location consumption:** sales/waste/production-inputs FIFO-consume batches at the
+  recipe's routed **consumption point** (`recipes.consumption_location_id`; null → the tenant's
+  `is_default_consumption`) and **raise if short** — with a **no-batch fallback** (count-only
+  ingredients, never batch-tracked, are not location-restricted). (`is_kitchen` was dropped in mig 039.)
 - Reducer cases: delivery/production_output `+`, sale/waste/production_input/expiry_writeoff
   `−abs`, count = absolute, adjustment `±`, **transfer = no-op** (only moves location).
 - **Test destructive/RPC SQL with `BEGIN … ROLLBACK`**, impersonating a tenant via
